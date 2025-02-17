@@ -1,0 +1,28 @@
+﻿<ResourceDictionary
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:view="clr-namespace:NumberIt.Views"
+    xmlns:vm="clr-namespace:NumberIt.ViewModels"
+    xmlns:is="clr-namespace:NumberIt.Infrastructure">
+
+    <DataTemplate DataType="{x:Type vm:OpenImageVM}">
+        <Border Background="White" Padding="10" TextBlock.FontFamily="Calibri" TextBlock.FontSize="16">
+            <StackPanel>
+                <TextBlock TextWrapping="Wrap"  TextAlignment="Justify">
+                    <Run FontSize="24" FontWeight="SemiBold" Foreground="DarkBlue" Text="Bilddatei Laden"/>
+                    <LineBreak/><LineBreak/>                        
+                    <Run Text="Die folgenden Bild&#x00AD;ormate werden unter&#x00AD;stützt: JPEG, PNG, BMP, TIFF, GIF, WEBP, PGM, PPM"/>
+                    <LineBreak/><LineBreak/>                      
+                    <Run Text="Sie können das Bild mit dem Maus&#x00AD;rad ver&#x00AD;größern oder ver&#x00AD;klei&#x00AD;nern und es mit der lin&#x00AD;ken Maus&#x00AD;taste ver&#x00AD;schieben"/>
+                </TextBlock>
+                <Button Content="Bilddatei Laden" Command="{Binding cmdChangeImage}" HorizontalAlignment="Stretch" Padding="20,5" Margin="0,25,0,10"/>
+                <TextBlock  TextWrapping="Wrap"  TextAlignment="Justify" FontSize="13">                    
+                    <Run FontWeight="SemiBold" Text="Hinweis:"/>
+                    <Run Text="Diese An&#x00AD;wen&#x00AD;dung ver&#x00AD;än&#x00AD;dert oder über&#x00AD;schreibt die Original&#x00AD;datei unter keinen Um&#x00AD;stän&#x00AD;den."/>
+                </TextBlock>
+                <!--<TextBox x:Name="tbPath" Text="{Binding ImageFile }" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" Margin="0,20,0,0"/>-->
+            </StackPanel>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

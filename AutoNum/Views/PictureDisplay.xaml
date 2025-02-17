@@ -1,0 +1,44 @@
+﻿<UserControl 
+    x:Class="NumberIt.Views.PictureDisplay" 
+    x:Name="PD"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:view="clr-namespace:NumberIt.Views" 
+    xmlns:vm="clr-namespace:NumberIt.ViewModels" 
+    mc:Ignorable="d" 
+    d:DataContext="{d:DesignInstance Type=vm:MainVM}"   
+    >
+   
+
+    <view:ZoomBorder            
+        x:Name="border"                  
+        ClipToBounds="True"        
+        PanX="{Binding Page.PanX, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"
+        PanY="{Binding Page.PanY, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"
+        Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"
+        
+        >
+
+        <Canvas x:Name="PageCanvas">
+            <!--<Canvas.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Neue Fundstelle anlegen" Click="AddBookmarkClick"/>
+                    <MenuItem Header="Kopieren">
+                        <MenuItem Header="Link auf Seite im Browser" Command="{Binding SelectedPage.cmdCopyViewerLink, Mode=OneWay}"/>
+                        <MenuItem Header="Link auf die Bilddatei" Command="{Binding SelectedPage.cmdCopyImageLink, Mode=OneWay}"/>
+                        <MenuItem Header="Link auf Lokal gespeichertes Bild" Command="{Binding SelectedPage.cmdCopyImageFile, Mode=OneWay}"/>
+                    </MenuItem>
+                </ContextMenu>
+            </Canvas.ContextMenu>-->
+            <Image                           
+                x:Name="pageimg"                       
+                HorizontalAlignment="Left" VerticalAlignment="Top"      
+                ClipToBounds="true"                   
+                Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}" 
+                Source="{Binding Page.ImageSource, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}" 
+                />
+        </Canvas>
+    </view:ZoomBorder>
+</UserControl>

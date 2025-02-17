@@ -1,0 +1,75 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:view="clr-namespace:NumberIt.Views"
+    xmlns:vm="clr-namespace:NumberIt.ViewModels"
+    xmlns:is="clr-namespace:NumberIt.Infrastructure">
+
+    <DataTemplate DataType="{x:Type vm:AnalyzeVM}">
+        <Grid Background="White" TextBlock.FontFamily="Calibri" TextBlock.FontSize="15" Margin="10,0,20,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="auto"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+                <RowDefinition Height="auto"/>
+            </Grid.RowDefinitions>
+
+            <TextBlock
+                TextWrapping="Wrap"
+                TextAlignment="Justify" Grid.ColumnSpan="2" Grid.Row="0" Margin="0,0,0,30">
+                <Run FontSize="24" FontWeight="SemiBold" Foreground="DarkBlue" Text="Analyse"/>
+                <LineBreak/>               
+                <Run Text="Falls nicht al&#x00AD;le, oder falsche Ge&#x00AD;sichter er&#x00AD;kannt wur&#x00AD;den, kön&#x00AD;nen sie die Er&#x00AD;ken&#x00AD;nung hier opti&#x00AD;mieren."/>
+            </TextBlock>
+            
+            <Label 
+                Content="Empfindlichkeit:" 
+                FontWeight="SemiBold" Grid.Row="1" Padding="0"  VerticalAlignment="Center"
+                />            
+            <Slider 
+                Value="{Binding ScaleFactor}" Minimum="1.05" Maximum="2"
+                Grid.Row="1" Grid.Column="1" VerticalAlignment="Center" Margin="10,0,10,0" 
+                />
+            <TextBlock 
+                Text="Ein niedrigerer Wert erhöht die Ge&#x00AD;nauig&#x00AD;keit der Erken&#x00AD;nung, kann je&#x00AD;doch die Ver&#x00AD;ar&#x00AD;bei&#x00AD;tungs&#x00AD;zeit ver&#x00AD;län&#x00AD;gern."
+                TextWrapping="Wrap" TextAlignment="Justify"
+                Grid.Row="2" Grid.ColumnSpan="2"  Margin="0,0,0,15"
+                />
+            
+            <Label 
+                Content="Bestätigungen:" 
+                FontWeight="SemiBold" VerticalAlignment="Center"
+                Grid.Row="3" Padding="0" 
+                />
+            <Slider Grid.Row="3" Grid.Column="1" Value="{Binding minNeighbors}" Minimum="1" Maximum="20" VerticalAlignment="Center" Margin="10,0,10,0"/>
+            <TextBlock 
+                Grid.Row="4" Grid.ColumnSpan="2" TextWrapping="Wrap"  Margin="0,0,0,15" TextAlignment="Justify"
+                Text="Höhere Werte reduzieren die An&#x00AD;zahl der fal&#x00AD;schen Erken&#x00AD;nun&#x00AD;gen, kön&#x00AD;nen je&#x00AD;doch dazu füh&#x00AD;ren, dass ei&#x00AD;ni&#x00AD;ge Ge&#x00AD;sich&#x00AD;ter über&#x00AD;sehen werden."/>
+
+            <Label Grid.Row="5" Padding="0" Content="Mindestgröße:" FontWeight="SemiBold" VerticalAlignment="Center"/>
+            <Slider Grid.Row="5" Grid.Column="1" Value="{Binding minSize}" Minimum="10" Maximum="200" VerticalAlignment="Center" Margin="10,0,10,0"/>
+            <TextBlock 
+                Grid.Row="6" Grid.ColumnSpan="2" TextWrapping="Wrap" TextAlignment="Justify"
+                Text="Größere Werte igno&#x00AD;rieren klei&#x00AD;nere Ge&#x00AD;sich&#x00AD;ter, was hilf&#x00AD;reich sein kann, um Falsch&#x00AD;er&#x00AD;ken&#x00AD;nun&#x00AD;gen zu re&#x00AD;du&#x00AD;zieren."/>
+
+            <Button Content="Gesichter neu Erkennen" Command="{Binding cmdAnalyze}" Grid.Row="7" Grid.ColumnSpan="2" Margin="0,25,0,10" HorizontalAlignment="Stretch" Padding="5"/>
+
+
+            <TextBlock   Grid.Row="8" Grid.ColumnSpan="2" TextWrapping="Wrap" TextAlignment="Justify"
+               Text="Bitte beachten Sie, dass es oft schnel&#x00AD;ler geht, Num&#x00AD;me&#x00AD;rie&#x00AD;run&#x00AD;gen auf der fol&#x00AD;genden Sei&#x00AD;te ma&#x00AD;nu&#x00AD;ell zu er&#x00AD;gän&#x00AD;zen oder zu lö&#x00AD;schen"/>
+
+
+        </Grid>
+    </DataTemplate>
+
+
+</ResourceDictionary>

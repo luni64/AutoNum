@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Emgu.CV.runtime.windows" Version="4.10.0.5680" />
+    <PackageReference Include="Emgu.CV.Wpf" Version="4.10.0.5680" />
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25103.5738" />
+    <PackageReference Include="FrameworkExtract.System.Deployment" Version="4.0.30319" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Classifiers\haarcascade_frontalface_default.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Images\test1.jpg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>
