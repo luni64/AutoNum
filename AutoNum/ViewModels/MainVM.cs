@@ -12,7 +12,7 @@ namespace NumberIt.ViewModels
 
     public class MainVM : BaseViewModel
     {
-        public RelayCommand cmdNext => _cmdNext ??= new(doNext);
+        public RelayCommand cmdNext => _cmdNext ??= new RelayCommand(doNext, canDoNext);
         private void doNext(object? o)
         {
             if (o is string dir)
@@ -29,6 +29,11 @@ namespace NumberIt.ViewModels
                     CurrentStep.Enter(null);
                 }
             }
+        }
+
+        bool canDoNext(object? o)
+        {
+            return pictureVM.ImageSource != null;
         }
 
 
