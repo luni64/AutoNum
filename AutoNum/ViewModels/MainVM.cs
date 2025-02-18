@@ -5,6 +5,7 @@ using System.Windows.Media.Imaging;
 using System.Reflection;
 using System.Deployment;
 using System.Deployment.Application;
+using System.Windows;
 
 namespace NumberIt.ViewModels
 {
@@ -52,12 +53,24 @@ namespace NumberIt.ViewModels
 
         //private string _imageFilename = "";
 
-        ImageVM _pictureVM;
-        public ImageVM pictureVM
+        ImageModel _pictureVM;
+        public ImageModel pictureVM
         {
             get => _pictureVM;
-            set => SetProperty(ref _pictureVM, value);
+            set
+            {
+                SetProperty(ref _pictureVM, value);
+                //_pictureVM.CanvasSize = CanvasSize;
+            }
         }
+
+        
+        public Size CanvasSize {
+            get;
+            set; }
+        
+           
+        
 
         public IDialogService DialogService { get; }
 

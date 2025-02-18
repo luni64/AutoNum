@@ -12,13 +12,12 @@
     >
    
 
-    <view:ZoomBorder            
+    <view:ZoomBorder                    
         x:Name="border"                  
         ClipToBounds="True"        
         PanX="{Binding Page.PanX, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"
         PanY="{Binding Page.PanY, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"
-        Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"
-        
+        Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"          
         >
 
         <Canvas x:Name="PageCanvas">
@@ -32,7 +31,7 @@
                     </MenuItem>
                 </ContextMenu>
             </Canvas.ContextMenu>-->
-            <Image                           
+            <Image                         
                 x:Name="pageimg"                       
                 HorizontalAlignment="Left" VerticalAlignment="Top"      
                 ClipToBounds="true"                   

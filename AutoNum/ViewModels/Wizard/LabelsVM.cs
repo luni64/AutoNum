@@ -199,7 +199,7 @@ namespace NumberIt.ViewModels
             }
         }
 
-        private ImageVM pvm => parent.pictureVM;
+        private ImageModel pvm => parent.pictureVM;
         private double d_0 = 50;
         private string _number = "";
         private MainVM parent;

@@ -15,10 +15,12 @@ namespace NumberIt.Views
         private Point origin;
         private Point start;
 
+        
         private TranslateTransform GetTranslateTransform(UIElement element)
         {
             return (TranslateTransform)((TransformGroup)element.RenderTransform)
               .Children.First(tr => tr is TranslateTransform);
+            
         }
 
         private ScaleTransform GetScaleTransform(UIElement element)
@@ -125,6 +127,9 @@ namespace NumberIt.Views
         }
 
         #region DependencyProperties ------------------------------
+
+
+
 
         public double Zoom
         {

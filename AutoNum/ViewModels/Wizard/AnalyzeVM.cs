@@ -69,7 +69,7 @@ namespace NumberIt.ViewModels
         }
 
         private MainVM parent;
-        private ImageVM pvm => parent.pictureVM;
+        private ImageModel pvm => parent.pictureVM;
 
         //  internal string ImageFile = string.Empty;
 

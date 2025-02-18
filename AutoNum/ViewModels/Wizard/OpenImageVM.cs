@@ -15,8 +15,9 @@ namespace NumberIt.ViewModels
                    var img = CvInvoke.Imread(imageFilename, Emgu.CV.CvEnum.ImreadModes.Color);
                     if (!img.IsEmpty)
                     {
-                        parent.pictureVM = new ImageVM
+                        parent.pictureVM = new ImageModel
                         {
+                            CanvasSize = parent.CanvasSize,
                             emguImage = img,
                             ImageSource = img.ToBitmapSource(),
                             Filename = imageFilename, 

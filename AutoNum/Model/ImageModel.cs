@@ -7,8 +7,9 @@ using System.Windows.Media.Imaging;
 
 
 namespace NumberIt.ViewModels
+
 {
-    public class ImageVM : BaseViewModel, IDisposable
+    public class ImageModel : BaseViewModel, IDisposable
     {
         public ObservableCollection<MarkerVM> MarkerVMs { get; } = [];
         public Mat? emguImage
@@ -29,16 +30,36 @@ namespace NumberIt.ViewModels
             set
             {
                 SetProperty(ref _imageSource, value);
+
                 ImageWidth = _imageSource?.PixelWidth ?? 0;
-                Zoom = 700.0 / ImageWidth;
+                ImageHeight = _imageSource?.PixelHeight ?? 0;
+                Zoom = 0.95 * Math.Min(CanvasSize.Width / ImageWidth, CanvasSize.Height / ImageHeight);
+
+                PanX =(int)( (CanvasSize.Width - ImageWidth * Zoom) / 2);
+                PanY = (int)((CanvasSize.Height - ImageHeight * Zoom) / 2);
+                
+
+                //PanX = (int)(ImageWidth * Zoom * 0.025);
+                //PanY = PanX;
             }
         }
-        public String Filename = "";
 
-        public int ImageWidth
+        public Size CanvasSize { get; set; }
+
+
+        public String Filename { get; set; } = "";
+
+        public int ImageWidth //{ get; set; }
         {
             get => _imageWidth;
             set => SetProperty(ref _imageWidth, value);
+        }
+
+        int _imageHeight;
+        public int ImageHeight //{ get; set; }
+        {
+            get => _imageHeight;
+            set => SetProperty(ref _imageHeight, value);
         }
         public int PanX
         {
@@ -55,7 +76,7 @@ namespace NumberIt.ViewModels
             get => _zoom;
             set => SetProperty(ref _zoom, value);
         }
-                
+
         public void Dispose() => emguImage?.Dispose();
 
         int _imageWidth;

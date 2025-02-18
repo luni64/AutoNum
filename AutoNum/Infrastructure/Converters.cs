@@ -174,8 +174,7 @@ namespace NumberIt.Infrastructure
     public class boolToVisibiltiyConverter : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            Trace.WriteLine($"conv { (bool)value}");
+        {           
             return ((bool)value == true) ? Visibility.Visible : Visibility.Collapsed;
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

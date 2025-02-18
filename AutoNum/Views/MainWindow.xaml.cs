@@ -44,5 +44,14 @@ namespace NumberIt
             }
 
         }
+
+        private void Border_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if(DataContext is MainVM mainVM)
+            {
+                mainVM.CanvasSize = e.NewSize;
+            }
+
+        }
     }
 }

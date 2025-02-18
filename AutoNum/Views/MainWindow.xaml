@@ -37,11 +37,23 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <view:PictureDisplay
+
+
+
+        <view:PictureDisplay            
             Grid.Column="0"  Grid.RowSpan="2"
             Background="#FFEDEDED"            
-            Page="{Binding pictureVM}"/>
+            Page="{Binding pictureVM}">
 
+            <view:PictureDisplay.Resources>
+                <Style TargetType="view:PictureDisplay">
+                    <EventSetter Event="SizeChanged" Handler="Border_SizeChanged" />
+                </Style>
+            </view:PictureDisplay.Resources>
+            
+        </view:PictureDisplay>
+
+      
         <GridSplitter ResizeBehavior="PreviousAndNext" Grid.Column="1" Grid.RowSpan="2" Width="10" Background="White" Focusable="False"/>
 
         <ContentControl Grid.Column ="2" Content="{Binding CurrentStep}" Margin="0,0,10,0"/>

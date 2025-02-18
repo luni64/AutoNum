@@ -10,6 +10,7 @@ using System.Windows.Input;
 using Xceed.Wpf.Toolkit.PropertyGrid.Implementation.Converters;
 
 
+
 namespace NumberIt.Views
 {
     /// <summary>
@@ -22,19 +23,19 @@ namespace NumberIt.Views
             InitializeComponent();
         }
 
-        public ImageVM Page
+        public ImageModel Page
         {
-            get => (ImageVM)GetValue(PageProperty);
+            get => (ImageModel)GetValue(PageProperty);
             set => SetValue(PageProperty, value);
         }
 
         public static readonly DependencyProperty PageProperty =
-            DependencyProperty.Register("Page", typeof(ImageVM), typeof(PictureDisplay), new PropertyMetadata(null, OnPageChanged));
+            DependencyProperty.Register("Page", typeof(ImageModel), typeof(PictureDisplay), new PropertyMetadata(null, OnPageChanged));
 
 
         static void OnPageChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (e.NewValue is ImageVM pageVM)
+            if (e.NewValue is ImageModel pageVM)
             {
                 var that = ((PictureDisplay)d);
                 pageVM.MarkerVMs.CollectionChanged -= that.Marker_CollectionChanged;
