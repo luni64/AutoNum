@@ -1,14 +1,79 @@
-﻿using System;
+﻿using Emgu.CV;
+using System;
 using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
-using System.Windows.Media.Imaging;
+using System.Windows.Media;
+//using System.Windows.Media.Imaging;
 
 namespace NumberIt.Infrastructure
 {
+    public class EmguMatToBitmapSource : IValueConverter
+    {
+        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {                     
+
+            if (value is Emgu.CV.Mat mat)
+            {
+                return mat.ToBitmapSource();
+            }
+            return null;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    public class DrawingColToMediaBrush : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is System.Drawing.Color color)
+            {                
+                return new SolidColorBrush(System.Windows.Media.Color.FromArgb(color.A, color.R, color.G, color.B));
+            }
+            return System.Windows.Media.Brushes.Transparent; // Default fallback
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is SolidColorBrush solidColorBrush)
+            {
+                var color = solidColorBrush.Color;
+                return System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B);
+            }
+            return System.Drawing.Color.Transparent; // Default fallback
+        }
+    }
+
+
+    public class ColorConverter : IValueConverter
+    {
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is System.Windows.Media.Color mediaColor)
+            {                
+                return (System.Drawing.Color?) System.Drawing.Color.FromArgb(mediaColor.A, mediaColor.R, mediaColor.G, mediaColor.B);
+            }
+            return System.Drawing.Color.Black; // Default fallback
+        }
+
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is System.Drawing.Color drawingColor)
+            {
+                return (System.Windows.Media.Color?) System.Windows.Media.Color.FromArgb(drawingColor.A, drawingColor.R, drawingColor.G, drawingColor.B);
+            }
+            return (System.Windows.Media.Color?) System.Windows.Media.Colors.Black; // Default fallback
+        }
+    }
+
+
     public class BoolToObjectConverter : MarkupExtension, IValueConverter
     {
         //public PackIconBase checkedIcon { get; set; } = new PackIconModern() {Kind = PackIconModernKind.Creditcard };
@@ -63,9 +128,9 @@ namespace NumberIt.Infrastructure
             {
                 using (var stream = File.OpenRead(path))
                 {
-                    var image = new BitmapImage();
+                    var image = new System.Windows.Media.Imaging.BitmapImage();
                     image.BeginInit();
-                    image.CacheOption = BitmapCacheOption.OnLoad;
+                    image.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
                     image.StreamSource = stream;
                     image.EndInit();
                     result = image;
@@ -174,7 +239,7 @@ namespace NumberIt.Infrastructure
     public class boolToVisibiltiyConverter : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {           
+        {
             return ((bool)value == true) ? Visibility.Visible : Visibility.Collapsed;
         }
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

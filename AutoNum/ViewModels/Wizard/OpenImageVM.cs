@@ -1,5 +1,4 @@
-﻿//using System.Windows;
-using Emgu.CV;
+﻿using System.Diagnostics;
 
 namespace NumberIt.ViewModels
 {
@@ -12,32 +11,21 @@ namespace NumberIt.ViewModels
             {
                 try
                 {
-                   var img = CvInvoke.Imread(imageFilename, Emgu.CV.CvEnum.ImreadModes.Color);
-                    if (!img.IsEmpty)
-                    {
-                        parent.pictureVM = new ImageModel
-                        {
-                            CanvasSize = parent.CanvasSize,
-                            emguImage = img,
-                            ImageSource = img.ToBitmapSource(),
-                            Filename = imageFilename, 
-                        };
-                    }                  
-                    
+                    parent.pictureVM.Init(imageFilename);
                 }
-                catch { }                                             
+                catch { Trace.WriteLine("Error loading image in OpenImageVM"); }
             }
         }
 
         public override void Enter(object? o)
         {
-            foreach (var mvs in parent.pictureVM.MarkerVMs)
+            foreach (var marker in parent.pictureVM.MarkerVMs)
             {
-                mvs.visible = false;
+                marker.visible = false;
             }
         }
 
         private MainVM parent = parent;
-        private RelayCommand? _cmdChangeImage;              
+        private RelayCommand? _cmdChangeImage;
     }
 }

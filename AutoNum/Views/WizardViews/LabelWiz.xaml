@@ -5,6 +5,8 @@
     xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
     xmlns:is="clr-namespace:NumberIt.Infrastructure">
 
+    <is:ColorConverter x:Key="ColorConverter"/>
+
     <DataTemplate DataType="{x:Type vm:LabelsVM}">
         <Grid Background="White" TextBlock.FontFamily="Calibri" TextBlock.FontSize="15" Margin="10,0,20,0">
             <Grid.ColumnDefinitions>
@@ -78,7 +80,7 @@
                 Grid.Row="6" Grid.ColumnSpan="1"/>
             <xctk:ColorPicker 
                 Grid.Row="6" Grid.Column="1" Margin="20,5,0,0"  Width="75" VerticalAlignment="Center" HorizontalAlignment="Left"
-                SelectedColor="{Binding FontColor, Mode=TwoWay}" ColorMode="ColorCanvas" UsingAlphaChannel="False" />
+                SelectedColor="{Binding FontColor, Mode=TwoWay,  Converter={StaticResource ColorConverter}}" ColorMode="ColorCanvas" UsingAlphaChannel="False" />
             
             <Label 
                 Content="Hintergrund:" 
@@ -86,7 +88,7 @@
                 Grid.Row="7" Grid.ColumnSpan="1"/>
             <xctk:ColorPicker 
                 Grid.Row="7" Grid.Column="1" Margin="20,5,0,0" Width="75" VerticalAlignment="Center" HorizontalAlignment="Left"
-                SelectedColor="{Binding BackgroundColor, Mode=TwoWay}" ColorMode="ColorCanvas" UsingAlphaChannel="False" />
+                SelectedColor="{Binding BackgroundColor, Mode=TwoWay,  Converter={StaticResource ColorConverter}}" ColorMode="ColorCanvas" UsingAlphaChannel="False" />
 
             <Label 
                 Content="Rand:" 
@@ -94,7 +96,7 @@
                 Grid.Row="8" Grid.ColumnSpan="1"/>
             <xctk:ColorPicker 
                 Grid.Row="8" Grid.Column="1" Margin="20,5,0,0"  Width="75" VerticalAlignment="Center" HorizontalAlignment="Left"
-                SelectedColor="{Binding EdgeColor, Mode=TwoWay}" ColorMode="ColorCanvas" UsingAlphaChannel="False" />
+                SelectedColor="{Binding EdgeColor, Mode=TwoWay,  Converter={StaticResource ColorConverter}}" ColorMode="ColorCanvas" UsingAlphaChannel="False" />
 
             <Button Content="Beschriftungen neu nummerieren" Command="{Binding cmdNumerate}" Grid.Row="9" Grid.ColumnSpan="2" Margin="0,25,0,10" HorizontalAlignment="Stretch" Padding="5"/>
 

@@ -1,10 +1,7 @@
-﻿//using NumberIt.Views;
-//using NumberIt.ViewModels;
-using System.Windows;
-using System;
+﻿using Microsoft.Win32;
 using NumberIt.ViewModels;
-using Microsoft.Win32;
 using System.IO;
+using System.Windows;
 
 namespace NumberIt.Infrastructure
 {
@@ -19,8 +16,7 @@ namespace NumberIt.Infrastructure
                     {
                         var dialog = new OpenFileDialog();
                         if (dialog.ShowDialog() == true)
-                        {
-                            
+                        {                            
                             retVal = dialog.FileName;
                         }
                         break;
@@ -45,6 +41,5 @@ namespace NumberIt.Infrastructure
             }
             return retVal;
         }
-
     }
 }

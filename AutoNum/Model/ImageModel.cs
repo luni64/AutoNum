@@ -1,16 +1,13 @@
 ﻿using Emgu.CV;
 using System.Collections.ObjectModel;
-using System.Security.Permissions;
-using System.Windows;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using System.Drawing;
 
 
 namespace NumberIt.ViewModels
-
 {
     public class ImageModel : BaseViewModel, IDisposable
     {
+        #region Properties ----------------------------------------------------
         public ObservableCollection<MarkerVM> MarkerVMs { get; } = [];
         public Mat? emguImage
         {
@@ -20,43 +17,21 @@ namespace NumberIt.ViewModels
                 if (_emguBitmap != value)
                 {
                     _emguBitmap?.Dispose();
-                    SetProperty(ref _emguBitmap, value);
+                    _emguBitmap = value;
+                    OnPropertyChanged();                   
                 }
             }
         }
-        public BitmapSource? ImageSource
-        {
-            get => _imageSource;
-            set
-            {
-                SetProperty(ref _imageSource, value);
-
-                ImageWidth = _imageSource?.PixelWidth ?? 0;
-                ImageHeight = _imageSource?.PixelHeight ?? 0;
-                Zoom = 0.95 * Math.Min(CanvasSize.Width / ImageWidth, CanvasSize.Height / ImageHeight);
-
-                PanX =(int)( (CanvasSize.Width - ImageWidth * Zoom) / 2);
-                PanY = (int)((CanvasSize.Height - ImageHeight * Zoom) / 2);
-                
-
-                //PanX = (int)(ImageWidth * Zoom * 0.025);
-                //PanY = PanX;
-            }
-        }
+        public String Filename { get; set; } = "";
 
         public Size CanvasSize { get; set; }
 
-
-        public String Filename { get; set; } = "";
-
-        public int ImageWidth //{ get; set; }
+        public int ImageWidth
         {
             get => _imageWidth;
             set => SetProperty(ref _imageWidth, value);
         }
-
-        int _imageHeight;
-        public int ImageHeight //{ get; set; }
+        public int ImageHeight
         {
             get => _imageHeight;
             set => SetProperty(ref _imageHeight, value);
@@ -77,12 +52,30 @@ namespace NumberIt.ViewModels
             set => SetProperty(ref _zoom, value);
         }
 
+        #endregion
+
+        public void Init(string imageFilename)
+        {
+            emguImage = CvInvoke.Imread(imageFilename, Emgu.CV.CvEnum.ImreadModes.Color);
+            if (!emguImage.IsEmpty)
+            {                
+                Filename = imageFilename;
+
+                MarkerVMs.Clear();
+
+                ImageWidth = emguImage.Width;
+                ImageHeight = emguImage.Height;
+
+                Zoom = 0.95 * Math.Min((double)CanvasSize.Width / ImageWidth, (double)CanvasSize.Height / ImageHeight);
+                PanX = (int)((CanvasSize.Width - ImageWidth * Zoom) / 2);
+                PanY = (int)((CanvasSize.Height - ImageHeight * Zoom) / 2);
+            }
+        }
         public void Dispose() => emguImage?.Dispose();
 
-        int _imageWidth;
+        int _imageHeight, _imageWidth;
         int _panX, _panY;
-        double _zoom = 0.7;
-        BitmapSource? _imageSource;
+        double _zoom = 0.7;        
         private Mat? _emguBitmap;
     }
 }

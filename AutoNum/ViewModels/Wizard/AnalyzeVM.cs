@@ -1,8 +1,5 @@
 ﻿using Emgu.CV;
-using Emgu.CV.Structure;
-//using System.Windows;
 using System.Drawing;
-using System.Windows.Media.Imaging;
 
 namespace NumberIt.ViewModels
 {
@@ -10,45 +7,34 @@ namespace NumberIt.ViewModels
     {
         public double ScaleFactor { get; set; } = 1.2;
         public int minNeighbors { get; set; } = 7;
-        public int minSize { get; set; } = 0;
-        public int maxSize { get; set; } = 0;
+        public int minSize { get; set; }
+        public int maxSize { get; set; }
 
         public RelayCommand cmdAnalyze => _cmdAnalyze ??= new(doAnalyze);
         void doAnalyze(object? o = null)
         {
-            //using var EmguImage = CvInvoke.Imread(parent.ImageFilename, Emgu.CV.CvEnum.ImreadModes.Color);
-
             using var gray = new Mat();
             CvInvoke.CvtColor(pvm.emguImage, gray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
 
-            var faceCascade = new CascadeClassifier("Classifiers/haarcascade_frontalface_default.xml");
-            Rectangle[] faces = faceCascade.DetectMultiScale(gray, ScaleFactor, minNeighbors, minSize: new Size(minSize, minSize), maxSize: new Size(maxSize, maxSize));
+            pvm.MarkerVMs.Clear();
 
-            parent.pictureVM.MarkerVMs.Clear();
-            foreach (var rect in faces)
+            var faceCascade = new CascadeClassifier("Classifiers/haarcascade_frontalface_default.xml");
+            var faceMarkers = faceCascade.DetectMultiScale(gray, ScaleFactor, minNeighbors, minSize: new Size(minSize, minSize), maxSize: new Size(maxSize, maxSize));
+            foreach (var faceMarker in faceMarkers)
             {
-                //CvInvoke.Rectangle(EmguImage, rect, new MCvScalar(0, 255, 0), 3);
                 pvm.MarkerVMs.Add(new MarkerRect
                 {
-                    X = rect.X,
-                    Y = rect.Y,
-                    W = rect.Width,
-                    H = rect.Height,
+                    X = faceMarker.X,
+                    Y = faceMarker.Y,
+                    W = faceMarker.Width,
+                    H = faceMarker.Height,
                 });
             }
-
-            if (faces.Length > 0)
-            {
-                var av = faces.Average(f => f.Width);
-                var std = faces.StdDev(f => f.Width);
-
-            }           
         }
 
         public AnalyzeVM(MainVM parent)
         {
             this.parent = parent;
-            
         }
 
         public override void Enter(object? o)
@@ -65,15 +51,10 @@ namespace NumberIt.ViewModels
                     else marker.visible = false;
                 }
             }
-            // parent.pictureVM.ImageSource =  bitmapSource;
         }
 
-        private MainVM parent;
         private ImageModel pvm => parent.pictureVM;
-
-        //  internal string ImageFile = string.Empty;
-
         private RelayCommand? _cmdAnalyze;
-        //  private BitmapSource? bitmapSource;
+        private MainVM parent;
     }
 }

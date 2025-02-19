@@ -1,23 +1,29 @@
-﻿<UserControl 
-    x:Class="NumberIt.Views.PictureDisplay" 
-    x:Name="PD"
+﻿<UserControl
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:view="clr-namespace:NumberIt.Views" 
     xmlns:vm="clr-namespace:NumberIt.ViewModels" 
+    xmlns:Infrastructure="clr-namespace:NumberIt.Infrastructure" 
+    x:Class="NumberIt.Views.PictureDisplay" 
+    x:Name="PD" 
     mc:Ignorable="d" 
-    d:DataContext="{d:DesignInstance Type=vm:MainVM}"   
+    d:DataContext="{d:DesignInstance Type={x:Type vm:MainVM}}"   
     >
-   
+
+
+    <UserControl.Resources>
+        <Infrastructure:EmguMatToBitmapSource x:Key="EmguMatToBitmapSource"/>
+    </UserControl.Resources>
+
 
     <view:ZoomBorder                    
         x:Name="border"                  
         ClipToBounds="True"        
-        PanX="{Binding Page.PanX, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"
-        PanY="{Binding Page.PanY, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"
-        Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}"          
+        PanX="{Binding Page.PanX, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
+        PanY="{Binding Page.PanY, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
+        Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"          
         >
 
         <Canvas x:Name="PageCanvas">
@@ -35,8 +41,8 @@
                 x:Name="pageimg"                       
                 HorizontalAlignment="Left" VerticalAlignment="Top"      
                 ClipToBounds="true"                   
-                Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}" 
-                Source="{Binding Page.ImageSource, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}" 
+                Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
+                Source="{Binding Page.emguImage, Converter={StaticResource EmguMatToBitmapSource}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}" 
                 />
         </Canvas>
     </view:ZoomBorder>

@@ -1,6 +1,6 @@
 ﻿using Emgu.CV.Text;
 using System.ComponentModel;
-using System.Windows.Media;
+using System.Drawing;
 
 namespace NumberIt.ViewModels
 {
@@ -67,54 +67,50 @@ namespace NumberIt.ViewModels
             }
         }
 
-
-        public static Brush ForegroundBrush
+                
+        public static Color FontColor
         {
-            get { return _foregroundBrush; }
+            get => _fontColor;
             set
             {
-                if (value != _foregroundBrush)
+                if (_fontColor != value)
                 {
-                    _foregroundBrush = value;
-                    OnStaticPropertyChanged(nameof(ForegroundBrush));
+                    _fontColor = value;
+                    OnStaticPropertyChanged(nameof(FontColor));
                 }
             }
         }
 
-
-        public static Brush EdgeBrush
+        public static Color EdgeColor
         {
-            get { return _edgeBrush; }
+            get { return _edgeColor; }
             set
             {
-                if (_edgeBrush != value)
+                if (_edgeColor != value)
                 {
-                    _edgeBrush = value;
-                    OnStaticPropertyChanged(nameof(EdgeBrush));
+                    _edgeColor = value;
+                    OnStaticPropertyChanged(nameof(EdgeColor));
                 }
             }
         }
 
-        public static Brush BackgroundBrush
+        public static Color BackgroundColor
         {
-            get { return _backgroundBrush; }
+            get { return _backgroundColor; }
             set
             {
-                if (value != _backgroundBrush)
+                if (value != _backgroundColor)
                 {
-                    _backgroundBrush = value;
-                    OnStaticPropertyChanged(nameof(BackgroundBrush));
+                    _backgroundColor = value;
+                    OnStaticPropertyChanged(nameof(BackgroundColor));
                 }
             }
         }
 
-
-
-
-        private static Brush _edgeBrush = Brushes.White;
-        private static Brush _backgroundBrush = Brushes.Black;
-        private static Brush _foregroundBrush = Brushes.Black;
-
+        private static Color _edgeColor = Color.White;
+        private static Color _backgroundColor = Color.Green;
+        private static Color _fontColor = Color.Black;
+        
         private string _nr = "";
 
         public static event EventHandler<PropertyChangedEventArgs>? StaticPropertyChanged;

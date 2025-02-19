@@ -11,8 +11,7 @@
         public bool isLocked { get => _isLocked; set => SetProperty(ref _isLocked, value); }
         public bool visible { get => _visible; set => SetProperty(ref _visible, value); }
 
-        private double _x, _y, _w, _h;        
-        //private double _w, _h;
+        private double _x, _y, _w, _h;                
         private bool _isLocked = true, _visible = true;        
     }
 }

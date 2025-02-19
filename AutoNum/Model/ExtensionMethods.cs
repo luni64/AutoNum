@@ -2,32 +2,34 @@
 using Emgu.CV.Structure;
 using NumberIt.ViewModels;
 using System.Drawing;
-using System.Windows.Media;
+
+//using System.Windows.Media;
 using ImageModel = NumberIt.ViewModels.ImageModel;
 
 namespace AutoNumber.Model
 {
     public static class ExtensionMethods
     {
+        public static MCvScalar toMCvScalar(this Color col)
+        {
+          return new MCvScalar(col.B, col.G, col.R);  
+        }
+
         public static Mat toNumberedMat(this ImageModel image)
         {
             Mat mat = image.emguImage!.Clone();
 
             var markers = image.MarkerVMs.OfType<MarkerLabel>();
-
-            var fontColor = (MarkerLabel.ForegroundBrush as SolidColorBrush).Color;
-            var fillColor = (MarkerLabel.BackgroundBrush as SolidColorBrush).Color;
-            var edgeColor = (MarkerLabel.EdgeBrush as SolidColorBrush).Color;
+                        
             int radius = (int)(MarkerLabel.Diameter / 2);
-
-            var fillMCv = new MCvScalar(fillColor.B, fillColor.G, fillColor.R);  // doesn't support alpha channel
-            var edgeMCv = new MCvScalar(edgeColor.B, edgeColor.G, edgeColor.R);
-            var fontMCv = new MCvScalar(fontColor.B, fontColor.G, fontColor.R); // doesn't support alpha channel
+            var fontMCv = MarkerLabel.FontColor.toMCvScalar();
+            var fillMCv = MarkerLabel.BackgroundColor.toMCvScalar();
+            var edgeMCv = MarkerLabel.EdgeColor.toMCvScalar();
 
             Emgu.CV.CvEnum.FontFace fontFace = Emgu.CV.CvEnum.FontFace.HersheyDuplex;
-            Size textSize = new Size();
+           // Size textSize = new Size();
 
-            string s = "";
+            string widestString = "";
 
             int baseline = 0; // distance (in pixels) from the bottom-most text point to the actual text baseline, output param!
 
@@ -39,25 +41,22 @@ namespace AutoNumber.Model
                 if (tempSize.Width > maxSize.Width)
                 {
                     maxSize = tempSize;
-                    s = marker.Number;
+                    widestString = marker.Number;
                 }
             }
 
             double fontScale = 0;
-
             for (double scale = 10; scale > 0.1; scale -= 0.01)
             {
-                Size tempSize = CvInvoke.GetTextSize(s, fontFace, scale, 1, ref baseline);
+                Size tempSize = CvInvoke.GetTextSize(widestString, fontFace, scale, 1, ref baseline);
                 if (tempSize.Width <= 2 * radius * 0.7 && tempSize.Height <= 2 * radius * 0.7)
                 {
-                    fontScale = scale;
-                    textSize = tempSize;
+                    fontScale = scale;                    
                     break;
                 }
             }
 
             int linewidth = (int)(fontScale * 2) + 1;
-
 
             var AA = Emgu.CV.CvEnum.LineType.AntiAlias;
 
@@ -70,25 +69,17 @@ namespace AutoNumber.Model
                 CvInvoke.Circle(mat, center, radius, edgeMCv, edgeThickness, AA);
 
 
-
-                // Calculate the bottom-left corner of the text to center it
-
-                Size tempSize = CvInvoke.GetTextSize(marker.Number, fontFace, fontScale, 1, ref baseline);
-
+                // Draw number in the center of the circle
+                Size textSize = CvInvoke.GetTextSize(marker.Number, fontFace, fontScale, 1, ref baseline);
                 Point textOrg = new Point(
-                    center.X - (tempSize.Width / 2),
-                    center.Y + (tempSize.Height / 2)
+                    center.X - (textSize.Width / 2),
+                    center.Y + (textSize.Height / 2)
                 );
 
-                // Draw the text
+                // Draw the number
                 CvInvoke.PutText(mat, marker.Number, textOrg, fontFace, fontScale, fontMCv, linewidth, AA);
-
-
-
             }
             return mat;
-
-
         }
     }
 }

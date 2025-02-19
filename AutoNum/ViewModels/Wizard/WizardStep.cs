@@ -1,5 +1,4 @@
-﻿//using System.Windows;
-namespace NumberIt.ViewModels
+﻿namespace NumberIt.ViewModels
 {
     public abstract class WizardStep : BaseViewModel
     {

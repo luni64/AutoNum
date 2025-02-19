@@ -11,7 +11,8 @@
     x:Name="UC" d:DesignHeight="334" d:DesignWidth="588">
 
     <UserControl.Resources>
-        <is:boolToVisibiltiyConverter x:Key="bool2Vis"/>
+        <is:boolToVisibiltiyConverter x:Key="bool2Vis"/>        
+        <is:DrawingColToMediaBrush x:Key="Col2Brush"/>
 
         <DataTemplate DataType="{x:Type vm:MarkerRect}">
             <Rectangle                
@@ -27,17 +28,18 @@
             <Grid Visibility="{Binding visible, Converter={StaticResource bool2Vis}}">
                 <Ellipse                                    
                     HorizontalAlignment="Center"  VerticalAlignment="Center" Height="{Binding Diameter}" Width="{Binding Diameter}"
-                    Fill="{Binding BackgroundBrush}"            
-                    Stroke="{Binding EdgeBrush}"                    
+                    Fill="{Binding BackgroundColor,Converter={StaticResource Col2Brush}}"            
+                    Stroke="{Binding EdgeColor, Converter={StaticResource Col2Brush}}"                    
                     StrokeThickness="{Binding StrokeThickness}"                      
                     />
                 <Viewbox Width="{Binding Diameter}" Height="{Binding Diameter}">
-                    <TextBlock Text="{Binding Number}" Margin="2" 
-                   FontSize="25" FontWeight="SemiBold" Foreground="{Binding ForegroundBrush}"
-                               
-                   TextAlignment="Center"
-                   HorizontalAlignment="Center"
-                   VerticalAlignment="Center" />
+                    <TextBlock 
+                        Text="{Binding Number}" Margin="2" 
+                        FontSize="25" FontWeight="SemiBold" 
+                        Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"                               
+                        TextAlignment="Center"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center" />
                 </Viewbox>
             </Grid>
 
@@ -45,48 +47,6 @@
     </UserControl.Resources>
 
     <Grid>
-
-        <ContentControl x:Name="MarkerUI" Content="{Binding}"/>
-
-        <!--<Grid.RowDefinitions>
-            <RowDefinition Height="auto"/>
-            <RowDefinition/>
-            </Grid.RowDefinitions> -->
-
-
-        <!--<DockPanel 
-            x:Name="dock"
-            Grid.Row="0"     
-              Background="#70FFFFFF"
-            LastChildFill="True">
-         
-            <ToggleButton   
-                DockPanel.Dock="Right"                             
-                IsChecked="{Binding isLocked}"
-                Focusable="False" 
-                ToolTip="Positionsänderung sperren/entsperren" 
-                Content="{Binding isLocked, 
-                    Converter={local:BoolToObjectConverter
-                    checkedIcon={iconPacks:Material Lock, Height=40,  Width=40},
-                    uncheckedIcon={iconPacks:Material LockOpenVariant, Width=40, Height=40}}}"
-                Foreground="{DynamicResource MahApps.Brushes.Accent}"                 
-            />               
-            <TextBlock
-                x:Name="txt"  
-                Text="{Binding Text, ElementName=UC, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"         
-                DockPanel.Dock="Left" HorizontalAlignment="Left" Padding="10,5,0,0"
-                Background="Transparent" Foreground="Black"
-                FontWeight="SemiBold" FontSize="40"  FontFamily="Arial Narrow"            
-            />
-        </DockPanel>-->
-
-        <!--<Rectangle 
-            x:Name="bookmarkRect"            
-            HorizontalAlignment="Left" Height="{Binding H, ElementName=UC}" Width="{Binding W, ElementName=UC}"
-            Fill="Transparent"            
-            Stroke="LimeGreen"
-            StrokeThickness="5"                      
-            >
-            </Rectangle>-->
+        <ContentControl x:Name="MarkerUI" Content="{Binding}"/>    
     </Grid>
 </UserControl>

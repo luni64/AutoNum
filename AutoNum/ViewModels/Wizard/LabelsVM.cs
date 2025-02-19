@@ -1,16 +1,11 @@
-﻿//using System.Windows;
-using Emgu.CV.Text;
-using System.Diagnostics;
-using System.Drawing;
-using System.Windows.Media;
-using Color = System.Windows.Media.Color;
-//using Color = System.Drawing.Color;
+﻿using System.Drawing;
 
 namespace NumberIt.ViewModels
 {
     public class LabelsVM : WizardStep
     {
-        #region commands ---------------------------------------------------------
+        #region Commands ---------------------------------------------------------
+
         RelayCommand? _cmdMoveLabel;
         public RelayCommand cmdMoveLabel => _cmdMoveLabel ??= new RelayCommand(doMoveLabel);
         void doMoveLabel(object? o)
@@ -37,8 +32,6 @@ namespace NumberIt.ViewModels
         public RelayCommand cmdNumerate => _cmdNumerate ??= new RelayCommand(doNumerate);
         void doNumerate(object? o)
         {
-            
-
             var labels = pvm.MarkerVMs.OfType<MarkerLabel>().OrderBy(m => m.X).ToList();
 
             double minY = labels.Min(m => m.Y);
@@ -59,7 +52,6 @@ namespace NumberIt.ViewModels
         }
 
         #endregion
-
         #region Properties --------------------------------------------------
 
         public string Number
@@ -73,51 +65,46 @@ namespace NumberIt.ViewModels
             set
             {
                 SetProperty(ref _diameter, value);
-                MarkerLabel.Diameter = d_0 * (0.5 + 0.0002 * (_diameter * _diameter));     
-                
-                
+                MarkerLabel.Diameter = d_0 * (0.5 + 0.0002 * (_diameter * _diameter));
             }
         }
-        public Color? FontColor
+        public Color FontColor
         {
             get => _fontColor;
             set
             {
-                SetProperty(ref _fontColor, value);
-                MarkerLabel.ForegroundBrush = new SolidColorBrush(_fontColor!.Value);                
+                SetProperty(ref _fontColor, value);                
+                MarkerLabel.FontColor = _fontColor;
             }
         }
-        public Color? BackgroundColor
+        public Color BackgroundColor
         {
             get => _backgroundColor;
             set
             {
                 SetProperty(ref _backgroundColor, value);
-                MarkerLabel.BackgroundBrush = new SolidColorBrush(_backgroundColor!.Value);                
+                MarkerLabel.BackgroundColor = value;
             }
         }
-        public Color? EdgeColor
+        public Color EdgeColor
         {
             get => _edgeColor;
             set
             {
                 SetProperty(ref _edgeColor, value);
-                MarkerLabel.EdgeBrush = new SolidColorBrush(_edgeColor!.Value);                
+                MarkerLabel.EdgeColor = value;
             }
         }
-        
+
         #endregion
 
         public LabelsVM(MainVM parent)
         {
-            this.parent = parent;
-            //pvm = parent.pictureVM;
-
-            Diameter = 0;
+            this.parent = parent;           
         }
 
 
-        void move(double horizontal, double vertical)
+        private void move(double horizontal, double vertical)
         {
             var labels = pvm.MarkerVMs.OfType<MarkerLabel>().OrderBy(m => m.X).ToList();
             foreach (var label in labels)
@@ -126,24 +113,26 @@ namespace NumberIt.ViewModels
                 label.Y += vertical;
             }
         }
-        
-        int _diameter;
 
-        private void SetLables()
+
+        private void SetLabels()
         {
+            // set current colors            
+            MarkerLabel.BackgroundColor = BackgroundColor;
+            MarkerLabel.EdgeColor = EdgeColor;
+            MarkerLabel.FontColor = FontColor;
+
             var faces = pvm.MarkerVMs.OfType<MarkerRect>().OrderBy(m => m.X).ToList();
-            
+
             d_0 = Math.Max(faces.Average(m => m.W), faces.Average(m => m.H)) / 2;
+
+            // split into rows
             double minY = faces.Min(m => m.Y);
             double maxY = faces.Max(m => m.Y);
             int nrOfRows = (int)Math.Max(1, (maxY - minY) / (d_0 * 1.25));
             double delta = (maxY - minY) / nrOfRows;
 
-            MarkerLabel.ForegroundBrush = new SolidColorBrush(FontColor!.Value);
-            MarkerLabel.BackgroundBrush = new SolidColorBrush(BackgroundColor!.Value);
-            MarkerLabel.EdgeBrush = new SolidColorBrush(EdgeColor!.Value);
-
-            int j = 1;
+            int nr = 1;
             for (int i = 0; i < nrOfRows; i++)
             {
                 double lower = minY + i * delta;
@@ -154,57 +143,35 @@ namespace NumberIt.ViewModels
                     pvm.MarkerVMs.Add(new MarkerLabel
                     {
                         CenterX = face.X + face.W / 2 - d_0 / 2,
-                        CenterY = face.Y + face.H,                        
+                        CenterY = face.Y + face.H,
                         visible = true,
-                        Number = (j++).ToString()
+                        Number = (nr++).ToString()
                     });
-
-                    //var ml = pvm.MarkerVMs.Last() as MarkerLabel;
-
-                    //Trace.WriteLine($"mm {(pvm.MarkerVMs.Last() as MarkerLabel).CenterX}");
                 }
-
                 Diameter = 50; // slider value 
             }
-
-
-
-            //foreach (var label in pvm.MarkerVMs.Where(m => m is MarkerRect).ToList())
-            //{
-            //    pvm.MarkerVMs.Add(new MarkerLabel
-            //    {
-            //        X = label.X + label.W / 2 - d_0/4,
-            //        Y = label.Y + label.H,
-            //        H = d_0/2,
-            //        W = d_0/2,
-            //        visible = true,
-            //        Number = (i++).ToString()
-            //    });
-            //}
         }
 
         public override void Enter(object? o)
         {
-            foreach (var marker in pvm.MarkerVMs)
+            foreach (var marker in pvm.MarkerVMs)  // hide face markers, show label markers
             {
                 if (marker is MarkerLabel) marker.visible = true;
                 else marker.visible = false;
             }
 
-            //pvm.MarkerVMs.OfType<MarkerLabel>().ToList().ForEach(m => pvm.MarkerVMs.Remove(m));
-
             if (!pvm.MarkerVMs.Any(m => m is MarkerLabel))  //  calculate labels from faces only once, to not overwrite adjustments
             {
-                SetLables();
+                SetLabels();
             }
         }
 
         private ImageModel pvm => parent.pictureVM;
-        private double d_0 = 50;
+        private double d_0 { get; set; } = 50;
+
         private string _number = "";
+        private Color _edgeColor = Color.Black, _fontColor = Color.Black, _backgroundColor = Color.White;
+        private int _diameter;
         private MainVM parent;
-        private Color? _edgeColor = Colors.Black;
-        private Color? _fontColor = Colors.Black;
-        private Color? _backgroundColor = Colors.White;
     }
 }

@@ -1,15 +1,9 @@
 ﻿//using System.Windows;
 using NumberIt.Infrastructure;
-using System.Linq.Expressions;
-using System.Windows.Media.Imaging;
-using System.Reflection;
-using System.Deployment;
-using System.Deployment.Application;
-using System.Windows;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace NumberIt.ViewModels
 {
-
     public class MainVM : BaseViewModel
     {
         public RelayCommand cmdNext => _cmdNext ??= new RelayCommand(doNext, canDoNext);
@@ -30,59 +24,29 @@ namespace NumberIt.ViewModels
                 }
             }
         }
-
         bool canDoNext(object? o)
         {
-            return pictureVM.ImageSource != null;
+            return !(pictureVM.emguImage?.IsEmpty ?? true);
         }
 
+        
 
-        WizardStep? _currentStep;
+        public ImageModel pictureVM { get;  }
+     
         public WizardStep CurrentStep
         {
             get => _currentStep;
             set => SetProperty(ref _currentStep, value);
         }
-
-
-        List<WizardStep> Steps;
-
-        //public string ImageFilename
-        //{
-        //    get => _imageFilename;
-        //    set
-        //    {
-        //        SetProperty(ref _imageFilename, value);
-        //    }
-        //}
-
-        //private string _imageFilename = "";
-
-        ImageModel _pictureVM;
-        public ImageModel pictureVM
-        {
-            get => _pictureVM;
-            set
-            {
-                SetProperty(ref _pictureVM, value);
-                //_pictureVM.CanvasSize = CanvasSize;
-            }
-        }
-
-        
-        public Size CanvasSize {
-            get;
-            set; }
-        
-           
-        
+      
 
         public IDialogService DialogService { get; }
+
 
         public MainVM(IDialogService DialogService)
         {
             this.DialogService = DialogService;
-            this._pictureVM = new();
+            this.pictureVM = new();
 
             Steps = [
                 new OpenImageVM(this),
@@ -90,35 +54,15 @@ namespace NumberIt.ViewModels
                 new LabelsVM(this),
                 new SaveImageVM(this)
             ];
-
-            foreach (var step in Steps)
-            {
-                step.PropertyChanged += Step_PropertyChanged;
-            }
-
-            CurrentStep = Steps[0];
+                     
+            _currentStep = Steps[0];
         }
 
-        public string Title => $"AutoNumber V{versionString}";
-
-        string versionString => Environment.GetEnvironmentVariable("ClickOnce_CurrentVersion") ?? "0.0.0.0";
-
-        private void Step_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
-        {
-            if (sender is OpenImageVM vm && e.PropertyName == "ImageFile")
-            {
-                //    (Steps[1] as AnalyzeVM)!.ImageFile = vm.ImageFile;
-
-                //    using var EmguImage = CvInvoke.Imread(vm.ImageFile, Emgu.CV.CvEnum.ImreadModes.Color);
-                //    ImageSource = EmguImage.ToBitmapSource();
-                //    SetProperty(ref _imageFilename, vm.ImageFile);
-            }
-        }
-
-        private BitmapSource? _imageSource;
-
-
-        private RelayCommand? _cmdChangeImage;
+        public string Title => $"AutoNumber V{Environment.GetEnvironmentVariable("ClickOnce_CurrentVersion") ?? "0.0.0.0"}";
+               
+        List<WizardStep> Steps;
+        WizardStep _currentStep;        
+                
         private RelayCommand? _cmdNext;
     }
 
@@ -145,19 +89,5 @@ namespace NumberIt.ViewModels
             return stdDev;
 
         }
-    }
-
-    public static class VersionHelper
-    {
-
-        public static string GetVersion()
-        {
-            if (ApplicationDeployment.IsNetworkDeployed)
-            {
-                return ApplicationDeployment.CurrentDeployment.CurrentVersion.ToString();
-            }
-            return "Debug Mode - No ClickOnce Version";
-        }
-
-    }
+    }    
 }

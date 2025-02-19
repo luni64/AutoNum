@@ -1,14 +1,5 @@
-﻿//using System.Windows;
-using AutoNumber.Model;
-using Emgu.CV;
-using Emgu.CV.Structure;
-using NumberIt.Views;
-using System.Drawing;
+﻿using AutoNumber.Model;
 using System.IO;
-//using System.Windows;
-using SolidColorBrush = System.Windows.Media.SolidColorBrush;
-
-
 
 namespace NumberIt.ViewModels
 {
