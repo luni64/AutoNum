@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34714.143
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NumTest", "NumTest\NumTest.csproj", "{BFB83E50-62CA-4402-BC7D-402655ED62E3}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AutoNumber", "AutoNum\AutoNumber.csproj", "{F55611E2-89FB-4186-9460-E6EB216341F6}"
 EndProject
 Global
@@ -13,10 +11,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{BFB83E50-62CA-4402-BC7D-402655ED62E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BFB83E50-62CA-4402-BC7D-402655ED62E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BFB83E50-62CA-4402-BC7D-402655ED62E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BFB83E50-62CA-4402-BC7D-402655ED62E3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F55611E2-89FB-4186-9460-E6EB216341F6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{F55611E2-89FB-4186-9460-E6EB216341F6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F55611E2-89FB-4186-9460-E6EB216341F6}.Release|Any CPU.ActiveCfg = Release|Any CPU
