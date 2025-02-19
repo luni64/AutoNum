@@ -28,9 +28,10 @@ AutoNumber uses the following third-party libraries:
 - **Emgu.CV.Windows** (Windows-specific OpenCV bindings) - License: [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE)
 - **Extended.WPF.Toolkit** (UI components for WPF) - License: [MS-PL (Microsoft Public License)](https://github.com/xceedsoftware/wpftoolkit/blob/master/license.md)
 
+See the [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) file for details.
+
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for details.
 
 ## Contact
 For support or inquiries, please reach out via the GitHub issue tracker.
-T
