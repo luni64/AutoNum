@@ -192,7 +192,7 @@ namespace AutoNumber.Model
             "Sara Pfeiffer"
         };
 
-            return mat.AddNamesAtBottomInTwoColumnsGdi(names);
+            return mat.AddNamesMultiColumnOptimized(names);
 
             //return mat;
         }
