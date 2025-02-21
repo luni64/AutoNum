@@ -12,22 +12,28 @@ namespace AutoNumber.Model
     {
         public static MCvScalar toMCvScalar(this Color col)
         {
-          return new MCvScalar(col.B, col.G, col.R);  
+            return new MCvScalar(col.B, col.G, col.R);
         }
 
         public static Mat toNumberedMat(this ImageModel image)
         {
-            Mat mat = image.emguImage!.Clone();
+            Mat mat = new();
+            CvInvoke.Resize(image.emguImage, mat, new Size(), 2, 2, Emgu.CV.CvEnum.Inter.LinearExact);
+
+          
+            
+          
+
 
             var markers = image.MarkerVMs.OfType<MarkerLabel>();
-                        
-            int radius = (int)(MarkerLabel.Diameter / 2);
+
+            int radius = (int)(MarkerLabel.Diameter / 1);
             var fontMCv = MarkerLabel.FontColor.toMCvScalar();
             var fillMCv = MarkerLabel.BackgroundColor.toMCvScalar();
             var edgeMCv = MarkerLabel.EdgeColor.toMCvScalar();
 
-            Emgu.CV.CvEnum.FontFace fontFace = Emgu.CV.CvEnum.FontFace.HersheyDuplex;
-           // Size textSize = new Size();
+            Emgu.CV.CvEnum.FontFace fontFace = Emgu.CV.CvEnum.FontFace.HersheySimplex;
+            // Size textSize = new Size();
 
             string widestString = "";
 
@@ -51,7 +57,7 @@ namespace AutoNumber.Model
                 Size tempSize = CvInvoke.GetTextSize(widestString, fontFace, scale, 1, ref baseline);
                 if (tempSize.Width <= 2 * radius * 0.7 && tempSize.Height <= 2 * radius * 0.7)
                 {
-                    fontScale = scale;                    
+                    fontScale = scale;
                     break;
                 }
             }
@@ -78,8 +84,117 @@ namespace AutoNumber.Model
 
                 // Draw the number
                 CvInvoke.PutText(mat, marker.Number, textOrg, fontFace, fontScale, fontMCv, linewidth, AA);
+
             }
-            return mat;
+
+
+            var names = new List<string>
+        {
+            "Hans Müller",
+            "Anna Schmidt",
+            "Peter Fischer",
+            "Sabine Schneider",
+            "Thomas Meyer",
+            "Julia Wagner",
+            "Markus Weber",
+            "Lena Becker",
+            "Stefan Hoffmann",
+            "Claudia Schäfer",
+            "Jan Schmid",
+            "Johanna Braun",
+            "Michael Wolf",
+            "Franziska Richter",
+            "Tobias Baumann",
+            "Lisa Koch",
+            "Christian Neumann",
+            "Katharina Krause",
+            "Lukas Vogel",
+            "Susanne Schubert",
+            "Matthias Lehmann",
+            "Nicole Schäfer",
+            "Alexander Schulz",
+            "Clara Bauer",
+            "Florian Roth",
+            "Carolin Haas",
+            "Patrick Keller",
+            "Laura Maier",
+            "Sebastian Groß",
+            "Marie Hartmann",
+            "Jonas Lang",
+            "Anja Schmitt",
+            "Benjamin Kaiser",
+            "Vanessa Böhm",
+            "Moritz Peters",
+            "Andrea Frank",
+            "Johannes Brandt",
+            "Melanie Winter",
+            "Tim Arnold",
+            "Verena Bergmann",
+            "Erik Albrecht",
+            "Jutta Schuster",
+            "Hendrik Beck",
+            "Nadine Heinemann",
+            "Philipp König",
+            "Maren Simon",
+            "Oliver Hermann",
+            "Sarah Seidel",
+            "Maximilian Fuchs",
+            "Helena Lorenz",
+            "Dominik Moser",
+            "Isabell Horn",
+            "Jonas Weiß",
+            "Theresa Gebhardt",
+            "Christoph Auer",
+            "Lisa Schädtler",
+            "Paul Metzger",
+            "Nora Blum",
+            "Felix Kroll",
+            "Amelie Schneider",
+            "Konstantin Engel",
+            "Johanna Kraemer",
+            "Simon Herzog",
+            "Pauline Urban",
+            "Daniel Kraft",
+            "Miriam Seyfried",
+            "Leon Rieger",
+            "Carolin Busch",
+            "Andreas Schwarz",
+            "Viktoria Wendt",
+            "Theo Meier",
+            "Rebecca Hübner",
+            "Martin Böhmer",
+            "Hanna Vogt",
+            "Julian Weiss",
+            "Paula Siebert",
+            "Marcel Bischof",
+            "Annalena Dietrich",
+            "Lukas Ziegler",
+            "Magdalena Paul",
+            "Rico Schauer",
+            "Nadine Vogler",
+            "Fabian Hein",
+            "Tanja Sommer",
+            "Kilian Reinhardt",
+            "Jasmin Lindner",
+            "Nico Pohl",
+            "Friederike Krämer",
+            "Viktor Schlegel",
+            "Lea Brunner",
+            "Sven Henning",
+            "Rebecca Bruns",
+            "Leonhard Oster",
+            "Eva Voigt",
+            "Christoph Bayer",
+            "Maria Franke",
+            "Florian Mayer",
+            "Theresa Ludwig",
+            "Jonas Reuter",
+            "Sara Pfeiffer"
+        };
+
+            return mat.AddNamesAtBottomInTwoColumnsGdi(names);
+
+            //return mat;
         }
     }
 }
