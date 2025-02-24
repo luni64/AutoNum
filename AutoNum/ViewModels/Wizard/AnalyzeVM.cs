@@ -11,10 +11,11 @@ namespace NumberIt.ViewModels
         public int maxSize { get; set; }
 
         public RelayCommand cmdAnalyze => _cmdAnalyze ??= new(doAnalyze);
-        void doAnalyze(object? o = null)
+        public void doAnalyze(object? o = null)
         {
+            using var matt = pvm.Bitmap.ToMat();
             using var gray = new Mat();
-            CvInvoke.CvtColor(pvm.emguImage, gray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
+            CvInvoke.CvtColor(matt, gray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
 
             pvm.MarkerVMs.Clear();
 

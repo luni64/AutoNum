@@ -21,7 +21,10 @@ namespace NumberIt.Views
             Canvas.SetLeft(this, 0);
             Canvas.SetTop(this, 0);
 
-            doLock(false);
+            if (markerVM is MarkerLabel)
+                doLock(false);
+            else 
+                doLock(false);
 
             markerVM.PropertyChanged += Dc_PropertyChanged;
         }
@@ -86,13 +89,13 @@ namespace NumberIt.Views
 
         private void Dc_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            //if (sender is MarkerVM vm)
-            //{
-            //    if (e.PropertyName == "isLocked")
-            //    {
-            //        doLock(vm.isLocked);
-            //    }
-            //}
+            if (sender is MarkerVM vm)
+            {
+                if (e.PropertyName == "isLocked")
+                {
+                    doLock(vm.isLocked);
+                }
+            }
         }
 
         #region Moving --------------------------------------------------

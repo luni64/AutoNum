@@ -12,26 +12,30 @@ namespace NumberIt.Infrastructure
             object? retVal = null;
             switch (viewModel)
             {
-                case OpenImageVM:
+                case OpenFileInfo:
                     {
-                        var dialog = new OpenFileDialog();
+                        var vm = (OpenFileInfo)viewModel;
+                        var dialog = new OpenFileDialog
+                        {
+                            Filter = vm.Filter
+                        };
                         if (dialog.ShowDialog() == true)
-                        {                            
-                            retVal = dialog.FileName;
+                        {
+                            retVal = dialog.FileName;                            
                         }
                         break;
                     }
 
-                case SaveImageVM:
+                case SaveFileInfo:
                     {
-                        var vm = (SaveImageVM) viewModel;
+                        var vm = (SaveFileInfo)viewModel;
                         var dialog = new SaveFileDialog
                         {
-                            FileName = Path.GetFileName(vm.outputFile),
-                            InitialDirectory = Path.GetDirectoryName(vm.outputFile),
-                            
+                            FileName = vm.Filename,
+                            InitialDirectory = vm.InitialDirectory,
+                            Filter = vm.Filter,
                         };
-                        retVal = dialog.ShowDialog() == true ? dialog.FileName : null;                        
+                        retVal = dialog.ShowDialog() == true ? dialog.FileName : null;
                         break;
                     }
 

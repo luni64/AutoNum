@@ -31,7 +31,7 @@ AutoNumber uses the following third-party libraries:
 See the [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) file for details.
 
 ## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE.md) file for details.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE.txt) file for details.
 
 ## Contact
 For support or inquiries, please reach out via the GitHub issue tracker.

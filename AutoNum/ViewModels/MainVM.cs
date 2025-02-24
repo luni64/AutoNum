@@ -26,19 +26,25 @@ namespace NumberIt.ViewModels
         }
         bool canDoNext(object? o)
         {
-            return !(pictureVM.emguImage?.IsEmpty ?? true);
+            //return !(pictureVM.emguImage?.IsEmpty ?? true);
+            return true;
         }
 
+        public OpenImageVM openImageVM { get; }
+        public NamesVM namesVM { get; }
         
 
-        public ImageModel pictureVM { get;  }
-     
+
+        public ImageModel pictureVM { get; }
+
+
+
         public WizardStep CurrentStep
         {
             get => _currentStep;
             set => SetProperty(ref _currentStep, value);
         }
-      
+
 
         public IDialogService DialogService { get; }
 
@@ -54,16 +60,26 @@ namespace NumberIt.ViewModels
                 new LabelsVM(this),
                 new SaveImageVM(this)
             ];
-                     
+
+            openImageVM = (OpenImageVM)Steps[0];
+            analyzeVM = (AnalyzeVM)Steps[1];
+            labelsVM = (LabelsVM)Steps[2];
+            namesVM = new NamesVM(this);
+
+
+
             _currentStep = Steps[0];
         }
 
         public string Title => $"AutoNumber V{Environment.GetEnvironmentVariable("ClickOnce_CurrentVersion") ?? "0.0.0.0"}";
-               
+
         List<WizardStep> Steps;
-        WizardStep _currentStep;        
-                
+        WizardStep _currentStep;
+
         private RelayCommand? _cmdNext;
+
+        public LabelsVM labelsVM { get; }
+        public AnalyzeVM analyzeVM;
     }
 
     public static class Extensions
@@ -89,5 +105,5 @@ namespace NumberIt.ViewModels
             return stdDev;
 
         }
-    }    
+    }
 }

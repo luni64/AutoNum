@@ -14,7 +14,7 @@
 
 
     <UserControl.Resources>
-        <Infrastructure:EmguMatToBitmapSource x:Key="EmguMatToBitmapSource"/>
+        <Infrastructure:BitmapToBitmapSource x:Key="Bitmap2BitmapSource"/>
     </UserControl.Resources>
 
 
@@ -42,7 +42,7 @@
                 HorizontalAlignment="Left" VerticalAlignment="Top"      
                 ClipToBounds="true"                   
                 Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
-                Source="{Binding Page.emguImage, Converter={StaticResource EmguMatToBitmapSource}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}" 
+                Source="{Binding Page.Bitmap, Converter={StaticResource Bitmap2BitmapSource}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}" 
                 />
         </Canvas>
     </view:ZoomBorder>

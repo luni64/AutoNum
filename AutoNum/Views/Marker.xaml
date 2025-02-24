@@ -1,17 +1,19 @@
-﻿<UserControl
-    x:Class="NumberIt.Views.Marker"   
+﻿<UserControl   
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"    
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"    
     xmlns:vm="clr-namespace:NumberIt.ViewModels" 
     xmlns:is="clr-namespace:NumberIt.Infrastructure"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    x:Class="NumberIt.Views.Marker"
     mc:Ignorable="d"
-    d:DataContext="{d:DesignInstance Type=vm:MarkerVM}"  
+    d:DataContext="{d:DesignInstance Type={x:Type vm:MarkerVM}}"  
     x:Name="UC" d:DesignHeight="334" d:DesignWidth="588">
 
     <UserControl.Resources>
-        <is:boolToVisibiltiyConverter x:Key="bool2Vis"/>        
+        <mah:MathMultiplyConverter x:Key="MathMultiplyConverter"/>
+        <is:boolToVisibiltiyConverter x:Key="bool2Vis"/>
         <is:DrawingColToMediaBrush x:Key="Col2Brush"/>
 
         <DataTemplate DataType="{x:Type vm:MarkerRect}">
@@ -25,28 +27,84 @@
         </DataTemplate>
 
         <DataTemplate DataType="{x:Type vm:MarkerLabel}">
-            <Grid Visibility="{Binding visible, Converter={StaticResource bool2Vis}}">
+            <Grid 
+                Visibility="{Binding visible, Converter={StaticResource bool2Vis}}"                
+                ToolTip="{Binding Name}" ToolTipService.InitialShowDelay="25">
+
                 <Ellipse                                    
                     HorizontalAlignment="Center"  VerticalAlignment="Center" Height="{Binding Diameter}" Width="{Binding Diameter}"
-                    Fill="{Binding BackgroundColor,Converter={StaticResource Col2Brush}}"            
+                    Fill="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}"            
                     Stroke="{Binding EdgeColor, Converter={StaticResource Col2Brush}}"                    
                     StrokeThickness="{Binding StrokeThickness}"                      
                     />
-                <Viewbox Width="{Binding Diameter}" Height="{Binding Diameter}">
-                    <TextBlock 
-                        Text="{Binding Number}" Margin="2" 
-                        FontSize="25" FontWeight="SemiBold" 
-                        Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"                               
+
+                <TextBlock                        
+                        Text="{Binding Number}" 
+                        FontSize="{Binding FontSize}" FontWeight="Normal"   LineStackingStrategy="BlockLineHeight"
+                        Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"    
+                    LineHeight="{Binding FontSize}"
                         TextAlignment="Center"
                         HorizontalAlignment="Center"
-                        VerticalAlignment="Center" />
-                </Viewbox>
+                        VerticalAlignment="Center" FontFamily="Calibri"      
+                        
+                    
+                        >
+
+                    <TextBlock.RenderTransform>
+                        <TransformGroup>
+                            <TranslateTransform x:Name="myTransform" Y="{Binding FontSize, ConverterParameter=0.04, Converter={StaticResource MathMultiplyConverter}}"/>
+                        </TransformGroup>
+                    </TextBlock.RenderTransform>
+
+
+                </TextBlock>
+
             </Grid>
 
         </DataTemplate>
+                    <!--LineHeight="{Binding FontSize}"-->
+
+                    <!--FontSize="{Binding FontSize}" FontWeight="Normal"   LineStackingStrategy="BlockLineHeight"-->
+        <DataTemplate DataType="{x:Type vm:TextLabel}">
+            <Grid 
+                Visibility="{Binding visible, Converter={StaticResource bool2Vis}}">
+
+                <TextBlock                        
+                    Text="{Binding Text}" 
+                    Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"  
+                    Background="Green"
+                    TextAlignment="Center"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" FontFamily="Calibri"            
+                    FontSize="{Binding FontSize}"             
+                 >
+
+                    <!--<TextBlock.RenderTransform>
+                        <TransformGroup>
+                            <TranslateTransform x:Name="myTransform" Y="{Binding FontSize, ConverterParameter=0.04, Converter={StaticResource MathMultiplyConverter}}"/>
+                        </TransformGroup>
+                    </TextBlock.RenderTransform>-->
+
+
+                </TextBlock>
+
+            </Grid>
+
+        </DataTemplate>
+
     </UserControl.Resources>
 
+    <UserControl.Style>
+        <Style TargetType="{x:Type UserControl}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Cursor" Value="SizeAll"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Style>
+
     <Grid>
-        <ContentControl x:Name="MarkerUI" Content="{Binding}"/>    
+        <ContentControl x:Name="MarkerUI" Content="{Binding}"/>
     </Grid>
 </UserControl>

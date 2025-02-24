@@ -17,7 +17,8 @@
     <PackageReference Include="Emgu.CV.runtime.windows" Version="4.10.0.5680" />
     <PackageReference Include="Emgu.CV.Wpf" Version="4.10.0.5680" />
     <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25103.5738" />
-    <PackageReference Include="FrameworkExtract.System.Deployment" Version="4.0.30319" />
+    <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0513" />
+    <PackageReference Include="MahApps.Metro.IconPacks" Version="5.1.0" />
   </ItemGroup>
 
   <ItemGroup>

@@ -59,13 +59,14 @@ namespace NumberIt.ViewModels
             get => _number;
             set => SetProperty(ref _number, value);
         }
-        public int Diameter  // will be attached to a slider 0...100. slider values: 0 -> 0.5*d_0,  50 => d_0,  100 => 2*d_0
+        public int Diameter  // is attached to a slider 0...100. slider values: 0 -> 0.5*d_0,  50 => d_0,  100 => 2*d_0
         {
             get => _diameter;
             set
             {
                 SetProperty(ref _diameter, value);
-                MarkerLabel.Diameter = d_0 * (0.5 + 0.0002 * (_diameter * _diameter));
+                parent.pictureVM.LabelDiameter = d_0 * (0.5 + 0.0002 * (_diameter * _diameter));
+                TextLabel.FontSize = parent.pictureVM.LabelDiameter / 2;
             }
         }
         public Color FontColor
@@ -73,7 +74,7 @@ namespace NumberIt.ViewModels
             get => _fontColor;
             set
             {
-                SetProperty(ref _fontColor, value);                
+                SetProperty(ref _fontColor, value);
                 MarkerLabel.FontColor = _fontColor;
             }
         }
@@ -100,20 +101,8 @@ namespace NumberIt.ViewModels
 
         public LabelsVM(MainVM parent)
         {
-            this.parent = parent;           
+            this.parent = parent;
         }
-
-
-        private void move(double horizontal, double vertical)
-        {
-            var labels = pvm.MarkerVMs.OfType<MarkerLabel>().OrderBy(m => m.X).ToList();
-            foreach (var label in labels)
-            {
-                label.X += horizontal;
-                label.Y += vertical;
-            }
-        }
-
 
         private void SetLabels()
         {
@@ -121,6 +110,7 @@ namespace NumberIt.ViewModels
             MarkerLabel.BackgroundColor = BackgroundColor;
             MarkerLabel.EdgeColor = EdgeColor;
             MarkerLabel.FontColor = FontColor;
+            MarkerLabel.FontSize = 12;
 
             var faces = pvm.MarkerVMs.OfType<MarkerRect>().OrderBy(m => m.X).ToList();
 
@@ -139,19 +129,37 @@ namespace NumberIt.ViewModels
                 double upper = minY + (i + 1) * delta;
 
                 foreach (var face in faces.Where(f => f.Y >= lower && f.Y <= upper))
-                {
+                {                    
                     pvm.MarkerVMs.Add(new MarkerLabel
                     {
                         CenterX = face.X + face.W / 2 - d_0 / 2,
                         CenterY = face.Y + face.H,
                         visible = true,
-                        Number = (nr++).ToString()
+                        Number = nr.ToString()
                     });
+
+                    pvm.MarkerVMs.Add(new TextLabel
+                    {
+                        visible = true,
+                        Number = nr.ToString(),
+                        Text = "asdf",                        
+                       
+                    });
+                    nr++;
                 }
-                Diameter = 50; // slider value 
+            }
+
+            Diameter = 50; // slider value 
+        }
+        private void move(double horizontal, double vertical)
+        {
+            var labels = pvm.MarkerVMs.OfType<MarkerLabel>().OrderBy(m => m.X).ToList();
+            foreach (var label in labels)
+            {
+                label.X += horizontal;
+                label.Y += vertical;
             }
         }
-
         public override void Enter(object? o)
         {
             foreach (var marker in pvm.MarkerVMs)  // hide face markers, show label markers

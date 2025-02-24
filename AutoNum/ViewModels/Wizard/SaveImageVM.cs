@@ -12,8 +12,9 @@ namespace NumberIt.ViewModels
             {
                 if (filename != image.Filename) // we don't want to overwrite the original file
                 {
-                    using var mat = parent.pictureVM.toNumberedMat();
-                    mat?.Save(filename);
+                  
+                  //  using var mat = parent.pictureVM.toNumberedMat();
+                    //mat?.Save(filename);
                 }
                 else
                 {

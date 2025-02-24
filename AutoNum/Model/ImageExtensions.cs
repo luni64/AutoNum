@@ -4,15 +4,14 @@ using System.Drawing;
 using System.Drawing.Imaging;
 using Emgu.CV;
 using Emgu.CV.Structure;
+using NumberIt.ViewModels;
 
 public static class ImageExtensions
 {
-    public static Mat AddNamesMultiColumnOptimized(
-        this Mat original,
-        List<string> names)
+    public static Bitmap AddNamesMultiColumnOptimized(this Bitmap bmpOriginal, List<MarkerLabel> names)
     {
         // Convert the original Mat to Bitmap to use GDI+ for measuring & drawing text (umlauts, etc.)
-        Bitmap bmpOriginal = original.ToBitmap();
+        //Bitmap bmpOriginal = original.ToBitmap();
         int imgWidth = bmpOriginal.Width;
         int imgHeight = bmpOriginal.Height;
 
@@ -54,15 +53,21 @@ public static class ImageExtensions
             }
         }
 
-        // If we never found anything above 4pt, pick some fallback
-        if (bestFontSize < 4f)
-        {
-            bestFontSize = 12f;
-            bestColumns = 1;
-        }
+        var hres = bmpOriginal.HorizontalResolution;
+        bestFontSize =  (int)( 2.5*hres * 12.0 / 72.0); // ~12pt
+
+        //// If we never found anything above 4pt, pick some fallback
+        //if (bestFontSize < 4f)
+        //{
+        //    bestFontSize = 12f;
+        //    bestColumns = 1;
+        //}
+
+        
 
         // Now we do one final rendering pass with the best columns & best font size
-        return RenderMultiColumnTable(names, bestColumns, bestFontSize, bmpOriginal);
+        return RenderMultiColumnTable(names, bestColumns, bestFontSize, bmpOriginal).ToBitmap();
+        //return bmpOriginal;
     }
 
     /// <summary>
@@ -71,7 +76,7 @@ public static class ImageExtensions
     /// 2) Table width < original image width
     /// </summary>
     private static bool CheckIfFits(
-        List<string> names,
+        List<MarkerLabel> names,
         int columns,
         float fontSize,
         int imgWidth,
@@ -80,7 +85,7 @@ public static class ImageExtensions
         // Basic GDI+ measure: we create a small placeholder to get a Graphics context
         using (var measureBmp = new Bitmap(1, 1))
         using (var g = Graphics.FromImage(measureBmp))
-        using (var testFont = new Font("Arial", fontSize, FontStyle.Regular, GraphicsUnit.Point))
+        using (var testFont = new Font("Calibri", fontSize, FontStyle.Regular, GraphicsUnit.Point))
         {
             g.PageUnit = GraphicsUnit.Pixel; // measure in pixel units
 
@@ -145,7 +150,7 @@ public static class ImageExtensions
     /// Splits 'names' into the specified number of columns as evenly as possible.
     /// For c columns, each column has about names.Count/c items, with the last column possibly shorter or longer.
     /// </summary>
-    private static List<List<string>> DistributeIntoColumns(List<string> names, int c)
+    private static List<List<string>> DistributeIntoColumns(List<MarkerLabel> names, int c)
     {
         // We'll do a straightforward approach:
         // number of items per column = ceil( names.Count / c )
@@ -164,7 +169,7 @@ public static class ImageExtensions
             {
                 if (index < total)
                 {
-                    colList.Add(names[index]);
+                    colList.Add($"{names[index].Number} {names[index].Name}");
                     index++;
                 }
                 else break;
@@ -180,7 +185,7 @@ public static class ImageExtensions
     /// Returns a new Mat with the expanded bottom area.
     /// </summary>
     private static Mat RenderMultiColumnTable(
-        List<string> names,
+        List<MarkerLabel> names,
         int columns,
         float fontSize,
         Bitmap bmpOriginal)
@@ -190,7 +195,7 @@ public static class ImageExtensions
 
         using (var measureBmp = new Bitmap(1, 1))
         using (var gMeasure = Graphics.FromImage(measureBmp))
-        using (var finalFont = new Font("Arial", fontSize, FontStyle.Regular, GraphicsUnit.Point))
+        using (var finalFont = new Font("Calibri", fontSize, FontStyle.Regular, GraphicsUnit.Point))
         {
             gMeasure.PageUnit = GraphicsUnit.Pixel;
 
@@ -257,7 +262,7 @@ public static class ImageExtensions
                 }
             }
 
-            // Convert final bitmap back to Mat if desired
+            // Convert final Bitmap back to Mat if desired
             return bmpFinal.ToMat();
         }
     }

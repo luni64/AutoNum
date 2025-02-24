@@ -1,4 +1,5 @@
-﻿using Microsoft.Win32;
+﻿using MahApps.Metro.Controls;
+using Microsoft.Win32;
 using NumberIt.ViewModels;
 using System.Windows;
 
@@ -7,7 +8,7 @@ namespace NumberIt
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class MainWindow : MetroWindow
     {
       
         public MainWindow(MainVM mainVM)
@@ -25,7 +26,7 @@ namespace NumberIt
 
         //    if(dialog.ShowDialog() == true && DataContext is MainVM mvm && mvm.CurrentStep is OpenImageVM vm)
         //    {
-        //        vm.cmdChangeImage.Execute(dialog.FileName);
+        //        vm.cmdOpenImage.Execute(dialog.FileName);
         //    }
 
         //}

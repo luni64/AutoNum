@@ -1,26 +1,51 @@
 ﻿using Emgu.CV;
 using System;
 using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Markup;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 //using System.Windows.Media.Imaging;
 
 namespace NumberIt.Infrastructure
 {
-    public class EmguMatToBitmapSource : IValueConverter
+    public class BitmapToBitmapSource : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {                     
-
-            if (value is Emgu.CV.Mat mat)
+        {
+            if (value is System.Drawing.Bitmap bitmap)
             {
-                return mat.ToBitmapSource();
+                if (bitmap == null) return null;                
+
+                using (var memoryStream = new MemoryStream())
+                {
+                    // Save the Bitmap to the stream
+                    bitmap.Save(memoryStream, ImageFormat.Png);
+                    memoryStream.Position = 0;
+
+                    // Create a BitmapImage from the stream
+                    var bitmapImage = new BitmapImage();
+                    bitmapImage.BeginInit();
+                    bitmapImage.StreamSource = memoryStream;
+                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+                    bitmapImage.EndInit();
+                    bitmapImage.Freeze(); // Freeze to make it cross-thread accessible
+
+                    return bitmapImage;
+                }               
             }
             return null;
+
+
+            //if (value is Emgu.CV.Mat mat)
+            //{
+            //    return mat.ToBitmapSource();
+            //}
+            //return null;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
