@@ -31,7 +31,7 @@ namespace NumberIt.ViewModels
         }
 
         public OpenImageVM openImageVM { get; }
-        public NamesVM namesVM { get; }
+        public NameManager namesVM { get; }
         
 
 
@@ -64,7 +64,7 @@ namespace NumberIt.ViewModels
             openImageVM = (OpenImageVM)Steps[0];
             analyzeVM = (AnalyzeVM)Steps[1];
             labelsVM = (LabelsVM)Steps[2];
-            namesVM = new NamesVM(this);
+            namesVM = new NameManager(this);
 
 
 

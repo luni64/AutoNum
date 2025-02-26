@@ -42,7 +42,26 @@ namespace NumberIt.ViewModels
             }
         }
 
-        
+
+        public static FontFamily fontFamily { get; } = new FontFamily("Calibri");
+
+
+        //public static double _defaultFontSize;
+        //public static double DefaultFontSize //{ get; set; }
+        //{
+        //    get => _defaultFontSize;
+        //    set
+        //    {
+        //        if (value != _defaultFontSize)
+        //        {
+        //            _defaultFontSize = value;
+        //            OnStaticPropertyChanged(nameof(DefaultFontSize));
+        //            OnStaticPropertyChanged(nameof(FontSize));
+        //        }
+
+        //    }
+        //}
+
         public static double FontSize
         {
             get => _fontSize;
@@ -78,10 +97,10 @@ namespace NumberIt.ViewModels
         private static Color _edgeColor = Color.White;
         private static Color _backgroundColor = Color.Green;
         private static Color _fontColor = Color.Black;
-        private static double _fontSize;
+        private static double _fontSize;// = _defaultFontSize;
 
         private string _nr = string.Empty;
-        private string? _text;       
+        private string? _text;
         private static float _diameter;
 
         #endregion

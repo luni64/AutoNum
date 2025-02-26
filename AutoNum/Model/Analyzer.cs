@@ -32,6 +32,25 @@ namespace NumberIt.Model
             return (d_max, largestItem);
         }
 
+
+        public static SizeF getItemsBoundingBox<T>(IEnumerable<T> list, Func<T, string?> selector, Font font)
+        {
+            g.PageUnit = GraphicsUnit.Point;
+            SizeF largest = new SizeF();            
+            foreach (T item in list)
+            {
+                string? str = selector(item);
+                if (str == null) continue;
+
+                SizeF thisSize = g.MeasureString(str, font);
+                largest.Width = Math.Max(largest.Width, thisSize.Width);
+                largest.Height = Math.Max(largest.Height, thisSize.Height);
+            }
+            return largest;
+        }
+
+
+
         static void test()
         {
             Font font = new Font("Calibri", 12);
@@ -40,6 +59,34 @@ namespace NumberIt.Model
             var result = getLargesItem(labels, l => l.Name, font);
             var rm = result.d_max;
             var la = result.item;
+        }
+
+        public static void PlacePersonNames(IEnumerable<TextLabel> names, double width,double height)
+        {
+            //Font font = new Font(TextLabel.fontFamily, (float)TextLabel.FontSize);
+
+            Font font = new Font(TextLabel.fontFamily, (float)TextLabel.FontSize);
+
+            var bb = getItemsBoundingBox(names, n => n.Text, font);
+            var nrOfColumns = Math.Floor(width / bb.Width);
+
+            int colNr = 0;
+            int rowNr = 0; 
+            foreach(var name in names)
+            {
+                name.X = colNr * bb.Width;
+                name.Y = height + rowNr * bb.Height;
+                name.W = bb.Width;
+                name.H = bb.Height;
+                colNr++;
+                if (colNr == nrOfColumns)
+                {
+                    rowNr++;
+                    colNr = 0;
+                }
+                name.visible = true;
+            }
+
         }
     }
 }

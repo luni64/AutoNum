@@ -6,13 +6,15 @@
         xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:is="clr-namespace:NumberIt.Infrastructure">
 
-    <DataTemplate DataType="{x:Type vm:NamesVM}">
+    <DataTemplate DataType="{x:Type vm:NameManager}">
         <Border Background="White" Padding="10" BorderBrush="DarkGray" BorderThickness="1,0,0,0" TextBlock.FontFamily="Calibri" TextBlock.FontSize="16">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
-                    <RowDefinition Height="*"/>                    
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>                    
                 </Grid.RowDefinitions>
                 <!--<Grid.ColumnDefinitions >
                     <ColumnDefinition Width="auto"/>
@@ -30,25 +32,43 @@
 
                 <mah:ToggleSwitch 
                     x:Name="InsertNames"
-                    IsOn="{Binding AddNames}"
-                    Grid.Row="1"                    
+                    IsOn="{Binding IsEnabled}"
+                    Grid.Row="1"        
+                    mah:ToggleButtonHelper.ContentDirection="RightToLeft"
                     Content="Namen im Bild einfügen?">                    
                 </mah:ToggleSwitch>
 
+                <DockPanel  Grid.Row="3" Margin="0,15">
+                <Label 
+                    DockPanel.Dock="Left" FontSize="12" HorizontalAlignment="Center"
+                    Content="Schriftgröße: "
+                    Grid.Row="2"
+                        
+                />
+                <Slider 
+                    IsEnabled="{Binding IsEnabled}"
+                    DockPanel.Dock="Right"
+                    Value="{Binding FontSizeSliderValue}" Minimum="0" Maximum="100"
+                    mah:SliderHelper.EnableMouseWheel="MouseHover"
+                    Grid.Row="3"
+                    />
+                </DockPanel>
+
+
                 <DataGrid 
-                    IsEnabled="{Binding AddNames}"
+                    IsEnabled="{Binding IsEnabled}"
                     AutoGenerateColumns="False" 
                     Grid.Row="2" Grid.ColumnSpan="2"
                     CanUserAddRows="False"
                           
-                          ItemsSource="{Binding parent.pictureVM.Labels}" Margin="0,20,0,20" VerticalScrollBarVisibility="Visible"
+                          ItemsSource="{Binding parent.pictureVM.Names}" Margin="0,20,0,20" VerticalScrollBarVisibility="Visible"
                           Style="{StaticResource MahApps.Styles.DataGrid}"  
                           mah:DataGridHelper.SelectionUnit="Cell"   mah:DataGridHelper.EnableCellEditAssist="True" HeadersVisibility="None" GridLinesVisibility="Horizontal"
                           >
                     <DataGrid.Columns >
                         <!-- Text Column -->
                         <DataGridTextColumn Header="Nr" Binding="{Binding Number}" Width="auto" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="*" />
+                        <DataGridTextColumn Header="Name" Binding="{Binding Text }" Width="*" />
                     </DataGrid.Columns>
 
                 </DataGrid>

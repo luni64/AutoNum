@@ -77,6 +77,24 @@ namespace NumberIt.Infrastructure
     }
 
 
+    public class DrawingFontFamilyToMediaFontFamily : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is System.Drawing.FontFamily fontFamily)
+            {
+                return new System.Windows.Media.FontFamily(fontFamily.Name);
+            }
+            return new System.Windows.Media.FontFamily("Arial"); // Default fallback
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+
     public class ColorConverter : IValueConverter
     {
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

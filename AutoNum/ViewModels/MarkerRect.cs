@@ -88,6 +88,9 @@ namespace NumberIt.ViewModels
             }
         }
 
+        
+        public static FontFamily fontFamily = new FontFamily("Calibri");
+
         public static Color FontColor
         {
             get => _fontColor;

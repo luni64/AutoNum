@@ -15,12 +15,12 @@ namespace NumberIt.Views
         private Point origin;
         private Point start;
 
-        
+
         private TranslateTransform GetTranslateTransform(UIElement element)
         {
             return (TranslateTransform)((TransformGroup)element.RenderTransform)
               .Children.First(tr => tr is TranslateTransform);
-            
+
         }
 
         private ScaleTransform GetScaleTransform(UIElement element)
@@ -82,14 +82,22 @@ namespace NumberIt.Views
                 else
                 {
                     // Trace.WriteLine($"{clickPosition.X} {clickPosition.Y}");
-                    int lastIdx = mainVM.pictureVM.MarkerVMs.OfType<MarkerLabel>().Max(m=>int.Parse(m.Number));
-                    mainVM.pictureVM.MarkerVMs.Add(
+                    int lastIdx = mainVM.pictureVM.MarkerVMs.OfType<MarkerLabel>().Max(m => int.Parse(m.Number));
+                    mainVM.pictureVM.AddLabel(
                         new MarkerLabel
                         {
                             CenterX = np.X - MarkerLabel.Diameter / 2,
-                            CenterY = np.Y - MarkerLabel.Diameter / 2,     
-                            Number = (lastIdx+1).ToString()
+                            CenterY = np.Y - MarkerLabel.Diameter / 2,
+                            Number = (lastIdx + 1).ToString()
                         });
+
+                    //mainVM.pictureVM.MarkerVMs.Add(
+                    //    new MarkerLabel
+                    //    {
+                    //        CenterX = np.X - MarkerLabel.Diameter / 2,
+                    //        CenterY = np.Y - MarkerLabel.Diameter / 2,
+                    //        Number = (lastIdx + 1).ToString()
+                    //    });
                 }
             }
         }

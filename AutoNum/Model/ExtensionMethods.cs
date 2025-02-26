@@ -167,7 +167,19 @@ namespace AutoNumber.Model
 
 
 
-            var names = new List<string>
+
+            var ml = markers.ToList();
+
+            for (int i = 0; i < ml.Count; i++)
+            {
+                ml[i].Name = names[i];
+            }
+
+            return mat.ToBitmap().AddNamesMultiColumnOptimized(ml).ToMat();
+
+            return mat;
+        }
+         public static List<string> names { get; } = new List<string>
             {
             "Hans Müller",
             "Anna Schmidt",
@@ -270,17 +282,5 @@ namespace AutoNumber.Model
             "Jonas Reuter",
             "Sara Pfeiffer"
         };
-
-            var ml = markers.ToList();
-
-            for (int i = 0; i < ml.Count; i++)
-            {
-                ml[i].Name = names[i];
-            }
-
-            return mat.ToBitmap().AddNamesMultiColumnOptimized(ml).ToMat();
-
-            return mat;
-        }
     }
 }

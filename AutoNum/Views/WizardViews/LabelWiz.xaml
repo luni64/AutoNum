@@ -25,13 +25,13 @@
                         Text="Label Größe" HorizontalAlignment="Center"
                         Style="{StaticResource MahApps.Styles.TextBlock.Watermark}" FontSize="12"/>
                     <Slider 
-                        DockPanel.Dock="Bottom" Width="200"
+                        DockPanel.Dock="Bottom" Width="150"
                         Value="{Binding Diameter}" Minimum="0" Maximum="100"
                         VerticalAlignment="Center" Margin="0,0,0,0"                   
                         />
                 </DockPanel>                
                 
-                <DockPanel Grid.Column="2"  Margin="10,0,0,0" >
+                <DockPanel Grid.Column="1"  Margin="10,0,0,0" >
                     <StackPanel   >
                         <TextBlock HorizontalAlignment="Center"
                             Text="Hintergrund" Style="{StaticResource MahApps.Styles.TextBlock.Watermark}" FontSize="12"/>
@@ -60,7 +60,7 @@
                     </StackPanel>
             </DockPanel>
 
-            <DockPanel Grid.Column="1" Margin="20,0,20,0">                
+            <DockPanel Grid.Column="2" Margin="20,0,20,0">                
                 <TextBlock 
                     DockPanel.Dock="Top"
                     Text="Renumber" Style="{StaticResource MahApps.Styles.TextBlock.Watermark}" FontSize="12" HorizontalAlignment="Center"/>

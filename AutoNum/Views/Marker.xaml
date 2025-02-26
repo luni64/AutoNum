@@ -12,6 +12,9 @@
     x:Name="UC" d:DesignHeight="334" d:DesignWidth="588">
 
     <UserControl.Resources>
+        <!--LineHeight="{Binding FontSize}"-->
+
+        <is:DrawingFontFamilyToMediaFontFamily x:Key="DrawingFontFamilyToMediaFontFamily"/>
         <mah:MathMultiplyConverter x:Key="MathMultiplyConverter"/>
         <is:boolToVisibiltiyConverter x:Key="bool2Vis"/>
         <is:DrawingColToMediaBrush x:Key="Col2Brush"/>
@@ -62,20 +65,18 @@
             </Grid>
 
         </DataTemplate>
-                    <!--LineHeight="{Binding FontSize}"-->
 
-                    <!--FontSize="{Binding FontSize}" FontWeight="Normal"   LineStackingStrategy="BlockLineHeight"-->
+        <!--FontSize="{Binding FontSize}" FontWeight="Normal"   LineStackingStrategy="BlockLineHeight"-->
         <DataTemplate DataType="{x:Type vm:TextLabel}">
             <Grid 
                 Visibility="{Binding visible, Converter={StaticResource bool2Vis}}">
 
+                <!--<Rectangle Stroke="Blue" StrokeThickness="2" Width="{Binding W}" Height="{Binding H}" />-->
+                
                 <TextBlock                        
-                    Text="{Binding Text}" 
+                    Text="{Binding Text}" FontFamily="{Binding fontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                     Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"  
-                    Background="Green"
-                    TextAlignment="Center"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center" FontFamily="Calibri"            
+                    Background="Transparent"                      
                     FontSize="{Binding FontSize}"             
                  >
 

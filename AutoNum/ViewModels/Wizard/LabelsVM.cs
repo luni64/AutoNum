@@ -1,4 +1,6 @@
-﻿using System.Drawing;
+﻿using AutoNumber.Model;
+using NumberIt.Model;
+using System.Drawing;
 
 namespace NumberIt.ViewModels
 {
@@ -66,7 +68,7 @@ namespace NumberIt.ViewModels
             {
                 SetProperty(ref _diameter, value);
                 parent.pictureVM.LabelDiameter = d_0 * (0.5 + 0.0002 * (_diameter * _diameter));
-                TextLabel.FontSize = parent.pictureVM.LabelDiameter / 2;
+                //TextLabel.FontSize = parent.pictureVM.LabelDiameter / 2;
             }
         }
         public Color FontColor
@@ -111,6 +113,7 @@ namespace NumberIt.ViewModels
             MarkerLabel.EdgeColor = EdgeColor;
             MarkerLabel.FontColor = FontColor;
             MarkerLabel.FontSize = 12;
+            NameManager.DefaultFontSize = 80;
 
             var faces = pvm.MarkerVMs.OfType<MarkerRect>().OrderBy(m => m.X).ToList();
 
@@ -129,24 +132,30 @@ namespace NumberIt.ViewModels
                 double upper = minY + (i + 1) * delta;
 
                 foreach (var face in faces.Where(f => f.Y >= lower && f.Y <= upper))
-                {                    
+                {
+                    string number = nr.ToString();
+                    
                     pvm.MarkerVMs.Add(new MarkerLabel
                     {
                         CenterX = face.X + face.W / 2 - d_0 / 2,
                         CenterY = face.Y + face.H,
                         visible = true,
-                        Number = nr.ToString()
+                        Number = number,
                     });
 
                     pvm.MarkerVMs.Add(new TextLabel
                     {
-                        visible = true,
+                        visible = false,
                         Number = nr.ToString(),
-                        Text = "asdf",                        
-                       
+                        Text = $"{number}) {ExtensionMethods.names[nr]}",                                              
                     });
                     nr++;
                 }
+
+                var x = MarkerLabel.FontSize;
+
+
+                
             }
 
             Diameter = 50; // slider value 
