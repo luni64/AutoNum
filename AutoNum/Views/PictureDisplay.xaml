@@ -6,6 +6,7 @@
     xmlns:view="clr-namespace:NumberIt.Views" 
     xmlns:vm="clr-namespace:NumberIt.ViewModels" 
     xmlns:Infrastructure="clr-namespace:NumberIt.Infrastructure" 
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
     x:Class="NumberIt.Views.PictureDisplay" 
     x:Name="PD" 
     mc:Ignorable="d" 
@@ -14,7 +15,10 @@
 
 
     <UserControl.Resources>
+        <mah:MathMultiplyConverter x:Key="MathMultiplyConverter"/>
         <Infrastructure:BitmapToBitmapSource x:Key="Bitmap2BitmapSource"/>
+        <Infrastructure:boolToVisibiltiyConverter x:Key="Bool2Vis"/>
+        <Infrastructure:DrawingColToMediaBrush  x:Key="Col2Brush"/>
     </UserControl.Resources>
 
 
@@ -23,26 +27,43 @@
         ClipToBounds="True"        
         PanX="{Binding Page.PanX, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
         PanY="{Binding Page.PanY, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
-        Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"          
+        Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"                  
         >
-
         <Canvas x:Name="PageCanvas">
-            <!--<Canvas.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Neue Fundstelle anlegen" Click="AddBookmarkClick"/>
-                    <MenuItem Header="Kopieren">
-                        <MenuItem Header="Link auf Seite im Browser" Command="{Binding SelectedPage.cmdCopyViewerLink, Mode=OneWay}"/>
-                        <MenuItem Header="Link auf die Bilddatei" Command="{Binding SelectedPage.cmdCopyImageLink, Mode=OneWay}"/>
-                        <MenuItem Header="Link auf Lokal gespeichertes Bild" Command="{Binding SelectedPage.cmdCopyImageFile, Mode=OneWay}"/>
-                    </MenuItem>
-                </ContextMenu>
-            </Canvas.ContextMenu>-->
+            <Border
+                Visibility="{Binding TitleVM.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
+                BorderThickness="1,1,1,0"
+                BorderBrush="DarkGray"   
+                Background="{Binding TitleVM.BackgroundColor, Converter={StaticResource Col2Brush}}"
+                Canvas.Left="0" 
+                Canvas.Top="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay, ConverterParameter=-1, Converter={StaticResource MathMultiplyConverter}}"  
+                Height="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay}"  
+                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"               
+               />
+            <TextBlock 
+                Text="{Binding TitleVM.Title}" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
+                x:Name="tbTitle" Visibility="{Binding TitleVM.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"              
+                Canvas.Left="0" Canvas.Top="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay, ConverterParameter=-1, Converter={StaticResource MathMultiplyConverter}}"  
+                FontFamily="Calibri" FontSize="{Binding TitleVM.FontSize}" 
+                Foreground="{Binding TitleVM.FontColor, Converter={StaticResource Col2Brush}}"
+                Padding="0"
+                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"                      
+                SizeChanged="tbTitle_SizeChanged"
+                />
             <Image                         
                 x:Name="pageimg"                       
                 HorizontalAlignment="Left" VerticalAlignment="Top"      
                 ClipToBounds="true"                   
                 Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
-                Source="{Binding Page.Bitmap, Converter={StaticResource Bitmap2BitmapSource}, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type view:PictureDisplay}}}" 
+                Source="{Binding Page.Bitmap, Converter={StaticResource Bitmap2BitmapSource}, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
+                />
+            <Border               
+                Canvas.Left="0"    
+                Visibility="{Binding namesVM.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
+                Canvas.Top="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
+                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
+                Height="{Binding pictureVM.NamesRegionHeight}"  
+                BorderThickness="1,0,1,1"  BorderBrush="Black" Background="{Binding namesVM.BackgroundColor, Converter={StaticResource Col2Brush}}"
                 />
         </Canvas>
     </view:ZoomBorder>

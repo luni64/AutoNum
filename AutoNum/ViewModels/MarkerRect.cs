@@ -143,6 +143,11 @@ namespace NumberIt.ViewModels
         }
         #endregion
 
+        public override string ToString()
+        {
+            return $"LB: {Number}-{Name}";
+        }
+
         #region private fields -----------------------------------------------
         private static Color _edgeColor = Color.White;
         private static Color _backgroundColor = Color.Green;

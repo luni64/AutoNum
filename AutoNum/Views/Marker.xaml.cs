@@ -24,7 +24,7 @@ namespace NumberIt.Views
             if (markerVM is MarkerLabel)
                 doLock(false);
             else 
-                doLock(false);
+                doLock(true);
 
             markerVM.PropertyChanged += Dc_PropertyChanged;
         }
@@ -63,7 +63,7 @@ namespace NumberIt.Views
                 MarkerUI.PreviewMouseDown -= imgArr_PreviewMouseDown;
                 MarkerUI.PreviewMouseMove -= imgArr_PreviewMouseMove;
                 MarkerUI.PreviewMouseUp -= imgArr_PreviewMouseUp;
-                MarkerUI.IsMouseDirectlyOverChanged -= MouseOverBookmarkChanged;
+                //MarkerUI.IsMouseDirectlyOverChanged -= MouseOverBookmarkChanged;
                 //Scaler.IsMouseDirectlyOverChanged -= MouseOverBookmarkChanged;
 
                // bookmarkRect.StrokeThickness = new SolidColorBrush(new Color() { A = 0x60, R = 0x0, G = 0x0, B = 0xFF });
@@ -73,19 +73,18 @@ namespace NumberIt.Views
                 MarkerUI.PreviewMouseDown += imgArr_PreviewMouseDown;
                 MarkerUI.PreviewMouseMove += imgArr_PreviewMouseMove;
                 MarkerUI.PreviewMouseUp += imgArr_PreviewMouseUp;
-                MarkerUI.IsMouseDirectlyOverChanged += MouseOverBookmarkChanged;
+                //MarkerUI.IsMouseDirectlyOverChanged += MouseOverBookmarkChanged;
                 //Scaler.IsMouseDirectlyOverChanged += MouseOverBookmarkChanged;
                 //bookmarkRect.StrokeThickness = new SolidColorBrush(Colors.Red);
             }
         }
 
-        private void MouseOverBookmarkChanged(object sender, DependencyPropertyChangedEventArgs e)
-        {
-            if (sender is Path)
-                Cursor = (bool)e.NewValue ? Cursors.SizeNWSE : Cursors.Arrow;
-            else if (sender is Rectangle)
-                Cursor = (bool)e.NewValue ? Cursors.SizeAll : Cursors.Arrow;
-        }
+        //private void MouseOverBookmarkChanged(object sender, DependencyPropertyChangedEventArgs e)
+        //{
+        //    if (sender is MarkerLabel)
+        //        Cursor = (bool)e.NewValue ? Cursors.SizeAll : Cursors.Arrow;
+            
+        //}
 
         private void Dc_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {

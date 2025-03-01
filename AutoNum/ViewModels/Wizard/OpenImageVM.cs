@@ -87,8 +87,8 @@ namespace NumberIt.ViewModels
                 if (filename != parent.pictureVM.Filename) // we don't want to overwrite the original file
                 {
                     using var mm = parent.pictureVM.toNumberedBitmap();
-                    //using var mat = mm.ToMat();
-                    using var mat = parent.pictureVM.toNumberedMat();
+                    using var mat = mm.ToMat();
+                    //using var mat = parent.pictureVM.toNumberedMat();
                     mat?.Save(filename);
                 }
                 else

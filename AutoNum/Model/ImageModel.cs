@@ -9,20 +9,63 @@ using System.Windows.Data;
 using Xceed.Wpf.Toolkit.PropertyGrid.Attributes;
 using System.Collections.Specialized;
 using System.Security.RightsManagement;
+using System.Diagnostics;
 
 
 namespace NumberIt.ViewModels
 {
     public class ImageModel : BaseViewModel, IDisposable
     {
-        public ImageModel()
+        public MainVM parent;
+
+        public ImageModel(MainVM parent)
         {
+            this.parent = parent;
             //MarkerVMs.CollectionChanged += MarkerVMs_CollectionChanged;
             Labels = CollectionViewSource.GetDefaultView(MarkerVMs);
             Labels.Filter = FilterItems;
 
             Names = CollectionViewSource.GetDefaultView(MarkerVMs);
             Names.Filter = FilterNames;
+
+            MarkerVMs.CollectionChanged += MarkerVMs_CollectionChanged;
+        }
+
+        private void MarkerVMs_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
+        {
+            if (e.Action == NotifyCollectionChangedAction.Add)
+            {
+                //if (e.NewItems[0] is MarkerLabel ml)
+                //{
+                //    var tl = (sender as ObservableCollection<MarkerVM>).OfType<TextLabel>().FirstOrDefault(m => m.Number == ml.Number);
+                //    var t = ml.Name;
+                //    if(tl!= null) tl.Text = t;
+                //}
+
+                if (e.NewItems[0] is TextLabel tl)
+                {
+                    var ml = (sender as ObservableCollection<MarkerVM>).OfType<MarkerLabel>().FirstOrDefault(m => m.Number == tl.Number);
+                    var t = tl.Text;
+                    if (ml != null) ml.Name = t;
+                }
+            }
+
+
+        }
+
+        public void RemoveLabel(MarkerLabel label)
+        {
+            var tl = MarkerVMs.OfType<TextLabel>().FirstOrDefault(m => m.Number == label.Number);
+            if (tl == null)
+                Trace.WriteLine("------NULL---------");
+            MarkerVMs.Remove(tl);
+            MarkerVMs.Remove(label);
+            //MarkerVMs.Add(new TextLabel
+            //{
+            //    isLocked = true,
+            //    Text = "new",
+            //    Number = label.Number,
+            //});
         }
 
         public void AddLabel(MarkerLabel label)
@@ -30,38 +73,16 @@ namespace NumberIt.ViewModels
             MarkerVMs.Add(label);
             MarkerVMs.Add(new TextLabel
             {
-                Text="new",
-                Number =label.Number,
+                isLocked = true,
+                Text = $"new {label.Number}",
+                Number = label.Number,
             });
         }
 
-        //private void MarkerVMs_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        //{
-        //    switch (e.Action)
-        //    {
-        //        case NotifyCollectionChangedAction.Add:
-        //            foreach(var item in e.NewItems)
-        //            {
-        //                if(item is MarkerRect face)
-        //                {
-        //                    MarkerVMs.Add(new MarkerLabel
-        //                    {
-
-        //                    });
-        //                }
-        //            }
-        //            break;
-
-
-                
-
-
-        //    }
-
-        //}
 
         #region Properties ----------------------------------------------------
         public ObservableCollection<MarkerVM> MarkerVMs { get; } = [];
+        public ObservableCollection<Person> Persons { get; } = [];
         public ICollectionView Labels { get; }
         private bool FilterItems(object item) => item is MarkerLabel dataItem;
 
@@ -111,6 +132,22 @@ namespace NumberIt.ViewModels
             get => _imageHeight;
             set => SetProperty(ref _imageHeight, value);
         }
+
+        double _namesRegionHeight;
+        public double NamesRegionHeight
+        {
+            get => _namesRegionHeight;
+            set => SetProperty(ref _namesRegionHeight, value);
+        }
+
+        double _titleRegionHeight = 300;
+        public double TitleRegionHeight
+        {
+            get => _titleRegionHeight;
+            set => SetProperty(ref _titleRegionHeight, value);
+        }
+
+
         public int PanX
         {
             get => _panX;
@@ -181,16 +218,16 @@ namespace NumberIt.ViewModels
         //}
 
 
-        private void DistributeNames()
-        {
-            var textLabels = MarkerVMs.OfType<TextLabel>().ToList();
+        //private void DistributeNames()
+        //{
+        //    var textLabels = MarkerVMs.OfType<TextLabel>().ToList();
 
-            foreach (var textLabel in textLabels)
-            {
-                //var largest = getLargestLabel();
+        //    foreach (var textLabel in textLabels)
+        //    {
+        //        //var largest = getLargestLabel();
 
-            }
-        }
+        //    }
+        //}
 
         private Bitmap? _bitmap;
         private int _imageHeight, _imageWidth;

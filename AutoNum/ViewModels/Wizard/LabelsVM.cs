@@ -1,6 +1,8 @@
 ﻿using AutoNumber.Model;
 using NumberIt.Model;
+using System.Diagnostics;
 using System.Drawing;
+using System.Xml.Linq;
 
 namespace NumberIt.ViewModels
 {
@@ -35,6 +37,7 @@ namespace NumberIt.ViewModels
         void doNumerate(object? o)
         {
             var labels = pvm.MarkerVMs.OfType<MarkerLabel>().OrderBy(m => m.X).ToList();
+            var names = pvm.MarkerVMs.OfType<TextLabel>().ToList();
 
             double minY = labels.Min(m => m.Y);
             double maxY = labels.Max(m => m.Y);
@@ -46,11 +49,21 @@ namespace NumberIt.ViewModels
             {
                 double lower = minY + i * delta;
                 double upper = minY + (i + 1) * delta;
-                foreach (var lable in labels.Where(f => f.Y >= lower && f.Y <= upper))
+                foreach (var label in labels.Where(f => f.Y >= lower && f.Y <= upper))
                 {
-                    lable.Number = (nr++).ToString();
+                    var oldNumber = label.Number;
+                    var newNumber = nr.ToString();
+                    Trace.WriteLine($"oldNr {oldNumber} newNr{newNumber}");
+                    var name = names.First(n => n.Number == oldNumber); // corresponding name label
+                    Trace.WriteLine($"name nr {name.Number} {name.Text}");
+                    label.Number = newNumber;
+                    name.Number = newNumber;
+                    nr++;
                 }
             }
+            parent.pictureVM.Labels.Refresh();
+            parent.pictureVM.Names.Refresh();
+
         }
 
         #endregion
@@ -134,29 +147,30 @@ namespace NumberIt.ViewModels
                 foreach (var face in faces.Where(f => f.Y >= lower && f.Y <= upper))
                 {
                     string number = nr.ToString();
-                    
-                    pvm.MarkerVMs.Add(new MarkerLabel
-                    {
-                        CenterX = face.X + face.W / 2 - d_0 / 2,
-                        CenterY = face.Y + face.H,
-                        visible = true,
-                        Number = number,
-                    });
-
-                    pvm.MarkerVMs.Add(new TextLabel
-                    {
-                        visible = false,
-                        Number = nr.ToString(),
-                        Text = $"{number}) {ExtensionMethods.names[nr]}",                                              
-                    });
+                    PointF labelPos = new PointF((float)(face.X + face.W / 2 - d_0) / 2, (float)(face.Y + face.H));
+                    pvm.Persons.Add(new Person(nr++, $"{ExtensionMethods.names[nr]}", labelPos ));
                     nr++;
+
+
+                    //pvm.MarkerVMs.Add(new MarkerLabel
+                    //{
+                    //    CenterX = face.X + face.W / 2 - d_0 / 2,
+                    //    CenterY = face.Y + face.H,
+                    //    visible = true,
+                    //    Number = number,
+                    //    Name = $"{ExtensionMethods.names[nr]}",
+                    //});
+                    //pvm.MarkerVMs.Add(new TextLabel
+                    //{
+                    //    visible = false,
+                    //    isLocked = true,
+                    //    Number = nr.ToString(),
+                    //    Text = $"{ExtensionMethods.names[nr]}",
+                    //});
+                    //nr++;
                 }
-
-                var x = MarkerLabel.FontSize;
-
-
-                
             }
+            parent.namesVM.ShowNames();
 
             Diameter = 50; // slider value 
         }

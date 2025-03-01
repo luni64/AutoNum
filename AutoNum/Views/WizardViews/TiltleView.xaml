@@ -1,0 +1,77 @@
+﻿<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:view="clr-namespace:NumberIt.Views"
+    xmlns:vm="clr-namespace:NumberIt.ViewModels"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"         
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:is="clr-namespace:NumberIt.Infrastructure"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d"    
+    >
+        
+    <is:DrawingColToMediaBrush x:Key="ColorConverter"/>
+    <is:boolToVisibiltiyConverter x:Key="boo2Vis"/>    
+
+
+    <DataTemplate DataType="{x:Type vm:TitleManager}">
+        <Border  BorderBrush="DarkGray" BorderThickness="1,0,0,0"   Padding="10,0,10,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+
+
+                <mah:ToggleSwitch                    
+                    Content="Überschrift"
+                    IsOn="{Binding IsEnabled}"
+                    Grid.Row="0"             
+                    />
+
+                <TextBox 
+                    Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True"                    
+                    Grid.Row="1" Height="75" Margin="0,5,0,0"                    
+                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"                                    
+                    mah:TextBoxHelper.Watermark="Überschrift" 
+                    VerticalScrollBarVisibility="Visible"
+                    />
+
+                <view:FontManager 
+                    Grid.Row="2" Margin="0,10,0,40"
+                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"
+                    FontColor="{Binding FontColor, Converter={StaticResource ColorConverter}}"
+                    BackgroundColor="{Binding BackgroundColor, Converter={StaticResource ColorConverter}}"
+                    SelectedFontSize="{Binding FontSizeSliderValue}"
+                    
+                    />
+
+
+                <!--<Grid   
+                    Visibility ="{Binding IsEnabled, Converter={StaticResource boo2Vis}}" Grid.Row="2" Margin="0,5,0,40">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="auto"/>
+                        <ColumnDefinition Width="auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Label 
+                        Grid.Column="0"  HorizontalAlignment="Center"
+                        Content="{iconPacks:RadixIcons Kind=FontSize}"/>                    
+
+                    <Slider                       
+                        Grid.Column="1"
+                        HorizontalAlignment="Stretch"
+                        Value="{Binding FontSizeSliderValue}" Minimum="0" Maximum="100"
+                        mah:SliderHelper.EnableMouseWheel="MouseHover"                        
+                />
+                </Grid>-->
+
+
+            </Grid>
+        </Border>
+    </DataTemplate>
+
+</ResourceDictionary>

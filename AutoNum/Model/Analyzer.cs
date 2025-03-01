@@ -1,6 +1,7 @@
 ﻿using NumberIt.ViewModels;
 using System.Drawing;
 
+
 namespace NumberIt.Model
 {
     public static class Analyzer
@@ -36,7 +37,7 @@ namespace NumberIt.Model
         public static SizeF getItemsBoundingBox<T>(IEnumerable<T> list, Func<T, string?> selector, Font font)
         {
             g.PageUnit = GraphicsUnit.Point;
-            SizeF largest = new SizeF();            
+            SizeF largest = new SizeF();
             foreach (T item in list)
             {
                 string? str = selector(item);
@@ -50,32 +51,28 @@ namespace NumberIt.Model
         }
 
 
-
-        static void test()
+        public static double PlaceTitle(TitleManager tm)
         {
-            Font font = new Font("Calibri", 12);
-            var labels = new List<MarkerLabel>();
+            g.PageUnit = GraphicsUnit.Point;
 
-            var result = getLargesItem(labels, l => l.Name, font);
-            var rm = result.d_max;
-            var la = result.item;
+            using var font = new Font(tm.FontFamily, (int) tm.FontSize);
+            SizeF thisSize = g.MeasureString(tm.Title, font);
+            return thisSize.Height;
         }
 
-        public static void PlacePersonNames(IEnumerable<TextLabel> names, double width,double height)
+        public static double PlacePersonNames(IEnumerable<TextLabel> names, double width, double height)
         {
-            //Font font = new Font(TextLabel.fontFamily, (float)TextLabel.FontSize);
-
-            Font font = new Font(TextLabel.fontFamily, (float)TextLabel.FontSize);
+            using Font font = new Font(TextLabel.fontFamily, (float)TextLabel.FontSize);
 
             var bb = getItemsBoundingBox(names, n => n.Text, font);
-            var nrOfColumns = Math.Floor(width / bb.Width);
+            var nrOfColumns = (int)Math.Floor(width / bb.Width);
 
             int colNr = 0;
-            int rowNr = 0; 
-            foreach(var name in names)
+            int rowNr = 0;
+            foreach (var name in names)
             {
                 name.X = colNr * bb.Width;
-                name.Y = height + rowNr * bb.Height;
+                name.Y = height + rowNr * bb.Height + bb.Height/8;
                 name.W = bb.Width;
                 name.H = bb.Height;
                 colNr++;
@@ -87,6 +84,7 @@ namespace NumberIt.Model
                 name.visible = true;
             }
 
+            return (Math.Max(1, rowNr + 1) * bb.Height);
         }
     }
 }

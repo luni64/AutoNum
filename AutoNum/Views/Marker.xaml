@@ -71,27 +71,17 @@
             <Grid 
                 Visibility="{Binding visible, Converter={StaticResource bool2Vis}}">
 
-                <!--<Rectangle Stroke="Blue" StrokeThickness="2" Width="{Binding W}" Height="{Binding H}" />-->
-                
                 <TextBlock                        
                     Text="{Binding Text}" FontFamily="{Binding fontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                     Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"  
                     Background="Transparent"                      
                     FontSize="{Binding FontSize}"             
                  >
-
-                    <!--<TextBlock.RenderTransform>
-                        <TransformGroup>
-                            <TranslateTransform x:Name="myTransform" Y="{Binding FontSize, ConverterParameter=0.04, Converter={StaticResource MathMultiplyConverter}}"/>
-                        </TransformGroup>
-                    </TextBlock.RenderTransform>-->
-
-
                 </TextBlock>
 
             </Grid>
 
-        </DataTemplate>
+        </DataTemplate>      
 
     </UserControl.Resources>
 

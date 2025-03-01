@@ -1,16 +1,14 @@
 ﻿using Emgu.CV;
+using Emgu.CV.Cuda;
+using Emgu.CV.ML;
 using Emgu.CV.Structure;
+using Emgu.CV.Util;
 using NumberIt.ViewModels;
-using System.DirectoryServices.ActiveDirectory;
 using System.Drawing;
-using System.Windows.Controls;
-
-
-
+using System.Windows.Media.Imaging;
 
 
 //using ImageModel = NumberIt.ViewModels.ImageModel;
-
 
 namespace AutoNumber.Model
 {
@@ -21,56 +19,148 @@ namespace AutoNumber.Model
             return new MCvScalar(col.B, col.G, col.R);
         }
 
-        public static Bitmap toNumberedBitmap(this ImageModel image)
+        private static float toGdiFontSize(this double sz, Graphics gFinal)
         {
-            var labels = image.MarkerVMs.OfType<MarkerLabel>().ToList();
+            return 0.711f * (float)sz * 96 / gFinal.DpiX;
+        }
 
-            var bmpFinal = (Bitmap)image.Bitmap.Clone();
-            using var gFinal = Graphics.FromImage(bmpFinal);
+        public static void drawTitle()
+        { }
 
-            float gdiFontSize = 0.7f * (float)MarkerLabel.FontSize * 96 / gFinal.DpiX;
+        public static void drawLabels(List<MarkerLabel> labels, Bitmap bmp, int offset)
+        {
+            using var gFinal = Graphics.FromImage(bmp);
 
-            using Pen edgePen = new Pen(MarkerLabel.EdgeColor, 3);
+            float fontSize = MarkerLabel.FontSize.toGdiFontSize(gFinal);
+
+            //using Pen edgePen = new Pen(MarkerLabel.EdgeColor, 3);
             using Brush fillBrush = new SolidBrush(MarkerLabel.BackgroundColor);
             using Brush textBrush = new SolidBrush(MarkerLabel.FontColor);
-            using Font font = new Font("Calibri", gdiFontSize);
+            using Font font = new Font("Calibri", fontSize);
 
             StringFormat format = new StringFormat(StringFormat.GenericDefault);
 
             foreach (var label in labels)
             {
-                PointF circlePos = new PointF((float)label.X, (float)label.Y);
+                PointF circlePos = new PointF((float)label.X, (float)label.Y + offset);
                 SizeF circleSize = new SizeF(MarkerLabel.Diameter, MarkerLabel.Diameter);
                 RectangleF BB = new RectangleF(circlePos, circleSize);
 
                 gFinal.FillEllipse(fillBrush, BB);
-                gFinal.DrawEllipse(edgePen, BB);
+                //gFinal.DrawEllipse(edgePen, BB);
 
                 SizeF textSize = gFinal.MeasureString(label.Number, font, circlePos, format);
                 PointF textPos = new(circlePos.X + (BB.Width - textSize.Width) / 2.0f, circlePos.Y + (BB.Height - textSize.Height) / 2.0f);
 
-                gFinal.DrawString(label.Number, font, Brushes.Black, textPos, format);
+                gFinal.DrawString(label.Number, font, textBrush, textPos, format);
             }
+        }
 
-            var names = labels.Select(l => $"{l.Number}) {l.Name}").ToList();
+        public static void drawNames(List<TextLabel> names, Bitmap bmp, Font font, int offset)
+        {
+            using var g = Graphics.FromImage(bmp);
 
-            var largestLabel = getLargestLabelWidth(names, bmpFinal, font, gFinal) + MarkerLabel.Diameter / 2;
-            int nrOfCols = Math.Max(1, (int)Math.Floor(bmpFinal.Width / largestLabel));
-            float colWidth = bmpFinal.Width / nrOfCols;
+            using Brush textBrush = new SolidBrush(MarkerLabel.FontColor);
+            StringFormat format = new StringFormat(StringFormat.GenericDefault);
 
-            int col = 0;
-            int row = 0;
             foreach (var name in names)
             {
-                PointF textPos = new(col * colWidth, row * font.Height * 2);
-                gFinal.DrawString(name, font, Brushes.Black, textPos);
-                col++;
-                if (col >= nrOfCols)
-                {
-                    col = 0;
-                    row++;
-                }
+                PointF pos = new PointF((float)name.X, offset + (float)name.Y);
+
+                //  pos = new Point(500, (int)name.Y-300);
+
+                g.DrawString(name.Text, font, textBrush, pos, format);
             }
+        }
+
+        public static Bitmap? toNumberedBitmap(this ImageModel image)
+        {
+            if (image?.Bitmap == null) return null;
+
+            var nvm = image.parent.namesVM;
+            var tvm = image.parent.TitleVM;
+
+            var names = image.MarkerVMs.OfType<TextLabel>().ToList();
+            var labels = image.MarkerVMs.OfType<MarkerLabel>().ToList();
+
+            bool hasNames = nvm.IsEnabled && names.Count > 0;
+            bool hasTitle = tvm.IsEnabled && !string.IsNullOrEmpty(tvm.Title);
+
+            var oldWidth = image.Bitmap.Width;
+            var oldHeight = image.Bitmap.Height;
+            int titleHeight = hasTitle ? (int)image.TitleRegionHeight : 0;
+            int footerHeight = hasNames ? (int)image.NamesRegionHeight : 0;
+            
+            int newHeight = oldHeight + titleHeight + footerHeight;
+            var bmpFinal = new Bitmap(oldWidth, newHeight);
+            using var g = Graphics.FromImage(bmpFinal);
+
+            g.DrawImage(image.Bitmap, new Rectangle(0, titleHeight, oldWidth, oldHeight), new Rectangle(0, 0, oldWidth, oldHeight), GraphicsUnit.Pixel);
+
+            if (hasTitle)
+            {
+                using Brush bg = new SolidBrush(tvm.BackgroundColor);
+                using Brush fg = new SolidBrush(tvm.FontColor);
+                RectangleF BB = new RectangleF(0, 0, bmpFinal.Width, titleHeight);
+
+                g.FillRectangle(bg, BB);
+
+                var fontSize = tvm.FontSize.toGdiFontSize(g);
+                using var font = new Font(tvm.FontFamily, fontSize);
+
+                StringFormat format = new StringFormat
+                {
+                    LineAlignment = StringAlignment.Center,
+                    Alignment = StringAlignment.Center
+                };
+
+                g.DrawString(tvm.Title, font, fg, BB, format);
+            }
+            if (hasNames)
+            {
+                using Brush bg = new SolidBrush(nvm.BackgroundColor);
+                using Brush fg = new SolidBrush(nvm.FontColor);
+                g.FillRectangle(bg, new Rectangle(0, newHeight - footerHeight, bmpFinal.Width, footerHeight));
+
+                var fontSize = TextLabel.FontSize.toGdiFontSize(g);
+                using var font = new Font(nvm.FontFamily, fontSize);
+                drawNames(names, bmpFinal, font, titleHeight);
+            }
+
+            drawLabels(labels, bmpFinal, titleHeight);
+
+            //g.Clear(tvm.BackgroundColor);
+
+
+
+
+
+            //fontSize = TextLabel.FontSize.toGdiFontSize(g);
+            //using Font tfont = new Font("Calibri", fontSize);
+
+            //var names = names.Select(l => $"{l.Number}) {l.Text}").ToList();
+
+            //var largestLabel = getLargestLabelWidth(names, bmpFinal, font, g) + MarkerLabel.Diameter / 2;
+            //int nrOfCols = Math.Max(1, (int)Math.Floor(bmpFinal.Width / largestLabel));
+            //float colWidth = bmpFinal.Width / nrOfCols;
+
+            //int col = 0;
+            //int row = 0;
+
+            return bmpFinal;
+            //var oldHeight = bmpFinal.Height;
+
+            //foreach (var name in names)
+            //{
+            //    PointF textPos = new(col * colWidth, oldHeight + row * font.Height * 2);
+            //    g.DrawString(name, font, Brushes.Black, textPos);
+            //    col++;
+            //    if (col >= nrOfCols)
+            //    {
+            //        col = 0;
+            //        row++;
+            //    }
+            //}
 
 
 
@@ -150,7 +240,6 @@ namespace AutoNumber.Model
                 CvInvoke.Circle(mat, center, radius, fillMCv, -1, AA);
                 CvInvoke.Circle(mat, center, radius, edgeMCv, edgeThickness, AA);
 
-
                 // Draw number in the center of the circle
                 Size textSize = CvInvoke.GetTextSize(marker.Number, fontFace, fontScale, 1, ref baseline);
                 Point textOrg = new Point(
@@ -160,12 +249,7 @@ namespace AutoNumber.Model
 
                 // Draw the number
                 CvInvoke.PutText(mat, marker.Number, textOrg, fontFace, fontScale, fontMCv, linewidth, AA);
-
             }
-
-
-
-
 
 
             var ml = markers.ToList();
@@ -179,7 +263,7 @@ namespace AutoNumber.Model
 
             return mat;
         }
-         public static List<string> names { get; } = new List<string>
+        public static List<string> names { get; } = new List<string>
             {
             "Hans Müller",
             "Anna Schmidt",

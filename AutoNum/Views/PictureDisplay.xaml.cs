@@ -11,6 +11,7 @@ using Xceed.Wpf.Toolkit.PropertyGrid.Implementation.Converters;
 
 
 
+
 namespace NumberIt.Views
 {
     /// <summary>
@@ -166,6 +167,17 @@ namespace NumberIt.Views
             //    var pos = Mouse.GetPosition(pageimg);                
             //    dc.cmdAddBookmark.Execute(((int)pos.X,(int)pos.Y));
             //}
+        }
+
+        private void tbTitle_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if(DataContext is MainVM mainVM)
+            {
+                mainVM.pictureVM.TitleRegionHeight = e.NewSize.Height;
+                //mainVM.TitleVM.TitleHeight = e.NewSize.Height;
+                var x = tbTitle.Padding;
+            }
+
         }
     }
 

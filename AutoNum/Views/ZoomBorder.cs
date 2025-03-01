@@ -77,12 +77,16 @@ namespace NumberIt.Views
             {
                 if (markerLabel != null)
                 {
-                    mainVM.pictureVM.MarkerVMs.Remove(markerLabel);
+                    mainVM.pictureVM.RemoveLabel(markerLabel);
                 }
                 else
                 {
-                    // Trace.WriteLine($"{clickPosition.X} {clickPosition.Y}");
-                    int lastIdx = mainVM.pictureVM.MarkerVMs.OfType<MarkerLabel>().Max(m => int.Parse(m.Number));
+                    int lastIdx = 0;
+                    if (mainVM.pictureVM.MarkerVMs.OfType<MarkerLabel>().Count() > 0)
+                    {
+                        lastIdx = mainVM.pictureVM.MarkerVMs.OfType<MarkerLabel>().Max(m => int.Parse(m.Number));
+                    }
+
                     mainVM.pictureVM.AddLabel(
                         new MarkerLabel
                         {

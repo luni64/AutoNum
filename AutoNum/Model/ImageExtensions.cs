@@ -56,16 +56,7 @@ public static class ImageExtensions
         var hres = bmpOriginal.HorizontalResolution;
         bestFontSize =  (int)( 2.5*hres * 12.0 / 72.0); // ~12pt
 
-        //// If we never found anything above 4pt, pick some fallback
-        //if (bestFontSize < 4f)
-        //{
-        //    bestFontSize = 12f;
-        //    bestColumns = 1;
-        //}
-
-        
-
-        // Now we do one final rendering pass with the best columns & best font size
+      
         return RenderMultiColumnTable(names, bestColumns, bestFontSize, bmpOriginal).ToBitmap();
         //return bmpOriginal;
     }

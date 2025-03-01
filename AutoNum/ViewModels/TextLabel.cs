@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using System.Drawing;
+using System.Xml.Linq;
 
 namespace NumberIt.ViewModels
 {
@@ -14,21 +15,14 @@ namespace NumberIt.ViewModels
         public string? Text
         {
             get => _text == "" ? null : _text;
-            set => SetProperty(ref _text, value);
+            set
+            {
+                SetProperty(ref _text, value);
+                
+            }
         }
 
-        //public static float FontSize
-        //{
-        //    get => _fontSize;
-        //    set
-        //    {
-        //        if (_fontSize != value)
-        //        {
-        //            _fontSize = value;
-        //            OnStaticPropertyChanged(nameof(FontSize));
-        //        }
-        //    }
-        //}
+       
         public static Color FontColor
         {
             get => _fontColor;
@@ -80,6 +74,13 @@ namespace NumberIt.ViewModels
 
 
         #endregion
+
+
+        public override string ToString()
+        {
+            return $"TL: {Number}-{Text}";
+        }
+
 
         #region events --------------------------------------------------------
         public static event EventHandler<PropertyChangedEventArgs>? StaticPropertyChanged;

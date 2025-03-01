@@ -8,10 +8,7 @@
 
     <DataTemplate DataType="{x:Type vm:OpenImageVM}">
         <Border Background="White" Padding="10,0" BorderBrush="DarkGray" BorderThickness="0,0,1,0" TextBlock.FontFamily="Calibri" TextBlock.FontSize="16">
-            <StackPanel>
-                <!--<TextBlock TextWrapping="Wrap"  TextAlignment="Justify">
-                    <Run FontSize="24" FontWeight="SemiBold" Foreground="DarkBlue" Text="Bilddatei"/>                  
-                </TextBlock>-->
+            <StackPanel>        
                 <Button 
                     Content="Bild öffnen" Command="{Binding cmdOpenImage}" 
                     HorizontalAlignment="Stretch" Padding="20,5" Margin="0,0,0,5"
