@@ -5,7 +5,7 @@
     xmlns:vm="clr-namespace:NumberIt.ViewModels"
     xmlns:is="clr-namespace:NumberIt.Infrastructure">
 
-    <DataTemplate DataType="{x:Type vm:AnalyzeVM}">
+    <DataTemplate DataType="{x:Type vm:FaceDetector}">
         <Grid Background="White" TextBlock.FontFamily="Calibri" TextBlock.FontSize="15" Margin="10,0,20,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto"/>

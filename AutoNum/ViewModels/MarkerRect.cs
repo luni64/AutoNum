@@ -5,16 +5,21 @@ using System.Drawing;
 
 namespace NumberIt.ViewModels
 {
-    class MarkerRect : MarkerVM
-    {
-        //public double X { get => _x; set => SetProperty(ref _x, value); }
-        //public double Y { get => _y; set => SetProperty(ref _y, value); }
+    //class MarkerRect : MarkerVM
+    //{
+    //    //public double X { get => _x; set => SetProperty(ref _x, value); }
+    //    //public double Y { get => _y; set => SetProperty(ref _y, value); }
 
-        //private double _x, _y, _w, _h;
-    }
+    //    //private double _x, _y, _w, _h;
+    //}
 
     public class MarkerLabel : MarkerVM
     {
+        public MarkerLabel(Person person)
+        {
+            this.person = person;
+        }
+
         #region properties ------------------------------------------------------
         override public double X
         {
@@ -36,10 +41,15 @@ namespace NumberIt.ViewModels
             }
         }
 
-        public string Number
+        public int Number
         {
             get => _nr;
-            set => SetProperty(ref _nr, value);
+            set
+            {
+                SetProperty(ref _nr, value);
+                person.OnPropertyChanged("FullName");
+
+            }
         }
         public string? Name
         {
@@ -57,7 +67,7 @@ namespace NumberIt.ViewModels
         {
             get => _centerY;
             set => SetProperty(ref _centerY, value);
-        }        
+        }
 
         public static float Diameter
         {
@@ -80,7 +90,7 @@ namespace NumberIt.ViewModels
                 if (_fontSize != value)
                 {
                     _fontSize = value;
-                    //BaselineOffset = 0.04 * FontSize;
+                    //BaselineOffset = 0.04 * TitleFontSize;
 
                     OnStaticPropertyChanged(nameof(FontSize));
 
@@ -88,8 +98,7 @@ namespace NumberIt.ViewModels
             }
         }
 
-        
-        public static FontFamily fontFamily = new FontFamily("Calibri");
+        public static FontFamily FontFamily { get; } = new FontFamily("Calibri");
 
         public static Color FontColor
         {
@@ -128,6 +137,8 @@ namespace NumberIt.ViewModels
             }
         }
 
+        public Person person { get; }
+
         #endregion
 
         #region events --------------------------------------------------------
@@ -154,7 +165,7 @@ namespace NumberIt.ViewModels
         private static Color _fontColor = Color.Black;
         private static double _fontSize;
 
-        private string _nr = string.Empty;
+        private int _nr;
         private string? _name;
         private double _centerX;
         private double _centerY;

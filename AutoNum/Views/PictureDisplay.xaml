@@ -5,7 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:view="clr-namespace:NumberIt.Views" 
     xmlns:vm="clr-namespace:NumberIt.ViewModels" 
-    xmlns:Infrastructure="clr-namespace:NumberIt.Infrastructure" 
+    xmlns:is="clr-namespace:NumberIt.Infrastructure" 
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
     x:Class="NumberIt.Views.PictureDisplay" 
     x:Name="PD" 
@@ -16,9 +16,10 @@
 
     <UserControl.Resources>
         <mah:MathMultiplyConverter x:Key="MathMultiplyConverter"/>
-        <Infrastructure:BitmapToBitmapSource x:Key="Bitmap2BitmapSource"/>
-        <Infrastructure:boolToVisibiltiyConverter x:Key="Bool2Vis"/>
-        <Infrastructure:DrawingColToMediaBrush  x:Key="Col2Brush"/>
+        <is:BitmapToBitmapSource x:Key="Bitmap2BitmapSource"/>
+        <is:boolToVisibiltiyConverter x:Key="Bool2Vis"/>
+        <is:DrawingColToMediaBrush  x:Key="Col2Brush"/>
+        <is:DrawingFontFamilyToMediaFontFamily x:Key="DrawingFontFamilyToMediaFontFamily"/>
     </UserControl.Resources>
 
 
@@ -30,22 +31,23 @@
         Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"                  
         >
         <Canvas x:Name="PageCanvas">
-            <Border
-                Visibility="{Binding TitleVM.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
+            <Border DataContext="{Binding titleManager}"
+                Visibility="{Binding IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
                 BorderThickness="1,1,1,0"
                 BorderBrush="DarkGray"   
-                Background="{Binding TitleVM.BackgroundColor, Converter={StaticResource Col2Brush}}"
+                Background="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}"
                 Canvas.Left="0" 
                 Canvas.Top="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay, ConverterParameter=-1, Converter={StaticResource MathMultiplyConverter}}"  
                 Height="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay}"  
                 Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"               
                />
-            <TextBlock 
-                Text="{Binding TitleVM.Title}" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
-                x:Name="tbTitle" Visibility="{Binding TitleVM.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"              
+            <TextBlock DataContext="{Binding titleManager}"
+                Text="{Binding Title}" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
+                x:Name="tbTitle" Visibility="{Binding IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"              
                 Canvas.Left="0" Canvas.Top="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay, ConverterParameter=-1, Converter={StaticResource MathMultiplyConverter}}"  
-                FontFamily="Calibri" FontSize="{Binding TitleVM.FontSize}" 
-                Foreground="{Binding TitleVM.FontColor, Converter={StaticResource Col2Brush}}"
+                FontFamily="{Binding TitleFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}" 
+                FontSize="{Binding TitleFontSize}" 
+                Foreground="{Binding TitleFontColor, Converter={StaticResource Col2Brush}}"
                 Padding="0"
                 Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"                      
                 SizeChanged="tbTitle_SizeChanged"
@@ -59,11 +61,11 @@
                 />
             <Border               
                 Canvas.Left="0"    
-                Visibility="{Binding namesVM.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
+                Visibility="{Binding nameManager.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
                 Canvas.Top="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
                 Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
                 Height="{Binding pictureVM.NamesRegionHeight}"  
-                BorderThickness="1,0,1,1"  BorderBrush="Black" Background="{Binding namesVM.BackgroundColor, Converter={StaticResource Col2Brush}}"
+                BorderThickness="1,0,1,1"  BorderBrush="Black" Background="{Binding nameManager.BackgroundColor, Converter={StaticResource Col2Brush}}"
                 />
         </Canvas>
     </view:ZoomBorder>

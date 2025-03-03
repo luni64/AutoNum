@@ -29,29 +29,25 @@ namespace NumberIt.ViewModels
                 if (_fontSizeSliderValue != value)
                 {
                     _fontSizeSliderValue = value;
-                    FontSize = DefaultFontSize * (0.5 + 0.0002 * (_fontSizeSliderValue * _fontSizeSliderValue));
+                    TitleFontSize = DefaultFontSize * (0.5 + 0.0002 * (_fontSizeSliderValue * _fontSizeSliderValue));
                     OnPropertyChanged();
                 }
             }
         }
         
-        double _fontSize = 1;
-        public double FontSize
+        public double TitleFontSize
         {
             get => _fontSize;
             private set => SetProperty(ref _fontSize, value);
         }
 
-        Color _fontColor = Color.Black;
-        public Color FontColor
+        public Color TitleFontColor
         {
             get => _fontColor;
             set => SetProperty(ref _fontColor, value);
         }
+        public FontFamily TitleFontFamily { get; } = new FontFamily("Calibri");
 
-        public FontFamily FontFamily { get; } = new FontFamily("Calibri");
-
-        Color _backgroundColor = Color.White;
         public Color BackgroundColor
         {
             get => _backgroundColor;
@@ -70,5 +66,8 @@ namespace NumberIt.ViewModels
         bool _isEnabled = false;
         double _fontSizeSliderValue;
         string _title = string.Empty;
+        Color _fontColor = Color.Black;
+        double _fontSize = 1;
+        Color _backgroundColor = Color.White;
     }
 }

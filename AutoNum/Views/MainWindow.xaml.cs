@@ -24,7 +24,7 @@ namespace NumberIt
 
         //    };
 
-        //    if(dialog.ShowDialog() == true && DataContext is MainVM mvm && mvm.CurrentStep is OpenImageVM vm)
+        //    if(dialog.ShowDialog() == true && DataContext is MainVM mvm && mvm.CurrentStep is FileManager vm)
         //    {
         //        vm.cmdOpenImage.Execute(dialog.FileName);
         //    }

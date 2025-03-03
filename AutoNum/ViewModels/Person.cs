@@ -14,20 +14,23 @@ namespace NumberIt.ViewModels
 
         public Person(int nr, string name, PointF labelPosition)
         {
-            Label = new MarkerLabel
-            {
-                Number = nr.ToString(),
+            Label = new MarkerLabel(this)
+            {              
+                Number = nr,
                 CenterX = labelPosition.X,
                 CenterY = labelPosition.Y,
                 visible = true,
                 isLocked = false,
             };
-            Name = new TextLabel
+            Name = new TextLabel(this)
             {
                 Text = name,
                 visible = false,
                 isLocked = true,
-            };            
+            };                   
         }
+        public string FullName => $"{Label.Number}) {Name.Text}";
+
+        public override string ToString() => FullName;
     }
 }

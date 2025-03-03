@@ -42,7 +42,7 @@
                 <view:FontManager 
                     Grid.Row="2" Margin="0,10,0,40"
                     Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"
-                    FontColor="{Binding FontColor, Converter={StaticResource ColorConverter}}"
+                    FontColor="{Binding TitleFontColor, Converter={StaticResource ColorConverter}}"
                     BackgroundColor="{Binding BackgroundColor, Converter={StaticResource ColorConverter}}"
                     SelectedFontSize="{Binding FontSizeSliderValue}"
                     

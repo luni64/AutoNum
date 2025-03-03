@@ -1,6 +1,5 @@
 ﻿using AutoNumber.Model;
 using Emgu.CV;
-using System.Diagnostics;
 using System.IO;
 
 namespace NumberIt.ViewModels
@@ -20,12 +19,10 @@ namespace NumberIt.ViewModels
         public int FilterIndex { get; set; }
     }
 
-
-
-    public class OpenImageVM : WizardStep
+    public class FileManager : BaseViewModel
     {
-        public RelayCommand cmdOpenImage => _cmdChangeImage ??= new(doChangeImage);
-        void doChangeImage(object? o)
+        public RelayCommand cmdOpenImage => _cmdOpenImage ??= new(doOpenImage);
+        void doOpenImage(object? o)
         {
             var info = new OpenFileInfo
             {
@@ -37,33 +34,18 @@ namespace NumberIt.ViewModels
             {
                 try
                 {
-                    parent.pictureVM.Init(imageFilename);
-
-                    var img = parent.pictureVM.Bitmap;
-
-                    var hres = img.HorizontalResolution;
-                    var widthpx = img.Width;
-                    var widthInch = widthpx / hres;
-
-                    var fh = hres * 12.0 / 72;
-
-
-                    Trace.WriteLine($"{hres} {widthpx} {widthInch} {fh}");
-                    // add flag isOpen here
-                    parent.analyzeVM.doAnalyze();
-                    parent.labelsVM.Enter(null);
+                    parent.pictureVM.Init(imageFilename);   
+                    var faces = FaceDetector.Detect(parent.pictureVM.Bitmap!);
+                    parent.labelManager.SetLabels(faces);
+                    
                 }
                 catch
                 {
-                    parent.DialogService.ShowDialog("Fehler beim Öffnen des Bildes");
-                    Trace.WriteLine("Error loading image in OpenImageVM");
+                    parent.DialogService.ShowDialog("Fehler beim Öffnen des Bildes");                    
                 }
             }
-
         }
 
-
-        RelayCommand? _cmdSaveImage;
         public RelayCommand cmdSaveImage => _cmdSaveImage ??= new(doSaveImage);
         void doSaveImage(object? o)
         {
@@ -86,9 +68,7 @@ namespace NumberIt.ViewModels
             {
                 if (filename != parent.pictureVM.Filename) // we don't want to overwrite the original file
                 {
-                    using var mm = parent.pictureVM.toNumberedBitmap();
-                    using var mat = mm.ToMat();
-                    //using var mat = parent.pictureVM.toNumberedMat();
+                    using var mat = parent.pictureVM.toNumberedBitmap().ToMat();                    
                     mat?.Save(filename);
                 }
                 else
@@ -96,23 +76,15 @@ namespace NumberIt.ViewModels
                     parent.DialogService.ShowDialog("Das Originalbild darf nicht überschrieben werden");
                 }
             }
-        }
+        }             
 
-
-        public override void Enter(object? o)
-        {
-            foreach (var marker in parent.pictureVM.MarkerVMs)
-            {
-                marker.visible = false;
-            }
-        }
-
-        public MainVM parent { get; set; }
-        private RelayCommand? _cmdChangeImage;
-
-        public OpenImageVM(MainVM parent)
+        public FileManager(MainVM parent)
         {
             this.parent = parent;
         }
+
+        private MainVM parent { get; set; }
+        private RelayCommand? _cmdOpenImage;
+        private RelayCommand? _cmdSaveImage;
     }
 }

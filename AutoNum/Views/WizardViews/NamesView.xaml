@@ -5,20 +5,22 @@
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"    
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"      
     xmlns:view="clr-namespace:NumberIt.Views" 
+    xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
     xmlns:is="clr-namespace:NumberIt.Infrastructure">
     <mah:MathSubtractConverter x:Key="MathSubtractConverter"/>
 
     <is:boolToVisibiltiyConverter x:Key="boo2Vis"/>
     <is:DrawingColToMediaBrush x:Key="ColorConverter"/>
 
+
     <DataTemplate DataType="{x:Type vm:NameManager}">
         <Border Padding="10,0,10,0" BorderBrush="DarkGray" BorderThickness="1,0,0,0" >
-            <Grid x:Name="gg"> 
+            <Grid x:Name="gg">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="auto"/>
                     <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>                    
-                </Grid.RowDefinitions>              
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
 
                 <mah:ToggleSwitch 
                     x:Name="InsertNames"
@@ -26,29 +28,36 @@
                     IsOn="{Binding IsEnabled}"
                     Grid.Row="0"        
                     mah:ToggleButtonHelper.ContentDirection="RightToLeft"
-                    Content="Namensliste">                    
+                    Content="Namensliste">
                 </mah:ToggleSwitch>
 
                 <ScrollViewer  
                     Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}" 
                     Grid.Row="1" MaxHeight="{Binding ActualHeight, ConverterParameter=90, Converter={StaticResource MathSubtractConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Grid}}}"
                     VerticalScrollBarVisibility="Auto"          >
-                    
-                <DataGrid                   
-                    Margin="0,10,0,15" VerticalAlignment="Top"
-                    AutoGenerateColumns="False" 
-                    Grid.Row="1" 
-                    CanUserAddRows="False"                        
-                    ItemsSource="{Binding parent.pictureVM.Names}" 
-                    Style="{StaticResource MahApps.Styles.DataGrid}"  
-                    mah:DataGridHelper.SelectionUnit="Cell"   mah:DataGridHelper.EnableCellEditAssist="True" 
-                    HeadersVisibility="None" GridLinesVisibility="Horizontal"
+
+                    <DataGrid                   
+                        Margin="0,10,0,15" VerticalAlignment="Top"    
+                        CanUserSortColumns="True" CanUserAddRows="False" AutoGenerateColumns="False" 
+                        Grid.Row="1" BorderThickness="1"                        
+                        ItemsSource="{Binding PersonsView}" 
+                        Style="{StaticResource MahApps.Styles.DataGrid}"  
+                        mah:DataGridHelper.SelectionUnit="FullRow"   mah:DataGridHelper.EnableCellEditAssist="True" 
+                        HeadersVisibility="Column" GridLinesVisibility="All"        
+                        SelectionMode="Single"
                     >
-                    <DataGrid.Columns >                       
-                        <DataGridTextColumn Header="Nr" Binding="{Binding Number}" Width="auto" IsReadOnly="True" />
-                        <DataGridTextColumn Header="Name" Binding="{Binding Text }" Width="*" />
-                    </DataGrid.Columns>
-                </DataGrid>
+                        <!--<DataGrid.Resources>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MahApps.Styles.DataGridColumnHeader}">
+                                <Setter Property="BorderThickness" Value="1"/>                                
+                                <Setter Property="Padding" Value="2"/>
+                            </Style>
+                        </DataGrid.Resources>-->
+
+                        <DataGrid.Columns >
+                            <DataGridTextColumn Header="Nr." Binding="{Binding Label.Number}" Width="auto" IsReadOnly="True"/>
+                            <DataGridTextColumn Header="Name" Binding="{Binding Name.Text }" Width="*" />
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </ScrollViewer>
 
                 <view:FontManager
@@ -58,7 +67,7 @@
                     BackgroundColor="{Binding BackgroundColor, Converter={StaticResource ColorConverter}}"
                     Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"                    
                     />
-                  
+
             </Grid>
         </Border>
     </DataTemplate>

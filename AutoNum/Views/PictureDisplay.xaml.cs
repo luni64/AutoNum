@@ -8,6 +8,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
 using Xceed.Wpf.Toolkit.PropertyGrid.Implementation.Converters;
+using static Emgu.CV.Dai.OpenVino;
 
 
 
@@ -39,13 +40,14 @@ namespace NumberIt.Views
             if (e.NewValue is ImageModel pageVM)
             {
                 var that = ((PictureDisplay)d);
-                pageVM.MarkerVMs.CollectionChanged -= that.Marker_CollectionChanged;
-                pageVM.MarkerVMs.CollectionChanged += that.Marker_CollectionChanged;
+                pageVM.Persons.CollectionChanged -= that.Marker_CollectionChanged; // remove old handler
+                pageVM.Persons.CollectionChanged += that.Marker_CollectionChanged;
 
                 that.ClearMarkers();
-                foreach (var markerVM in pageVM.MarkerVMs)
+                foreach (var person in pageVM.Persons)
                 {
-                    that.AddMarker(markerVM);
+                    that.AddMarker(person.Label);
+                    that.AddMarker(person.Name);
                 }
             }
         }
@@ -56,34 +58,46 @@ namespace NumberIt.Views
             {
                 case NotifyCollectionChangedAction.Add:
 
-                    foreach (MarkerVM bm in e.NewItems!)
+                    foreach (Person person in e.NewItems!)
                     {
-                        AddMarker(bm);
+                        AddMarker(person.Label);
+                        AddMarker(person.Name);
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
-                    RemoveMarker(e.OldItems!);
+                    foreach (Person person in e.OldItems!)
+                    {
+                        RemoveMarker(person.Label);
+                        RemoveMarker(person.Name);
+                    }
                     break;
                 case NotifyCollectionChangedAction.Reset:
                     ClearMarkers();
                     break;
             }
-
         }
 
-        void RemoveMarker(IList MarkerVMs)
+        void RemoveMarker(MarkerVM markerVM)
         {
-            var markerUIs = PageCanvas.Children.OfType<Marker>();  // we are only interested in canvas-children of type Bookmark
+            var markerUIs = PageCanvas.Children.OfType<Marker>();  // we are only interested in canvas-children of type Marker
 
-            foreach (MarkerVM markerVM in MarkerVMs)
-            {
-                var markerUI = markerUIs.FirstOrDefault(b => b.Uid == markerVM.Id.ToString());  // find the canvas child which corresponds to the removed view marriageModel
-                if (markerUI != null)
-                {
-                    PageCanvas.Children.Remove(markerUI);
-                }
-            }
+            PageCanvas.Children.Remove(markerUIs.FirstOrDefault(m => m.Uid == markerVM.Id.ToString()));
+
         }
+
+        //void RemoveMarker(IList MarkerVMs)
+        //{
+        //    var markerUIs = PageCanvas.Children.OfType<Marker>();  // we are only interested in canvas-children of type Marker
+
+        //    foreach (MarkerVM markerVM in MarkerVMs)
+        //    {
+        //        var markerUI = markerUIs.FirstOrDefault(b => b.Uid == markerVM.Id.ToString());  // find the canvas child which corresponds to the removed view marriageModel
+        //        if (markerUI != null)
+        //        {
+        //            PageCanvas.Children.Remove(markerUI);
+        //        }
+        //    }
+        //}
 
         void ClearMarkers()
         {
@@ -95,12 +109,7 @@ namespace NumberIt.Views
         }
 
         void AddMarker(MarkerVM markerVM)
-        {
-            if (markerVM is MarkerLabel label &&  string.IsNullOrEmpty(label.Number))
-            {
-               label.Number =  "?";
-            }
-
+        {            
             var marker = new Marker(markerVM);
 
             //marker.SetBinding(MarkerUI.TextProperty, new Binding
@@ -143,7 +152,7 @@ namespace NumberIt.Views
             //marker.Width = markerVM.W;
             //marker.Height = markerVM.H;
 
-            
+
 
             Canvas.SetLeft(marker, markerVM.X);
             Canvas.SetTop(marker, markerVM.Y);
@@ -171,10 +180,10 @@ namespace NumberIt.Views
 
         private void tbTitle_SizeChanged(object sender, SizeChangedEventArgs e)
         {
-            if(DataContext is MainVM mainVM)
+            if (DataContext is MainVM mainVM)
             {
                 mainVM.pictureVM.TitleRegionHeight = e.NewSize.Height;
-                //mainVM.TitleVM.TitleHeight = e.NewSize.Height;
+                //mainVM.titleManager.TitleHeight = e.NewSize.Height;
                 var x = tbTitle.Padding;
             }
 

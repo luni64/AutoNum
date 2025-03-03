@@ -10,7 +10,7 @@
 
     <is:ColorConverter x:Key="ColorConverter"/>
 
-    <DataTemplate DataType="{x:Type vm:LabelsVM}">
+    <DataTemplate DataType="{x:Type vm:LabelManager}">
         <Grid Background="White" TextBlock.FontFamily="Calibri" TextBlock.FontSize="15" Margin="0,10,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" MaxWidth="300"/>
@@ -25,55 +25,14 @@
                 BackgroundColor="{Binding BackgroundColor, Mode=TwoWay,  Converter={StaticResource ColorConverter} }"
                 />
 
-
-            <!--<DockPanel Grid.Column="0" HorizontalAlignment="Stretch" Margin="0,0,10,0">
-                    <TextBlock 
-                        DockPanel.Dock="Top"
-                        Text="Label Größe" HorizontalAlignment="Center"
-                        Style="{StaticResource MahApps.Styles.TextBlock.Watermark}" FontSize="12"/>
-                    <Slider 
-                        DockPanel.Dock="Bottom" Width="150"
-                        Value="{Binding Diameter}" Minimum="0" Maximum="100"
-                        VerticalAlignment="Center" Margin="0,0,0,0"                   
-                        />
-                </DockPanel>                
-                
-                <DockPanel Grid.Column="1"  Margin="10,0,0,0" >
-                    <StackPanel   >
-                        <TextBlock HorizontalAlignment="Center"
-                            Text="Hintergrund" Style="{StaticResource MahApps.Styles.TextBlock.Watermark}" FontSize="12"/>
-                        <mah:ColorPicker
-                            VerticalAlignment="Center" Width="60" 
-                            SelectedColor="{Binding BackgroundColor, Mode=TwoWay,  Converter={StaticResource ColorConverter}}"                               
-                            SelectedColorTemplate="{DynamicResource MahApps.Templates.ColorPickerContent.ColorOnly}"                                      />
-                    </StackPanel>
-                    <StackPanel Margin="5,0,0,0" >
-                        <TextBlock HorizontalAlignment="Center"
-                            Text="Schrift" Style="{StaticResource MahApps.Styles.TextBlock.Watermark}" FontSize="12"/>
-                        <mah:ColorPicker
-                            VerticalAlignment="Center" Width="60"
-                            SelectedColor="{Binding FontColor, Mode=TwoWay,  Converter={StaticResource ColorConverter}}"                               
-                            SelectedColorTemplate="{DynamicResource MahApps.Templates.ColorPickerContent.ColorOnly}"                
-                            />
-                    </StackPanel>
-                    <StackPanel  Margin="5,0,0,0" >
-                        <TextBlock HorizontalAlignment="Center" 
-                            Text="Rand" Style="{StaticResource MahApps.Styles.TextBlock.Watermark}" FontSize="12"/>
-                        <mah:ColorPicker
-                            VerticalAlignment="Center" Width="60"
-                            SelectedColor="{Binding EdgeColor, Mode=TwoWay,  Converter={StaticResource ColorConverter}}"                               
-                            SelectedColorTemplate="{DynamicResource MahApps.Templates.ColorPickerContent.ColorOnly}"                
-                            />
-                    </StackPanel>
-            </DockPanel>-->
-
+      
             <DockPanel Grid.Column="2" Margin="20,0,20,0">                
                 <TextBlock 
                     DockPanel.Dock="Top"
                     Text="Renumber" Style="{StaticResource MahApps.Styles.TextBlock.Watermark}" FontSize="12" HorizontalAlignment="Center"/>
                 <Button 
                     DockPanel.Dock="Bottom" Width="30" Height="30"
-                    Command="{Binding cmdNumerate}"   Padding="5" HorizontalAlignment="Center" Focusable="False"
+                    Command="{Binding cmdNumerate}"   Padding="5" HorizontalAlignment="Center" Focusable="True"
                     Style="{StaticResource MahApps.Styles.Button.Circle}"
                     Content="{iconPacks:Material Kind=Refresh, Width=15, Height=15}"
                     ToolTip="Ordnet die Label-Nummern neu"/>

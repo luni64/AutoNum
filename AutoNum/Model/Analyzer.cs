@@ -1,4 +1,5 @@
 ﻿using NumberIt.ViewModels;
+using System.ComponentModel;
 using System.Drawing;
 
 
@@ -34,7 +35,7 @@ namespace NumberIt.Model
         }
 
 
-        public static SizeF getItemsBoundingBox<T>(IEnumerable<T> list, Func<T, string?> selector, Font font)
+        public static SizeF getItemsBoundingBox<T>(ICollectionView list, Func<T, string?> selector, Font font)
         {
             g.PageUnit = GraphicsUnit.Point;
             SizeF largest = new SizeF();
@@ -55,35 +56,34 @@ namespace NumberIt.Model
         {
             g.PageUnit = GraphicsUnit.Point;
 
-            using var font = new Font(tm.FontFamily, (int) tm.FontSize);
+            using var font = new Font(MarkerLabel.FontFamily, (int) tm.TitleFontSize);
             SizeF thisSize = g.MeasureString(tm.Title, font);
             return thisSize.Height;
         }
 
-        public static double PlacePersonNames(IEnumerable<TextLabel> names, double width, double height)
+        public static double PlacePersonNames(ICollectionView persons, double width, double height)
         {
             using Font font = new Font(TextLabel.fontFamily, (float)TextLabel.FontSize);
 
-            var bb = getItemsBoundingBox(names, n => n.Text, font);
+            var bb = getItemsBoundingBox<Person>(persons, p => !string.IsNullOrEmpty(p.Name.Text) ? p.FullName : "______________", font);
             var nrOfColumns = (int)Math.Floor(width / bb.Width);
 
             int colNr = 0;
             int rowNr = 0;
-            foreach (var name in names)
+            foreach (Person person in persons)
             {
-                name.X = colNr * bb.Width;
-                name.Y = height + rowNr * bb.Height + bb.Height/8;
-                name.W = bb.Width;
-                name.H = bb.Height;
+                person.Name.X = colNr * bb.Width;
+                person.Name.Y = height + rowNr * bb.Height + bb.Height/8;
+                person.Name.W = bb.Width;
+                person.Name.H = bb.Height;
                 colNr++;
                 if (colNr == nrOfColumns)
                 {
                     rowNr++;
                     colNr = 0;
                 }
-                name.visible = true;
+                person.Name.visible = true;
             }
-
             return (Math.Max(1, rowNr + 1) * bb.Height);
         }
     }

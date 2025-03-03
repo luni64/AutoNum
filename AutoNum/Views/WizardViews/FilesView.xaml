@@ -6,7 +6,7 @@
     xmlns:vm="clr-namespace:NumberIt.ViewModels"
     xmlns:is="clr-namespace:NumberIt.Infrastructure">
 
-    <DataTemplate DataType="{x:Type vm:OpenImageVM}">
+    <DataTemplate DataType="{x:Type vm:FileManager}">
         <Border Background="White" Padding="10,0" BorderBrush="DarkGray" BorderThickness="0,0,1,0" TextBlock.FontFamily="Calibri" TextBlock.FontSize="16">
             <StackPanel>        
                 <Button 
@@ -16,9 +16,16 @@
                     />
                 
                 <TextBlock  TextWrapping="Wrap"  TextAlignment="Justify" FontSize="13">                                      
-                    <Run Text="Unter&#x00AD;stützte Formate: JPEG, PNG, BMP, TIFF, GIF, WEBP, PGM, PPM"/>
+                    <Run Text="Unter&#x00AD;stützte Formate: JPEG, PNG, BMP, TIFF, GIF, WEBP, PGM, PPM"/><LineBreak/>
                 </TextBlock>
-                
+                <TextBlock TextWrapping="Wrap"  TextAlignment="Justify" FontSize="13">                                      
+                    <Run FontWeight="Bold" FontSize="16" Text="Hilfe"/> <LineBreak/>
+                    <Run FontWeight="SemiBold" Text="Verschieben"/> <Run Text="mit der lin&#x00AD;ken Maus&#x00AD;tas&#x00AD;te,"/> 
+                    <Run FontWeight="SemiBold" Text="Zoo&#x00AD;men"/> <Run Text="mit dem Maus&#x00AD;rad."/>
+                    <Run FontWeight="SemiBold" Text="Neu&#x00AD;es La&#x00AD;bel:"/> <Run Text="Rechts-&#x00AD;Klicken auf ei&#x00AD;ne freie Stel&#x00AD;le."/>
+                    <Run FontWeight="SemiBold" Text="Label löschen:"/> <Run Text="Rechts-&#x00AD;Klicken auf ein La&#x00AD;bel"/>                    
+                </TextBlock>
+
                 <Button 
                     Content="Ergebnis speichern" Command="{Binding cmdSaveImage}"  
                     HorizontalAlignment="Stretch" Padding="20,5" Margin="0,25,0,10"
@@ -26,8 +33,8 @@
                     />
                 <!--<TextBox x:Name="tbPath" Text="{Binding ImageFile }" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" Margin="0,20,0,0"/>-->
                 <TextBlock  TextWrapping="Wrap"  TextAlignment="Justify" FontSize="13">                                        
-                    <Run Text="Speichert eine Kopie des Originals mit der erzeugten Beschriftung."/><LineBreak/><LineBreak/>
-                    <Run FontWeight="SemiBold" Text="Hinweis:"/>
+                    <Run Text="Speichert eine Kopie des Originals mit der erzeugten Beschriftung."/><LineBreak/><LineBreak/><LineBreak/>
+                    <Run FontWeight="Bold" FontSize="16" Text="Hinweis:"/><LineBreak/>
                     <Run Text="Diese An&#x00AD;wen&#x00AD;dung ver&#x00AD;än&#x00AD;dert oder über&#x00AD;schreibt die Original&#x00AD;datei unter keinen Um&#x00AD;stän&#x00AD;den."/>
                 </TextBlock>
             </StackPanel>

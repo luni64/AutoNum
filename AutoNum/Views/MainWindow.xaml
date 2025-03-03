@@ -40,7 +40,7 @@
 
         </Grid.RowDefinitions>
 
-        <ContentControl Grid.Column ="0" Grid.RowSpan="2" Content="{Binding openImageVM}" Margin="0,0,10,0"/>
+        <ContentControl Grid.Column ="0" Grid.RowSpan="2" Content="{Binding fileManager}" Margin="0,0,10,0"/>
         <GridSplitter ResizeBehavior="PreviousAndNext" Grid.Column="1" Grid.RowSpan="2" HorizontalAlignment="Stretch"  Background="White" Focusable="False"/>
 
         <view:PictureDisplay            
@@ -52,13 +52,13 @@
                 </Style>
             </view:PictureDisplay.Resources>
         </view:PictureDisplay>
-        <ContentControl Grid.Column="2" Grid.Row="1" Content="{Binding labelsVM}" />
+        <ContentControl Grid.Column="2" Grid.Row="1" Content="{Binding labelManager}" />
 
         <GridSplitter ResizeBehavior="PreviousAndNext" Grid.Column="3" Grid.RowSpan="2" Background="White" Focusable="False"/>
 
         <DockPanel Grid.Column="4" Grid.Row="0" Grid.RowSpan="2" >
-            <ContentControl DockPanel.Dock="Top" Content="{Binding TitleVM}"/>
-            <ContentControl DockPanel.Dock="Bottom" Content="{Binding namesVM}"/>
+            <ContentControl DockPanel.Dock="Top" Content="{Binding titleManager}"/>
+            <ContentControl DockPanel.Dock="Bottom" Content="{Binding nameManager}"/>
         </DockPanel>
 
     </Grid>

@@ -7,6 +7,7 @@ using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
 
+
 namespace NumberIt.Views
 {
     public class ZoomBorder : Border
@@ -65,7 +66,6 @@ namespace NumberIt.Views
             Point clickPosition = e.GetPosition(this);
 
             var c = this.child as Canvas;
-
             var t = this.TransformToVisual(c);
             var np = t.Transform(clickPosition);
 
@@ -77,23 +77,20 @@ namespace NumberIt.Views
             {
                 if (markerLabel != null)
                 {
-                    mainVM.pictureVM.RemoveLabel(markerLabel);
+                    //var person = markerLabel.person;
+                    mainVM.pictureVM.Persons.Remove(markerLabel.person);
                 }
                 else
                 {
-                    int lastIdx = 0;
-                    if (mainVM.pictureVM.MarkerVMs.OfType<MarkerLabel>().Count() > 0)
+                    int lastIdx = 0;                
+                    if (mainVM.pictureVM.Persons.Any())
                     {
-                        lastIdx = mainVM.pictureVM.MarkerVMs.OfType<MarkerLabel>().Max(m => int.Parse(m.Number));
+                        lastIdx = mainVM.pictureVM.Persons.Max(p => p.Label.Number);
                     }
 
-                    mainVM.pictureVM.AddLabel(
-                        new MarkerLabel
-                        {
-                            CenterX = np.X - MarkerLabel.Diameter / 2,
-                            CenterY = np.Y - MarkerLabel.Diameter / 2,
-                            Number = (lastIdx + 1).ToString()
-                        });
+                    var center = new System.Drawing.PointF((float)(np.X - MarkerLabel.Diameter / 2), (float)(np.Y - MarkerLabel.Diameter / 2));
+                    mainVM.pictureVM.Persons.Add(new Person(lastIdx + 1, "", center));
+                    
 
                     //mainVM.pictureVM.MarkerVMs.Add(
                     //    new MarkerLabel

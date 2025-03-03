@@ -18,21 +18,11 @@
         <mah:MathMultiplyConverter x:Key="MathMultiplyConverter"/>
         <is:boolToVisibiltiyConverter x:Key="bool2Vis"/>
         <is:DrawingColToMediaBrush x:Key="Col2Brush"/>
-
-        <DataTemplate DataType="{x:Type vm:MarkerRect}">
-            <Rectangle                
-                HorizontalAlignment="Left" Height="{Binding H, ElementName=UC}" Width="{Binding W, ElementName=UC}"
-                Fill="Transparent"            
-                Stroke="LimeGreen"
-                StrokeThickness="{Binding StrokeThickness}"     
-                Visibility="{Binding visible, Converter={StaticResource bool2Vis}}"
-                />
-        </DataTemplate>
-
+        
         <DataTemplate DataType="{x:Type vm:MarkerLabel}">
             <Grid 
                 Visibility="{Binding visible, Converter={StaticResource bool2Vis}}"                
-                ToolTip="{Binding Name}" ToolTipService.InitialShowDelay="25">
+                ToolTip="{Binding person.Name.Text}" ToolTipService.InitialShowDelay="25">
 
                 <Ellipse                                    
                     HorizontalAlignment="Center"  VerticalAlignment="Center" Height="{Binding Diameter}" Width="{Binding Diameter}"
@@ -42,26 +32,21 @@
                     />
 
                 <TextBlock                        
-                        Text="{Binding Number}" 
-                        FontSize="{Binding FontSize}" FontWeight="Normal"   LineStackingStrategy="BlockLineHeight"
-                        Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"    
-                    LineHeight="{Binding FontSize}"
-                        TextAlignment="Center"
-                        HorizontalAlignment="Center"
-                        VerticalAlignment="Center" FontFamily="Calibri"      
-                        
+                    Text="{Binding person.Label.Number}"  LineStackingStrategy="BlockLineHeight" 
+                    FontSize="{Binding FontSize}" FontWeight="Normal" FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                    Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"    
+                    TextAlignment="Center"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center" 
+                    LineHeight="{Binding FontSize}"                       
+                    >
                     
-                        >
-
                     <TextBlock.RenderTransform>
                         <TransformGroup>
                             <TranslateTransform x:Name="myTransform" Y="{Binding FontSize, ConverterParameter=0.04, Converter={StaticResource MathMultiplyConverter}}"/>
                         </TransformGroup>
                     </TextBlock.RenderTransform>
-
-
                 </TextBlock>
-
             </Grid>
 
         </DataTemplate>
@@ -72,7 +57,7 @@
                 Visibility="{Binding visible, Converter={StaticResource bool2Vis}}">
 
                 <TextBlock                        
-                    Text="{Binding Text}" FontFamily="{Binding fontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                    Text="{Binding person.FullName}" FontFamily="{Binding fontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                     Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"  
                     Background="Transparent"                      
                     FontSize="{Binding FontSize}"             
