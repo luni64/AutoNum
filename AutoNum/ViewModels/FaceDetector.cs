@@ -1,7 +1,7 @@
 ﻿using Emgu.CV;
 using System.Drawing;
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     public static class FaceDetector 
     {

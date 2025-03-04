@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using AutoNumber.ViewModels;
+using Emgu.CV;
 using System.Drawing;
 using System.Drawing.Imaging;
-using Emgu.CV;
-using Emgu.CV.Structure;
-using NumberIt.ViewModels;
 
 public static class ImageExtensions
 {

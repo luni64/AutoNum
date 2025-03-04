@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     public class Person : BaseViewModel
     {

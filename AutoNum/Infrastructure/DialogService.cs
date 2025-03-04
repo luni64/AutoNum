@@ -1,9 +1,9 @@
 ﻿using Microsoft.Win32;
-using NumberIt.ViewModels;
+using AutoNumber.ViewModels;
 using System.IO;
 using System.Windows;
 
-namespace NumberIt.Infrastructure
+namespace AutoNumber.Infrastructure
 {
     internal class DialogService : IDialogService
     {
@@ -17,7 +17,9 @@ namespace NumberIt.Infrastructure
                         var vm = (OpenFileInfo)viewModel;
                         var dialog = new OpenFileDialog
                         {
-                            Filter = vm.Filter
+                            Filter = vm.Filter,
+                            CheckFileExists = true,       
+                            ForcePreviewPane = true,
                         };
                         if (dialog.ShowDialog() == true)
                         {

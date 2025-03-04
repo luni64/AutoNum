@@ -1,8 +1,12 @@
 ﻿using AutoNumber.Model;
 using Emgu.CV;
+using System.Diagnostics;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
+using System.Text;
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     public class OpenFileInfo
     {
@@ -20,36 +24,57 @@ namespace NumberIt.ViewModels
     }
 
     public class FileManager : BaseViewModel
-    {
+    {      
+
         public RelayCommand cmdOpenImage => _cmdOpenImage ??= new(doOpenImage);
         void doOpenImage(object? o)
         {
             var info = new OpenFileInfo
             {
                 Filter = "All Image Files (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|All Files (*.*)|*.*",
-                FilterIndex = 1 // Sets "All Image Files" as the default filter
+                FilterIndex = 1, // Sets "All Image Files" as the default filter                
             };
 
-            if (parent.DialogService.ShowDialog(info) is string imageFilename)
+            if (parent.DialogService.ShowDialog(info) is string filename)
             {
                 try
                 {
-                    parent.pictureVM.Init(imageFilename);   
-                    var faces = FaceDetector.Detect(parent.pictureVM.Bitmap!);
-                    parent.labelManager.SetLabels(faces);
-                    
+                    var pvm = parent.pictureVM;
+                    var bitmap = new Bitmap(filename);  // Dialog ensures that the file exists
+                    var  metadata = bitmap.getMetadata();
+                                    
+                    if (metadata == null) // image has no or the wrong metadata => we assume the file was not written by AutoNumber
+                    {
+                        pvm.OriginalImageFilename = filename;
+                        pvm.Bitmap = bitmap;
+                        var faces = FaceDetector.Detect(bitmap); 
+                        pvm.Init();
+                        parent.labelManager.SetLabels(faces);
+                    }
+                    else
+                    {
+                        bitmap.Dispose();
+                        pvm.OriginalImageFilename = metadata.OriginalImage;
+                        pvm.Bitmap = new Bitmap(metadata.OriginalImage); // that needs to be made error proof
+                        pvm.InitFromMetadata(metadata);
+                    }
                 }
                 catch
                 {
-                    parent.DialogService.ShowDialog("Fehler beim Öffnen des Bildes");                    
+                    parent.DialogService.ShowDialog("Fehler beim Öffnen des Bildes");
                 }
             }
+        }
+
+        public string getOriginalImageFromUser()
+        {
+           throw new NotImplementedException();
         }
 
         public RelayCommand cmdSaveImage => _cmdSaveImage ??= new(doSaveImage);
         void doSaveImage(object? o)
         {
-            var fullFilename = parent.pictureVM.Filename;
+            var fullFilename = parent.pictureVM.OriginalImageFilename;
             var path = Path.GetDirectoryName(fullFilename)!;
             var file = Path.GetFileNameWithoutExtension(fullFilename);
             var extension = Path.GetExtension(fullFilename);
@@ -66,17 +91,20 @@ namespace NumberIt.ViewModels
 
             if (parent.DialogService.ShowDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
             {
-                if (filename != parent.pictureVM.Filename) // we don't want to overwrite the original file
+                if (filename != parent.pictureVM.OriginalImageFilename) // we don't want to overwrite the original file
                 {
-                    using var mat = parent.pictureVM.toNumberedBitmap().ToMat();                    
-                    mat?.Save(filename);
+                    using var bmp = parent.pictureVM.toNumberedBitmap();
+                    bmp.Save(filename, ImageFormat.Jpeg);
+
+                    //using var mat = parent.pictureVM.toNumberedBitmap().ToMat();                    
+                    //mat?.Save(filename);
                 }
                 else
                 {
                     parent.DialogService.ShowDialog("Das Originalbild darf nicht überschrieben werden");
                 }
             }
-        }             
+        }
 
         public FileManager(MainVM parent)
         {

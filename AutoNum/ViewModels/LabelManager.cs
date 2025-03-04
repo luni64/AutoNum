@@ -1,37 +1,32 @@
-﻿using AutoNumber.Model;
-using Emgu.CV.Dnn;
-using NumberIt.Model;
-using System.Diagnostics;
-using System.Drawing;
-using System.Xml.Linq;
+﻿using System.Drawing;
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     public class LabelManager : BaseViewModel
     {
         #region Commands ---------------------------------------------------------
 
-        RelayCommand? _cmdMoveLabel;
-        public RelayCommand cmdMoveLabel => _cmdMoveLabel ??= new RelayCommand(doMoveLabel);
-        void doMoveLabel(object? o)
-        {
-            double delta = d_0 / 50;
-            switch (o as string)
-            {
-                case "up":
-                    move(0, -delta);
-                    break;
-                case "down":
-                    move(0, delta);
-                    break;
-                case "left":
-                    move(-delta, 0);
-                    break;
-                case "right":
-                    move(delta, 0);
-                    break;
-            }
-        }
+        //RelayCommand? _cmdMoveLabel;
+        //public RelayCommand cmdMoveLabel => _cmdMoveLabel ??= new RelayCommand(doMoveLabel);
+        //void doMoveLabel(object? o)
+        //{
+        //    double delta = d_0 / 50;
+        //    switch (o as string)
+        //    {
+        //        case "up":
+        //            move(0, -delta);
+        //            break;
+        //        case "down":
+        //            move(0, delta);
+        //            break;
+        //        case "left":
+        //            move(-delta, 0);
+        //            break;
+        //        case "right":
+        //            move(delta, 0);
+        //            break;
+        //    }
+        //}
 
         RelayCommand? _cmdNumerate;
         public RelayCommand cmdNumerate => _cmdNumerate ??= new RelayCommand(doNumerate);
@@ -129,23 +124,26 @@ namespace NumberIt.ViewModels
         public LabelManager(MainVM parent)
         {
             this.parent = parent;
+            BackgroundColor = Color.White;
+            FontColor = Color.Black;
+            EdgeColor = Color.Black;
         }
 
-        private void move(double horizontal, double vertical)
-        {
-            var labels = pvm.MarkerVMs.OfType<MarkerLabel>().OrderBy(m => m.X).ToList();
-            foreach (var label in labels)
-            {
-                label.X += horizontal;
-                label.Y += vertical;
-            }
-        }
+        //private void move(double horizontal, double vertical)
+        //{
+        //    var labels = pvm.MarkerVMs.OfType<MarkerLabel>().OrderBy(m => m.X).ToList();
+        //    foreach (var label in labels)
+        //    {
+        //        label.X += horizontal;
+        //        label.Y += vertical;
+        //    }
+        //}
 
         private ImageModel pvm => parent.pictureVM;
         private double d_0 { get; set; } = 50;
 
         //private string _number = "";
-        private Color _edgeColor = Color.Black, _fontColor = Color.Black, _backgroundColor = Color.White;
+        private Color _edgeColor, _fontColor, _backgroundColor;
         private int _diameter;
         private MainVM parent;
     }

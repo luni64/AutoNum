@@ -1,14 +1,12 @@
-﻿using Emgu.CV;
-using Emgu.CV.Cuda;
-using Emgu.CV.ML;
+﻿using AutoNumber.ViewModels;
 using Emgu.CV.Structure;
-using Emgu.CV.Util;
-using NumberIt.ViewModels;
 using System.Drawing;
-using System.Windows.Media.Imaging;
+using System.Drawing.Imaging;
+using System.Text;
 
 
-//using ImageModel = NumberIt.ViewModels.ImageModel;
+
+//using ImageModel = AutoNumber.ViewModels.ImageModel;
 
 namespace AutoNumber.Model
 {
@@ -73,6 +71,54 @@ namespace AutoNumber.Model
             }
         }
 
+        public static void AddMetadata(Bitmap bitmap, ImageModel model)
+        {
+            //var md = new AutoNumMetaData_V1
+            //{
+            //    Created = DateTime.Now,
+            //    OriginalImage = "someImage",
+            //    Version = "V1.0",
+            //    Persons = [
+            //        new AutoNumPerson
+            //        {
+            //            Label = new Label{ Number = 1, CenterX =100, CenterY = 200, Font = new AutoNumFont()},
+            //            Name = new Name{ Text ="Hans Niggl", PosX = 300, PosY= 400, Font = new AutoNumFont()},
+            //        },
+            //        new AutoNumPerson
+            //        {
+            //            Label = new Label{ Number = 1, CenterX =300, CenterY = 400, Font = new AutoNumFont()},
+            //            Name = new Name{ Text ="Hans Niggl", PosX = 700, PosY= 300, Font = new AutoNumFont()},
+            //        }
+            //        ]
+            //};
+
+            var md = new AutoNumMetaData_V1 (model);
+            
+           
+
+
+
+            var jsonString = md.toJson();
+
+                  
+            byte[] jsonBytes = Encoding.Unicode.GetBytes(jsonString +"\0"); // Null-terminate the string
+         
+            PropertyItem propItem = CreatePropertyItem();
+            propItem.Id = 0x9286; // Image Description
+            propItem.Type = 7;
+            propItem.Value = jsonBytes;
+            propItem.Len = jsonBytes.Length;
+
+            // Set the metadata property to the bitmap
+            bitmap.SetPropertyItem(propItem);
+        }
+        static PropertyItem CreatePropertyItem() // PropertyItem has no constructor => work around
+        {
+            Type type = typeof(PropertyItem);
+            PropertyItem item = (PropertyItem)Activator.CreateInstance(type, true);
+            return item;
+        }
+
         public static Bitmap? toNumberedBitmap(this ImageModel image)
         {
             if (image?.Bitmap == null) return null;
@@ -127,6 +173,9 @@ namespace AutoNumber.Model
                 drawNames(names, bmpFinal, font, titleHeight);
             }
             drawLabels(labels, bmpFinal, titleHeight);
+
+            AddMetadata(bmpFinal,image);
+
             return bmpFinal;
         }
         static float getLargestLabelWidth(IEnumerable<string> names, Bitmap bitmap, Font font, Graphics g)

@@ -1,4 +1,4 @@
-﻿using NumberIt.ViewModels;
+﻿using AutoNumber.ViewModels;
 using System;
 using System.Collections;
 using System.Collections.Specialized;
@@ -13,7 +13,7 @@ using static Emgu.CV.Dai.OpenVino;
 
 
 
-namespace NumberIt.Views
+namespace AutoNumber.Views
 {
     /// <summary>
     /// Interaction logic for PictureDisplay.xaml

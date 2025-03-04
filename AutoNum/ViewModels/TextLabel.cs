@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Drawing;
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     public class TextLabel : MarkerVM
     {

@@ -2,7 +2,7 @@
 using System.Windows.Controls;
 using System.Windows.Media;
 
-namespace NumberIt.Views
+namespace AutoNumber.Views
 {
     /// <summary>
     /// Interaction logic for FontManager.xaml

@@ -1,4 +1,4 @@
-﻿namespace NumberIt.ViewModels
+﻿namespace AutoNumber.ViewModels
 {
     public class MarkerVM : BaseViewModel
     {

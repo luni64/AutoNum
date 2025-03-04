@@ -1,9 +1,9 @@
-﻿using NumberIt.ViewModels;
+﻿using AutoNumber.ViewModels;
 using System.ComponentModel;
 using System.Drawing;
 
 
-namespace NumberIt.Model
+namespace AutoNumber.Model
 {
     public static class Analyzer
     {

@@ -1,12 +1,12 @@
 ﻿<ResourceDictionary
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"    
-    xmlns:vm="clr-namespace:NumberIt.ViewModels"
+    xmlns:vm="clr-namespace:AutoNumber.ViewModels"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"    
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"      
-    xmlns:view="clr-namespace:NumberIt.Views" 
+    xmlns:view="clr-namespace:AutoNumber.Views" 
     xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
-    xmlns:is="clr-namespace:NumberIt.Infrastructure">
+    xmlns:is="clr-namespace:AutoNumber.Infrastructure">
     <mah:MathSubtractConverter x:Key="MathSubtractConverter"/>
 
     <is:boolToVisibiltiyConverter x:Key="boo2Vis"/>

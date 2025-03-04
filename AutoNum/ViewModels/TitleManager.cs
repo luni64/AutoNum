@@ -1,8 +1,8 @@
-﻿using NumberIt.Model;
+﻿using AutoNumber.Model;
 using System.Drawing;
 
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     public class TitleManager : BaseViewModel
     {

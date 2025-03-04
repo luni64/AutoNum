@@ -1,4 +1,4 @@
-﻿namespace NumberIt.Infrastructure
+﻿namespace AutoNumber.Infrastructure
 {
     public interface IDialogService
     {

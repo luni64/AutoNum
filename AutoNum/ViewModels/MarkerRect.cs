@@ -3,7 +3,7 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Drawing;
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     //class MarkerRect : MarkerVM
     //{

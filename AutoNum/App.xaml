@@ -1,8 +1,8 @@
 ﻿<Application 
-    x:Class="NumberIt.App"
+    x:Class="AutoNumber.App"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:local="clr-namespace:NumberIt"
+    xmlns:local="clr-namespace:AutoNumber"
     Startup="startup">
 
     <Application.Resources>

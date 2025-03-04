@@ -1,9 +1,9 @@
 ﻿using MahApps.Metro.Controls;
 using Microsoft.Win32;
-using NumberIt.ViewModels;
+using AutoNumber.ViewModels;
 using System.Windows;
 
-namespace NumberIt
+namespace AutoNumber
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml

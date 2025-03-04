@@ -1,10 +1,10 @@
-﻿using NumberIt.Infrastructure;
-using NumberIt.ViewModels;
+﻿using AutoNumber.Infrastructure;
+using AutoNumber.ViewModels;
 using System.Configuration;
 using System.Data;
 using System.Windows;
 
-namespace NumberIt
+namespace AutoNumber
 {
     /// <summary>
     /// Interaction logic for App.xaml

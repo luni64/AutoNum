@@ -4,9 +4,9 @@ using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using NumberIt.ViewModels;
+using AutoNumber.ViewModels;
 
-namespace NumberIt.Views
+namespace AutoNumber.Views
 {
     /// <summary>
     /// Interaktionslogik für Bookmark.xaml

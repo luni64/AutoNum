@@ -13,7 +13,7 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 
-namespace NumberIt.Views
+namespace AutoNumber.Views
 {
     /// <summary>
     /// Interaction logic for S1_SelectFile.xaml

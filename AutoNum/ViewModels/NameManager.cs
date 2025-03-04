@@ -1,12 +1,12 @@
 ﻿using Emgu.CV.ML;
-using NumberIt.Model;
+using AutoNumber.Model;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Data;
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     public class NameManager : BaseViewModel
     {

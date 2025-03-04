@@ -1,6 +1,6 @@
-﻿using NumberIt.Infrastructure;
+﻿using AutoNumber.Infrastructure;
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     public class MainVM : BaseViewModel
     {

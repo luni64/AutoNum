@@ -4,7 +4,7 @@ using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
-namespace NumberIt.ViewModels
+namespace AutoNumber.ViewModels
 {
     public class BaseViewModel : INotifyPropertyChanged
     {

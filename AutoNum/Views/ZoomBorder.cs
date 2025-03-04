@@ -1,4 +1,4 @@
-﻿using NumberIt.ViewModels;
+﻿using AutoNumber.ViewModels;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows;
@@ -8,7 +8,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 
 
-namespace NumberIt.Views
+namespace AutoNumber.Views
 {
     public class ZoomBorder : Border
     {
