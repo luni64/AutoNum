@@ -1,11 +1,5 @@
 ﻿using AutoNumber.ViewModels;
-using Emgu.CV.Cuda;
-using MahApps.Metro.IconPacks;
-using Microsoft.Win32.SafeHandles;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
 
 namespace AutoNumber.Model
@@ -17,8 +11,6 @@ namespace AutoNumber.Model
         public string Family { get; set; } = string.Empty;
         public double Size { get; set; }
 
-        public AutoNumFont() { }
-
         public AutoNumFont(Color fg, Color bg, string family, double size)
         {
             foreground = fg.ToArgb();
@@ -26,13 +18,13 @@ namespace AutoNumber.Model
             Family = family;
             Size = size;
         }
+        public AutoNumFont() { }
 
     }
 
     public class Name
     {
         public string Text { get; set; } = string.Empty;
-        // public AutoNumFont Font { get; set; }
         public double PosX { get; set; }
         public double PosY { get; set; }
         public Name(TextLabel name)
@@ -41,7 +33,6 @@ namespace AutoNumber.Model
             PosX = name.X;
             PosY = name.Y;
         }
-
         public Name() { }
     }
 
@@ -50,7 +41,6 @@ namespace AutoNumber.Model
         public int Number { get; set; }
         public float CenterX { get; set; }
         public float CenterY { get; set; }
-
 
         public Label(MarkerLabel label)
         {
@@ -72,11 +62,8 @@ namespace AutoNumber.Model
             Name = new(person.Name);
         }
 
-        public AutoNumPerson()
-        {
-        }
+        public AutoNumPerson() { }
     }
-
 
     public class AutoNumMetaData_V1
     {
@@ -89,21 +76,20 @@ namespace AutoNumber.Model
         public AutoNumFont NamesFont { get; set; } = new AutoNumFont();
         public AutoNumFont TitleFont { get; set; } = new AutoNumFont();
         public string Title { get; set; } = string.Empty;
+        public List<AutoNumPerson> Persons { get; set; } = [];
 
-
-        public AutoNumMetaData_V1() { }
         public AutoNumMetaData_V1(ImageModel model)
         {
             Created = DateTime.Now;
             OriginalImage = model.OriginalImageFilename;
-            AutoNumImage = model.OutputFile;
+            AutoNumImage = string.Empty;
             Title = model.parent.titleManager.Title;
 
             var lm = model.parent.labelManager;
-            LabelsFont = new AutoNumFont(MarkerLabel.FontColor, lm.BackgroundColor, MarkerLabel.FontFamily.Name, MarkerLabel.FontSize);
             var nm = model.parent.nameManager;
-            NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.FontSize);
             var tm = model.parent.titleManager;
+            LabelsFont = new AutoNumFont(MarkerLabel.FontColor, lm.BackgroundColor, MarkerLabel.FontFamily.Name, MarkerLabel.FontSize);
+            NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.FontSize);
             TitleFont = new AutoNumFont(tm.TitleFontColor, tm.BackgroundColor, tm.TitleFontFamily.Name, tm.TitleFontSize);
 
             foreach (var person in model.Persons)
@@ -111,15 +97,10 @@ namespace AutoNumber.Model
                 Persons.Add(new AutoNumPerson(person));
             }
         }
+        public AutoNumMetaData_V1() { }
 
-        public List<AutoNumPerson> Persons { get; set; } = [];
 
-        public string toJson()
-        {
-            string json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
-
-            return json;
-        }
+        public string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
 
         public static bool fromJson(string json, out AutoNumMetaData_V1? MetaData)
         {
@@ -127,7 +108,7 @@ namespace AutoNumber.Model
 
             try
             {
-                if (json.getVersion(out string version))
+                if (json.getVersion(out string version) && version == "V1")
                 {
                     MetaData = JsonSerializer.Deserialize<AutoNumMetaData_V1>(json);
                     return true;

@@ -34,12 +34,11 @@ namespace AutoNumber.Model
             return (d_max, largestItem);
         }
 
-
-        public static SizeF getItemsBoundingBox<T>(ICollectionView list, Func<T, string?> selector, Font font)
+        public static SizeF getLargestBoundingBox<T>(IEnumerable<T> items, Func<T, string?> selector, Font font)
         {
             g.PageUnit = GraphicsUnit.Point;
             SizeF largest = new SizeF();
-            foreach (T item in list)
+            foreach (T item in items)
             {
                 string? str = selector(item);
                 if (str == null) continue;
@@ -50,7 +49,6 @@ namespace AutoNumber.Model
             }
             return largest;
         }
-
 
         public static double PlaceTitle(TitleManager tm)
         {
@@ -65,7 +63,7 @@ namespace AutoNumber.Model
         {
             using Font font = new Font(TextLabel.fontFamily, (float)TextLabel.FontSize);
 
-            var bb = getItemsBoundingBox<Person>(persons, p => !string.IsNullOrEmpty(p.Name.Text) ? p.FullName : "______________", font);
+            var bb = getLargestBoundingBox<Person>(persons.OfType<Person>(), p => !string.IsNullOrEmpty(p.Name.Text) ? p.FullName : "______________", font);
             var nrOfColumns = (int)Math.Floor(width / bb.Width);
 
             int colNr = 0;

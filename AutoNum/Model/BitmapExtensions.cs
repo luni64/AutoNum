@@ -1,5 +1,7 @@
-﻿using System.Diagnostics;
+﻿using AutoNumber.ViewModels;
+using System.Diagnostics;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.Text;
 
 namespace AutoNumber.Model
@@ -23,6 +25,33 @@ namespace AutoNumber.Model
             }
             Trace.WriteLine("- no user_comment tag found");
             return null;
+        }
+
+
+        public static Bitmap AddMetadata(this Bitmap bitmap, ImageModel model)
+        {
+            var md = new AutoNumMetaData_V1(model);
+
+            var jsonString = md.ToJson();
+
+
+            byte[] jsonBytes = Encoding.Unicode.GetBytes(jsonString + "\0"); // Null-terminate the string
+
+            PropertyItem propItem = CreatePropertyItem();
+            propItem.Id = 0x9286; // Image Description
+            propItem.Type = 7;
+            propItem.Value = jsonBytes;
+            propItem.Len = jsonBytes.Length;
+
+            // Set the metadata property to the bitmap
+            bitmap.SetPropertyItem(propItem);
+            return bitmap;
+        }
+        static PropertyItem CreatePropertyItem() // PropertyItem has no constructor => work around
+        {
+            Type type = typeof(PropertyItem);
+            PropertyItem item = (PropertyItem)Activator.CreateInstance(type, true);
+            return item;
         }
     }
 }

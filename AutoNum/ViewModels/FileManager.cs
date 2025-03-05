@@ -1,10 +1,7 @@
 ﻿using AutoNumber.Model;
-using Emgu.CV;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
-using System.Text;
 
 namespace AutoNumber.ViewModels
 {
@@ -94,10 +91,7 @@ namespace AutoNumber.ViewModels
                 if (filename != parent.pictureVM.OriginalImageFilename) // we don't want to overwrite the original file
                 {
                     using var bmp = parent.pictureVM.toNumberedBitmap();
-                    bmp.Save(filename, ImageFormat.Jpeg);
-
-                    //using var mat = parent.pictureVM.toNumberedBitmap().ToMat();                    
-                    //mat?.Save(filename);
+                    bmp.Save(filename, ImageFormat.Jpeg);                   
                 }
                 else
                 {
