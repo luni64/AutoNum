@@ -24,7 +24,7 @@ namespace AutoNumber.ViewModels
     }
 
     public class FileManager : BaseViewModel
-    {      
+    {
 
         public RelayCommand cmdOpenImage => _cmdOpenImage ??= new(doOpenImage);
         void doOpenImage(object? o)
@@ -41,21 +41,21 @@ namespace AutoNumber.ViewModels
                 {
                     var pvm = parent.pictureVM;
                     var bitmap = new Bitmap(filename);  // Dialog ensures that the file exists
-                    var  metadata = bitmap.getMetadata();
-                                    
-                    if (metadata == null) // image has no or the wrong metadata => we assume the file was not written by AutoNumber
+                    var metadata = bitmap.getMetadata();
+
+                    if (metadata == null || !File.Exists(metadata.OriginalImage)) // no/wrong metadata or the original file doesn't exist => we assume the file was not written by AutoNumber
                     {
                         pvm.OriginalImageFilename = filename;
                         pvm.Bitmap = bitmap;
-                        var faces = FaceDetector.Detect(bitmap); 
+                        var faces = FaceDetector.Detect(bitmap);
                         pvm.Init();
                         parent.labelManager.SetLabels(faces);
                     }
                     else
                     {
-                        bitmap.Dispose();
+                        bitmap.Dispose(); // we will load the original image instead of the numbered copy                       
                         pvm.OriginalImageFilename = metadata.OriginalImage;
-                        pvm.Bitmap = new Bitmap(metadata.OriginalImage); // that needs to be made error proof
+                        pvm.Bitmap = new Bitmap(metadata.OriginalImage); 
                         pvm.InitFromMetadata(metadata);
                     }
                 }
@@ -68,7 +68,7 @@ namespace AutoNumber.ViewModels
 
         public string getOriginalImageFromUser()
         {
-           throw new NotImplementedException();
+            throw new NotImplementedException();
         }
 
         public RelayCommand cmdSaveImage => _cmdSaveImage ??= new(doSaveImage);

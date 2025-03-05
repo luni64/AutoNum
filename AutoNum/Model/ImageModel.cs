@@ -117,9 +117,20 @@ namespace AutoNumber.ViewModels
             NameManager.DefaultFontSize = 80;
 
             parent.labelManager.BackgroundColor = Color.FromArgb(md.LabelsFont.background);
-            parent.labelManager.FontColor = Color.FromArgb(md.LabelsFont.foreground);
+            parent.labelManager.FontColor = Color.FromArgb(md.LabelsFont.foreground);            
             MarkerLabel.FontSize = md.LabelsFont.Size;
-           
+
+            parent.titleManager.BackgroundColor= Color.FromArgb(md.TitleFont.background);
+            parent.titleManager.TitleFontColor = Color.FromArgb(md.TitleFont.foreground);
+            parent.titleManager.Title = md.Title;
+            if(!string.IsNullOrEmpty(md.Title) ) parent.titleManager.IsEnabled = true;
+
+            parent.nameManager.BackgroundColor = Color.FromArgb(md.NamesFont.background);
+            parent.nameManager.FontColor = Color.FromArgb(md.NamesFont.foreground);
+            parent.nameManager.FontFamily = new FontFamily(md.NamesFont.Family);
+            if(Persons.Count > 0)  parent.nameManager.IsEnabled = true; 
+
+
             parent.labelManager.doNumerate();
             parent.nameManager.ShowNames();
 

@@ -78,7 +78,7 @@ namespace AutoNumber.ViewModels
         }
         public static double DefaultFontSize = 80;
 
-        public FontFamily FontFamily { get; } = new FontFamily("Calibri");
+        public FontFamily FontFamily { get; set; } = new FontFamily("Calibri");
 
         public void refresh()
         {

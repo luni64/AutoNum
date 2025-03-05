@@ -58,7 +58,7 @@ namespace AutoNumber.Model
         {
             using var g = Graphics.FromImage(bmp);
 
-            using Brush textBrush = new SolidBrush(MarkerLabel.FontColor);
+            using Brush textBrush = new SolidBrush(TextLabel.FontColor);
             StringFormat format = new StringFormat(StringFormat.GenericDefault);
 
             foreach (var name in names)
@@ -73,31 +73,8 @@ namespace AutoNumber.Model
 
         public static void AddMetadata(Bitmap bitmap, ImageModel model)
         {
-            //var md = new AutoNumMetaData_V1
-            //{
-            //    Created = DateTime.Now,
-            //    OriginalImage = "someImage",
-            //    Version = "V1.0",
-            //    Persons = [
-            //        new AutoNumPerson
-            //        {
-            //            Label = new Label{ Number = 1, CenterX =100, CenterY = 200, Font = new AutoNumFont()},
-            //            Name = new Name{ Text ="Hans Niggl", PosX = 300, PosY= 400, Font = new AutoNumFont()},
-            //        },
-            //        new AutoNumPerson
-            //        {
-            //            Label = new Label{ Number = 1, CenterX =300, CenterY = 400, Font = new AutoNumFont()},
-            //            Name = new Name{ Text ="Hans Niggl", PosX = 700, PosY= 300, Font = new AutoNumFont()},
-            //        }
-            //        ]
-            //};
-
             var md = new AutoNumMetaData_V1 (model);
-            
-           
-
-
-
+         
             var jsonString = md.toJson();
 
                   

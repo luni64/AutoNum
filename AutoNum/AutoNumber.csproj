@@ -16,16 +16,14 @@
   <ItemGroup>
     <PackageReference Include="Emgu.CV.runtime.windows" Version="4.10.0.5680" />
     <PackageReference Include="Emgu.CV.Wpf" Version="4.10.0.5680" />
-    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.7.25103.5738" />
     <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0513" />
-    <PackageReference Include="MahApps.Metro.IconPacks" Version="5.1.0" />
+    <PackageReference Include="MahApps.Metro.IconPacks.BoxIcons" Version="5.1.0" />
+    <PackageReference Include="MahApps.Metro.IconPacks.JamIcons" Version="5.1.0" />
+    <PackageReference Include="MahApps.Metro.IconPacks.Material" Version="5.1.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Update="Classifiers\haarcascade_frontalface_default.xml">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Images\test1.jpg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

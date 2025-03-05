@@ -7,7 +7,6 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
-using Xceed.Wpf.Toolkit.PropertyGrid.Implementation.Converters;
 using static Emgu.CV.Dai.OpenVino;
 
 

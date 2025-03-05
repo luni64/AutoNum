@@ -2,6 +2,7 @@
 using Emgu.CV.Cuda;
 using MahApps.Metro.IconPacks;
 using Microsoft.Win32.SafeHandles;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Runtime.CompilerServices;
@@ -73,7 +74,6 @@ namespace AutoNumber.Model
 
         public AutoNumPerson()
         {
-
         }
     }
 
@@ -87,18 +87,24 @@ namespace AutoNumber.Model
         public string AutoNumImage { get; set; } = string.Empty;
         public AutoNumFont LabelsFont { get; set; } = new AutoNumFont();
         public AutoNumFont NamesFont { get; set; } = new AutoNumFont();
+        public AutoNumFont TitleFont { get; set; } = new AutoNumFont();
+        public string Title { get; set; } = string.Empty;
 
-        public AutoNumMetaData_V1()
-        {
 
-        }
+        public AutoNumMetaData_V1() { }
         public AutoNumMetaData_V1(ImageModel model)
         {
             Created = DateTime.Now;
             OriginalImage = model.OriginalImageFilename;
             AutoNumImage = model.OutputFile;
-            LabelsFont = new AutoNumFont(MarkerLabel.FontColor, MarkerLabel.BackgroundColor, MarkerLabel.FontFamily.Name, MarkerLabel.FontSize);
-            NamesFont = new AutoNumFont(TextLabel.FontColor, Color.Transparent, TextLabel.fontFamily.Name, TextLabel.FontSize);
+            Title = model.parent.titleManager.Title;
+
+            var lm = model.parent.labelManager;
+            LabelsFont = new AutoNumFont(MarkerLabel.FontColor, lm.BackgroundColor, MarkerLabel.FontFamily.Name, MarkerLabel.FontSize);
+            var nm = model.parent.nameManager;
+            NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.FontSize);
+            var tm = model.parent.titleManager;
+            TitleFont = new AutoNumFont(tm.TitleFontColor, tm.BackgroundColor, tm.TitleFontFamily.Name, tm.TitleFontSize);
 
             foreach (var person in model.Persons)
             {
