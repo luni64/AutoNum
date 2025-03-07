@@ -26,8 +26,11 @@ namespace AutoNumber.ViewModels
         }
 
         public void ShowNames()
-        {
+        {            
             var pvm = parent.pictureVM;
+
+            if (pvm.Persons.Count == 0) return;
+
             if (IsEnabled)
             {
                 var height = Analyzer.PlacePersonNames(PersonsView, pvm.ImageWidth, pvm.ImageHeight);

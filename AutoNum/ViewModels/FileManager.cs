@@ -1,7 +1,6 @@
 ﻿using AutoNumber.Model;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -24,23 +23,9 @@ namespace AutoNumber.ViewModels
         public int FilterIndex { get; set; }
     }
 
-    public class FileManager : BaseViewModel
+    public class FileManager(MainVM parent) : BaseViewModel
     {
-
         public RelayCommand cmdOpenImage => _cmdOpenImage ??= new(doOpenImage);
-
-        bool GetFilename(out string filename)
-        {
-            var info = new OpenFileInfo
-            {
-                Filter = "All Image Files (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|All Files (*.*)|*.*",
-                FilterIndex = 1, // Sets "All Image Files" as the default filter                
-            };
-
-            var result = parent.DialogService.ShowDialog(info) as string;
-            filename = result != null ? result : string.Empty;
-            return filename != null;
-        }
         async void doOpenImage(object? o)
         {
             if (GetFilename(out string filename))
@@ -53,9 +38,9 @@ namespace AutoNumber.ViewModels
 
                     if (metadata == null)  // not written by AutoNumber => use as original image
                     {
+                        var faces = FaceDetector.Detect(bitmap);
                         pvm.OriginalImageFilename = filename;
                         pvm.Bitmap = bitmap;
-                        var faces = FaceDetector.Detect(bitmap);
                         pvm.Init();
                         parent.labelManager.SetLabels(faces);
                     }
@@ -80,42 +65,6 @@ namespace AutoNumber.ViewModels
                     await parent.DialogCoordinator!.ShowMessageAsync(parent, "Fehler", "Fehler beim Öffnen des Bildes");
                 }
             }
-        }
-
-
-
-        public async Task<string> askForOriginalFilename(string orignalFilename)
-        {
-            var settings = new MetroDialogSettings()
-            {
-                AffirmativeButtonText = "Ja",
-                NegativeButtonText = "Nein",
-                ColorScheme = MetroDialogColorScheme.Theme,
-                DefaultButtonFocus = MessageDialogResult.Affirmative,
-                Icon = new PackIconMaterial
-                {
-                    Kind = PackIconMaterialKind.FileQuestionOutline,
-                    Width = 64,
-                    Height = 64
-                }
-            };
-
-            var result = await parent.DialogCoordinator.ShowMessageAsync(parent,
-                "Original Bild nicht gefunden!",
-                $"Sie haben versucht, ein von AutoNumber erstelltes Bild zu öffnen. Um dieses weiter bearbeiten zu können, " +
-                $"wird das Originalbild benötigt. AutoNumber konnte dieses Bild nicht finden. " +
-                $"Möchten Sie das Originalbild selbst suchen?", MessageDialogStyle.AffirmativeAndNegative, settings);
-
-            if (result == MessageDialogResult.Affirmative)
-            {
-                var info = new OpenFileInfo
-                {
-                    Filter = "All Image Files (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|All Files (*.*)|*.*",
-                    FilterIndex = 1, // Sets "All Image Files" as the default filter                
-                };
-                return GetFilename(out string filename) ? filename : string.Empty;
-            }
-            return string.Empty;
         }
 
         public RelayCommand cmdSaveImage => _cmdSaveImage ??= new(doSaveImage);
@@ -150,12 +99,54 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public FileManager(MainVM parent)
+
+        private async Task<string> askForOriginalFilename(string orignalFilename)
         {
-            this.parent = parent;
+            var settings = new MetroDialogSettings()
+            {
+                AffirmativeButtonText = "Ja",
+                NegativeButtonText = "Nein",
+                ColorScheme = MetroDialogColorScheme.Theme,
+                DefaultButtonFocus = MessageDialogResult.Affirmative,
+                Icon = new PackIconMaterial
+                {
+                    Kind = PackIconMaterialKind.FileQuestionOutline,
+                    Width = 64,
+                    Height = 64
+                }
+            };
+
+            var result = await parent.DialogCoordinator.ShowMessageAsync(parent,
+                "Original Bild nicht gefunden!",
+                $"Sie haben versucht, ein von AutoNumber erstelltes Bild zu öffnen. Um dieses weiter bearbeiten zu können, " +
+                $"wird das Originalbild benötigt. AutoNumber konnte dieses Bild nicht finden. " +
+                $"Möchten Sie das Originalbild selbst suchen?", MessageDialogStyle.AffirmativeAndNegative, settings);
+
+            if (result == MessageDialogResult.Affirmative)
+            {
+                var info = new OpenFileInfo
+                {
+                    Filter = "All Image Files (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|All Files (*.*)|*.*",
+                    FilterIndex = 1, // Sets "All Image Files" as the default filter                
+                };
+                return GetFilename(out string filename) ? filename : string.Empty;
+            }
+            return string.Empty;
+        }
+        private bool GetFilename(out string filename)
+        {
+            var info = new OpenFileInfo
+            {
+                Filter = "All Image Files (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|All Files (*.*)|*.*",
+                FilterIndex = 1, // Sets "All Image Files" as the default filter                
+            };
+
+            var result = parent.DialogService.ShowDialog(info) as string;
+            filename = result != null ? result : string.Empty;
+            return filename != null;
         }
 
-        private MainVM parent { get; set; }
+        private MainVM parent { get; set; } = parent;
         private RelayCommand? _cmdOpenImage;
         private RelayCommand? _cmdSaveImage;
     }

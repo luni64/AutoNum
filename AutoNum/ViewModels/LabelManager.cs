@@ -32,6 +32,7 @@ namespace AutoNumber.ViewModels
         public RelayCommand cmdNumerate => _cmdNumerate ??= new RelayCommand(doNumerate);
         public void doNumerate(object? _ = null)
         {
+            if (pvm.Persons.Count == 0) return;
             var persons = pvm.Persons;
 
             double minY = persons.Min(p => p.Label.CenterY);
@@ -104,7 +105,12 @@ namespace AutoNumber.ViewModels
         #endregion
         public void SetLabels(List<Rectangle> faces)
         {
-            d_0 = Math.Max(faces.Average(m => m.Width), faces.Average(m => m.Height)) / 2;
+            if (faces.Count > 0)
+            {
+                d_0 = Math.Max(faces.Average(m => m.Width), faces.Average(m => m.Height)) / 2;
+            }
+            else d_0 = pvm.Bitmap.Width / 20;
+
 
             int nr = 1;
             foreach (var face in faces)
@@ -113,8 +119,8 @@ namespace AutoNumber.ViewModels
                 // pvm.Persons.Add(new Person(0, $"{ExtensionMethods.names[nr++]}", labelPos));
                 pvm.Persons.Add(new Person(0, "", labelPos));
             }
-            doNumerate();
 
+            doNumerate();
             parent.nameManager.ShowNames();
 
             Diameter = 0;
