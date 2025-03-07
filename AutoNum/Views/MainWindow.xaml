@@ -8,6 +8,8 @@
         xmlns:view="clr-namespace:AutoNumber.Views"
         xmlns:vm="clr-namespace:AutoNumber.ViewModels"
         xmlns:is="clr-namespace:AutoNumber.Infrastructure"
+        xmlns:Dialog="clr-namespace:MahApps.Metro.Controls.Dialogs;assembly=MahApps.Metro"
+        Dialog:DialogParticipation.Register="{Binding}"
         Title="{Binding Title}"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainVM}"

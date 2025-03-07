@@ -1,9 +1,11 @@
 ﻿using AutoNumber.Infrastructure;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace AutoNumber.ViewModels
 {
     public class MainVM : BaseViewModel
     {
+        public IDialogCoordinator DialogCoordinator { get; set; } = null!;
         public FileManager fileManager { get; }
         public NameManager nameManager { get; }
         public TitleManager titleManager { get; }       

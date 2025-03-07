@@ -1,4 +1,8 @@
 ﻿using AutoNumber.Model;
+using MahApps.Metro.Controls.Dialogs;
+using MahApps.Metro.IconPacks;
+using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -24,7 +28,8 @@ namespace AutoNumber.ViewModels
     {
 
         public RelayCommand cmdOpenImage => _cmdOpenImage ??= new(doOpenImage);
-        void doOpenImage(object? o)
+
+        bool GetFilename(out string filename)
         {
             var info = new OpenFileInfo
             {
@@ -32,7 +37,13 @@ namespace AutoNumber.ViewModels
                 FilterIndex = 1, // Sets "All Image Files" as the default filter                
             };
 
-            if (parent.DialogService.ShowDialog(info) is string filename)
+            var result = parent.DialogService.ShowDialog(info) as string;
+            filename = result != null ? result : string.Empty;
+            return filename != null;
+        }
+        async void doOpenImage(object? o)
+        {
+            if (GetFilename(out string filename))
             {
                 try
                 {
@@ -40,7 +51,7 @@ namespace AutoNumber.ViewModels
                     var bitmap = new Bitmap(filename);  // Dialog ensures that the file exists
                     var metadata = bitmap.getMetadata();
 
-                    if (metadata == null || !File.Exists(metadata.OriginalImage)) // no/wrong metadata or the original file doesn't exist => we assume the file was not written by AutoNumber
+                    if (metadata == null)  // not written by AutoNumber => use as original image
                     {
                         pvm.OriginalImageFilename = filename;
                         pvm.Bitmap = bitmap;
@@ -50,22 +61,61 @@ namespace AutoNumber.ViewModels
                     }
                     else
                     {
-                        bitmap.Dispose(); // we will load the original image instead of the numbered copy                       
+                        if (!File.Exists(metadata.OriginalImage))  // we are AutoNumber generated but don't find the original file
+                        {
+                            string imagePath = await askForOriginalFilename(metadata.OriginalImage); // ask user to search for the image
+                            if (string.IsNullOrEmpty(imagePath)) throw new FileNotFoundException();
+                            metadata.OriginalImage = imagePath;
+                        }
+
+                        bitmap.Dispose(); // we will load the original image instead of the numbered copy
+                        pvm.Bitmap = new Bitmap(metadata.OriginalImage);
                         pvm.OriginalImageFilename = metadata.OriginalImage;
-                        pvm.Bitmap = new Bitmap(metadata.OriginalImage); 
                         pvm.InitFromMetadata(metadata);
                     }
                 }
+                catch (InvalidOperationException) { Trace.WriteLine("No faces found"); }
                 catch
                 {
-                    parent.DialogService.ShowDialog("Fehler beim Öffnen des Bildes");
+                    await parent.DialogCoordinator!.ShowMessageAsync(parent, "Fehler", "Fehler beim Öffnen des Bildes");
                 }
             }
         }
 
-        public string getOriginalImageFromUser()
+
+
+        public async Task<string> askForOriginalFilename(string orignalFilename)
         {
-            throw new NotImplementedException();
+            var settings = new MetroDialogSettings()
+            {
+                AffirmativeButtonText = "Ja",
+                NegativeButtonText = "Nein",
+                ColorScheme = MetroDialogColorScheme.Theme,
+                DefaultButtonFocus = MessageDialogResult.Affirmative,
+                Icon = new PackIconMaterial
+                {
+                    Kind = PackIconMaterialKind.FileQuestionOutline,
+                    Width = 64,
+                    Height = 64
+                }
+            };
+
+            var result = await parent.DialogCoordinator.ShowMessageAsync(parent,
+                "Original Bild nicht gefunden!",
+                $"Sie haben versucht, ein von AutoNumber erstelltes Bild zu öffnen. Um dieses weiter bearbeiten zu können, " +
+                $"wird das Originalbild benötigt. AutoNumber konnte dieses Bild nicht finden. " +
+                $"Möchten Sie das Originalbild selbst suchen?", MessageDialogStyle.AffirmativeAndNegative, settings);
+
+            if (result == MessageDialogResult.Affirmative)
+            {
+                var info = new OpenFileInfo
+                {
+                    Filter = "All Image Files (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|All Files (*.*)|*.*",
+                    FilterIndex = 1, // Sets "All Image Files" as the default filter                
+                };
+                return GetFilename(out string filename) ? filename : string.Empty;
+            }
+            return string.Empty;
         }
 
         public RelayCommand cmdSaveImage => _cmdSaveImage ??= new(doSaveImage);
@@ -91,7 +141,7 @@ namespace AutoNumber.ViewModels
                 if (filename != parent.pictureVM.OriginalImageFilename) // we don't want to overwrite the original file
                 {
                     using var bmp = parent.pictureVM.toNumberedBitmap();
-                    bmp.Save(filename, ImageFormat.Jpeg);                   
+                    bmp.Save(filename, ImageFormat.Jpeg);
                 }
                 else
                 {

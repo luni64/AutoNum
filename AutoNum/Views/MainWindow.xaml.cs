@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using AutoNumber.ViewModels;
 using System.Windows;
+using MahApps.Metro.Controls.Dialogs;
 
 namespace AutoNumber
 {
@@ -15,6 +16,7 @@ namespace AutoNumber
         {
             InitializeComponent();
             this.DataContext = mainVM;
+          mainVM.DialogCoordinator  =   DialogCoordinator.Instance;
         }
 
         //private void Button_Click(object sender, RoutedEventArgs e)
