@@ -109,14 +109,11 @@ namespace AutoNumber.ViewModels
             {
                 d_0 = Math.Max(faces.Average(m => m.Width), faces.Average(m => m.Height)) / 2;
             }
-            else d_0 = pvm.Bitmap.Width / 20;
-
-
-            int nr = 1;
+            else d_0 = pvm.Bitmap?.Width / 20 ?? 50;
+                                   
             foreach (var face in faces)
             {
-                PointF labelPos = new PointF((float)(face.X + face.Width / 2), (float)(face.Y + face.Height * 1.05));
-                // pvm.Persons.Add(new Person(0, $"{ExtensionMethods.names[nr++]}", labelPos));
+                PointF labelPos = new PointF((float)(face.X + face.Width / 2), (float)(face.Y + face.Height * 1.05));               
                 pvm.Persons.Add(new Person(0, "", labelPos));
             }
 
@@ -146,7 +143,7 @@ namespace AutoNumber.ViewModels
         //}
 
         private ImageModel pvm => parent.pictureVM;
-        private double d_0 { get; set; } = 50;
+        public double d_0 { get; set; } = 50;
 
         //private string _number = "";
         private Color _edgeColor, _fontColor, _backgroundColor;

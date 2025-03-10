@@ -53,8 +53,8 @@ namespace AutoNumber.Model
 
     public class AutoNumPerson
     {
-        public Label Label { get; set; }
-        public Name Name { get; set; }
+        public Label Label { get; set; } = null!;
+        public Name Name { get; set; } = null!;
 
         public AutoNumPerson(Person person)
         {
@@ -135,14 +135,14 @@ namespace AutoNumber.Model
             try
             {
                 var r = JsonSerializer.Deserialize<VersionTest>(json);
-                version = (r.Creator == "AutoNumber" && !string.IsNullOrEmpty(r.Version)) ? r.Version : "";
-                return true;
+                version = (r != null && r.Creator == "AutoNumber" && !string.IsNullOrEmpty(r.Version)) ? r.Version : "";
             }
             catch
             {
-                version = "";
-                return false;
+                version = string.Empty;
             }
+
+            return version != string.Empty;
         }
     }
 }

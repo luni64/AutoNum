@@ -26,7 +26,7 @@ namespace AutoNumber.ViewModels
              var propertyInfo = (propertySelector.Body as MemberExpression)?.Member as System.Reflection.PropertyInfo;
             if (propertyInfo != null)
             {
-                TProperty field = (TProperty)propertyInfo.GetValue(obj);
+                TProperty? field = (TProperty?)(propertyInfo.GetValue(obj));
 
                 if (!EqualityComparer<TProperty>.Default.Equals(field, value))
                 {

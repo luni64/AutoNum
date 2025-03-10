@@ -55,12 +55,12 @@ namespace AutoNumber.Model
             }
         }
        
-        static PropertyItem CreatePropertyItem() // PropertyItem has no constructor => work around
-        {
-            Type type = typeof(PropertyItem);
-            PropertyItem item = (PropertyItem)Activator.CreateInstance(type, true);
-            return item;
-        }
+        //static PropertyItem CreatePropertyItem() // PropertyItem has no constructor => work around
+        //{
+        //    Type type = typeof(PropertyItem);
+        //    PropertyItem item = (PropertyItem)Activator.CreateInstance(type, true);
+        //    return item;
+        //}
 
         public static Bitmap? toNumberedBitmap(this ImageModel model)
         {

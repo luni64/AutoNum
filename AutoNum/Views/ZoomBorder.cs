@@ -69,7 +69,7 @@ namespace AutoNumber.Views
             var t = this.TransformToVisual(c);
             var np = t.Transform(clickPosition);
 
-            UIElement clickedElement = this.InputHitTest(clickPosition) as UIElement;
+            UIElement clickedElement = (UIElement)this.InputHitTest(clickPosition);
 
             var markerLabel = FindParentWithDataContext<MarkerLabel>(clickedElement);
 
@@ -103,7 +103,7 @@ namespace AutoNumber.Views
             }
         }
 
-        private T FindParentWithDataContext<T>(DependencyObject element) where T : class
+        private T? FindParentWithDataContext<T>(DependencyObject element) where T : class
         {
             while (element != null)
             {
@@ -113,7 +113,7 @@ namespace AutoNumber.Views
                 }
                 element = VisualTreeHelper.GetParent(element);
             }
-            return null;
+            return default(T);
         }
 
         public void Reset()

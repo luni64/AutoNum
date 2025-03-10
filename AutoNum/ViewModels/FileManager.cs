@@ -82,7 +82,7 @@ namespace AutoNumber.ViewModels
             {
                 Filename = outputFile,
                 InitialDirectory = path,
-                Filter = "All Image Files|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|All Files (*.*)|*.*",
+                Filter = "JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg",
             };
 
             if (parent.DialogService.ShowDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
@@ -90,7 +90,7 @@ namespace AutoNumber.ViewModels
                 if (filename != parent.pictureVM.OriginalImageFilename) // we don't want to overwrite the original file
                 {
                     using var bmp = parent.pictureVM.toNumberedBitmap();
-                    bmp.Save(filename, ImageFormat.Jpeg);
+                    bmp?.Save(filename, ImageFormat.Jpeg);
                 }
                 else
                 {
@@ -141,9 +141,8 @@ namespace AutoNumber.ViewModels
                 FilterIndex = 1, // Sets "All Image Files" as the default filter                
             };
 
-            var result = parent.DialogService.ShowDialog(info) as string;
-            filename = result != null ? result : string.Empty;
-            return filename != null;
+            filename = parent.DialogService.ShowDialog(info) as string ?? string.Empty;            
+            return  !string.IsNullOrEmpty(filename);
         }
 
         private MainVM parent { get; set; } = parent;

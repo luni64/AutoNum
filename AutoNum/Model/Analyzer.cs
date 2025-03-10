@@ -15,7 +15,7 @@ namespace AutoNumber.Model
             return (float)Math.Sqrt(size.Width * size.Width + size.Height * size.Height);
         }
 
-        public static (float d_max, T? item) getLargesItem<T>(IEnumerable<T> list, Func<T, string?> selector, Font font)
+        public static (float d_max, T? item) getLargestItem<T>(IEnumerable<T> list, Func<T, string?> selector, Font font)
         {
             float d_max = 0;
             T? largestItem = list.FirstOrDefault();
