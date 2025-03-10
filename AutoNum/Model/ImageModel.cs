@@ -34,7 +34,10 @@ namespace AutoNumber.ViewModels
 
                     using Font font = new Font(MarkerLabel.FontFamily, (float)MarkerLabel.FontSize);
                     var result = Analyzer.getLargestItem(Persons, p => p.Label.Number.ToString(), font);
-                    MarkerLabel.FontSize = 1.5 * MarkerLabel.Diameter / result.d_max * MarkerLabel.FontSize; // scale the current size up/down, 1.75 generates a size nicely fitting                
+                    if(result.d_max > 0)
+                    {
+                        MarkerLabel.FontSize = 1.5 * MarkerLabel.Diameter / result.d_max * MarkerLabel.FontSize; // scale the current size up/down, 1.75 generates a size nicely fitting                
+                    }
                     SetProperty(ref _labelDiameter, value);
                 }
             }

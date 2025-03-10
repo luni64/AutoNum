@@ -29,7 +29,6 @@ namespace AutoNumber.ViewModels
                 CenterX = value - W / 2;
                 OnPropertyChanged(nameof(X));
             }
-
         }
         override public double Y
         {
@@ -48,7 +47,6 @@ namespace AutoNumber.ViewModels
             {
                 SetProperty(ref _nr, value);
                 person.OnPropertyChanged("FullName");
-
             }
         }
         public string? Name
@@ -89,11 +87,8 @@ namespace AutoNumber.ViewModels
             {
                 if (_fontSize != value)
                 {
-                    _fontSize = value;
-                    //BaselineOffset = 0.04 * TitleFontSize;
-
+                    _fontSize = value;                   
                     OnStaticPropertyChanged(nameof(FontSize));
-
                 }
             }
         }
@@ -163,7 +158,7 @@ namespace AutoNumber.ViewModels
         private static Color _edgeColor = Color.White;
         private static Color _backgroundColor = Color.Green;
         private static Color _fontColor = Color.Black;
-        private static double _fontSize;
+        private static double _fontSize=12;
 
         private int _nr;
         private string? _name;

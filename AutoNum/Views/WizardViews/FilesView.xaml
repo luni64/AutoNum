@@ -16,14 +16,14 @@
                     />
                 
                 <TextBlock  TextWrapping="Wrap"  TextAlignment="Justify" FontSize="13">                                      
-                    <Run Text="Unter&#x00AD;stützte Formate: JPEG, PNG, BMP, TIFF, GIF, WEBP, PGM, PPM"/><LineBreak/>
+                    <Run Text="Unter&#x00AD;stützte Formate: JPG, PNG, TIFF, BMP, GIF, and EXIF"/><LineBreak/>
                 </TextBlock>
                 <TextBlock TextWrapping="Wrap"  TextAlignment="Justify" FontSize="13">                                      
                     <Run FontWeight="Bold" FontSize="16" Text="Hilfe"/> <LineBreak/>
                     <Run FontWeight="SemiBold" Text="Verschieben"/> <Run Text="mit der lin&#x00AD;ken Maus&#x00AD;tas&#x00AD;te,"/> 
                     <Run FontWeight="SemiBold" Text="Zoo&#x00AD;men"/> <Run Text="mit dem Maus&#x00AD;rad."/>
-                    <Run FontWeight="SemiBold" Text="Neu&#x00AD;es La&#x00AD;bel:"/> <Run Text="Rechts-&#x00AD;Klicken auf ei&#x00AD;ne freie Stel&#x00AD;le."/>
-                    <Run FontWeight="SemiBold" Text="Label löschen:"/> <Run Text="Rechts-&#x00AD;Klicken auf ein La&#x00AD;bel"/>                    
+                    <Run FontWeight="SemiBold" Text="Neu&#x00AD;es La&#x00AD;bel:"/> <Run Text="Rechts-&#x00AD;Klick auf ei&#x00AD;ne freie Stel&#x00AD;le."/>
+                    <Run FontWeight="SemiBold" Text="Label lö&#x00AD;schen:"/> <Run Text="Rechts-&#x00AD;Klick auf ein La&#x00AD;bel"/>                    
                 </TextBlock>
 
                 <Button 
