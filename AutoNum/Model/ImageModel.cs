@@ -102,10 +102,10 @@ namespace AutoNumber.ViewModels
 
             parent.labelManager.BackgroundColor = Color.FromArgb(md.LabelsFont.background);
             parent.labelManager.FontColor = Color.FromArgb(md.LabelsFont.foreground);
-            parent.labelManager.d_0 = md.LabelsFont.Size * 0.75; /// Hack
-            MarkerLabel.FontSize = md.LabelsFont.Size*0.5;
-            LabelDiameter = md.LabelsFont.Size * 0.75;
-           
+
+            var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95; // fallback for old images where metadata doesn't contain label size           
+            parent.labelManager.d_0 = labelSize;
+            LabelDiameter = labelSize;
 
             parent.titleManager.BackgroundColor = Color.FromArgb(md.TitleFont.background);
             parent.titleManager.TitleFontColor = Color.FromArgb(md.TitleFont.foreground);
@@ -117,7 +117,6 @@ namespace AutoNumber.ViewModels
             parent.nameManager.FontFamily = new FontFamily(md.NamesFont.Family);
             if (Persons.Count > 0) parent.nameManager.IsEnabled = true;
 
-            parent.labelManager.doNumerate();
             parent.nameManager.ShowNames();
 
             parent.labelManager.Diameter = 0;

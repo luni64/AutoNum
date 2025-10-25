@@ -73,6 +73,7 @@ namespace AutoNumber.Model
         public string OriginalImage { get; set; } = string.Empty;
         public string AutoNumImage { get; set; } = string.Empty;
         public AutoNumFont LabelsFont { get; set; } = new AutoNumFont();
+        public double LabelsSize { get; set; } = double.NaN;
         public AutoNumFont NamesFont { get; set; } = new AutoNumFont();
         public AutoNumFont TitleFont { get; set; } = new AutoNumFont();
         public string Title { get; set; } = string.Empty;
@@ -89,6 +90,7 @@ namespace AutoNumber.Model
             var nm = model.parent.nameManager;
             var tm = model.parent.titleManager;
             LabelsFont = new AutoNumFont(MarkerLabel.FontColor, lm.BackgroundColor, MarkerLabel.FontFamily.Name, MarkerLabel.FontSize);
+            LabelsSize = MarkerLabel.Diameter;
             NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.FontSize);
             TitleFont = new AutoNumFont(tm.TitleFontColor, tm.BackgroundColor, tm.TitleFontFamily.Name, tm.TitleFontSize);
 
