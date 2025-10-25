@@ -14,14 +14,9 @@ Click the image above to watch a short demo of AutoNumber in action (German with
 - **Broad Format Support**: Compatible with JPG, TIF, PNG, and other common image formats.
 - **User-Friendly Interface**: Simple and intuitive UI designed for efficiency.
 
-## Installation
-The latest version of AutoNumber can be downloaded from:
-[https://www.niggl-schlagbauer.de/AutoNumber/](https://www.niggl-schlagbauer.de/AutoNumber/)
-
-
 ## Dependencies
 
-The software requires the .NET 8.0 framework. The installer will check and install it automatically if it is not present on the system. If the automatic installation fails, you can download the framework manually from [Microsoft's official website](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+The software requires the .NET 8.0 framework. If the automatic installation fails, you can download the framework manually from [Microsoft's official website](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
 
 AutoNumber uses the following third-party libraries:
 - **Emgu.CV.WPF** (OpenCV wrapper for .NET) - License: [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE)
