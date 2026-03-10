@@ -1,23 +1,13 @@
-﻿using Emgu.CV.Text;
-using System.ComponentModel;
-using System.Configuration;
+﻿using System.ComponentModel;
 using System.Drawing;
 
 namespace AutoNumber.ViewModels
 {
-    //class MarkerRect : MarkerVM
-    //{
-    //    //public double X { get => _x; set => SetProperty(ref _x, value); }
-    //    //public double Y { get => _y; set => SetProperty(ref _y, value); }
-
-    //    //private double _x, _y, _w, _h;
-    //}
-
     public class MarkerLabel : MarkerVM
     {
         public MarkerLabel(Person person)
         {
-            this.person = person;
+            this.Person = person;
         }
 
         #region properties ------------------------------------------------------
@@ -46,7 +36,7 @@ namespace AutoNumber.ViewModels
             set
             {
                 SetProperty(ref _nr, value);
-                person.OnPropertyChanged("FullName");
+                Person.OnPropertyChanged("FullName");
             }
         }
         public string? Name
@@ -132,7 +122,7 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public Person person { get; }
+        public Person Person { get; }
 
         #endregion
 

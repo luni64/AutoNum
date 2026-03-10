@@ -1,12 +1,9 @@
 ﻿using AutoNumber.ViewModels;
-using System.Diagnostics;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
-
 
 namespace AutoNumber.Views
 {
@@ -77,28 +74,18 @@ namespace AutoNumber.Views
             {
                 if (markerLabel != null)
                 {
-                    //var person = markerLabel.person;
-                    mainVM.pictureVM.Persons.Remove(markerLabel.person);
+                    mainVM.PictureVM.Persons.Remove(markerLabel.Person);
                 }
                 else
                 {
                     int lastIdx = 0;                
-                    if (mainVM.pictureVM.Persons.Any())
+                    if (mainVM.PictureVM.Persons.Any())
                     {
-                        lastIdx = mainVM.pictureVM.Persons.Max(p => p.Label.Number);
+                        lastIdx = mainVM.PictureVM.Persons.Max(p => p.Label.Number);
                     }
 
                     var center = new System.Drawing.PointF((float)(np.X - MarkerLabel.Diameter / 2), (float)(np.Y - MarkerLabel.Diameter / 2));
-                    mainVM.pictureVM.Persons.Add(new Person(lastIdx + 1, "", center));
-                    
-
-                    //mainVM.pictureVM.MarkerVMs.Add(
-                    //    new MarkerLabel
-                    //    {
-                    //        CenterX = np.X - MarkerLabel.Diameter / 2,
-                    //        CenterY = np.Y - MarkerLabel.Diameter / 2,
-                    //        Number = (lastIdx + 1).ToString()
-                    //    });
+                    mainVM.PictureVM.Persons.Add(new Person(lastIdx + 1, "", center));
                 }
             }
         }
@@ -123,15 +110,11 @@ namespace AutoNumber.Views
                 // reset zoom
                 var st = GetScaleTransform(child);
                 Zoom = 1.0;
-                //st.ScaleX = 1.0;
-                //st.ScaleY = 1.0;
 
                 // reset pan
                 var tt = GetTranslateTransform(child);
                 PanX = 0.0;
                 PanY = 0.0;
-                //tt.X = 0.0;
-                //tt.Y = 0.0;
             }
         }
 
@@ -151,7 +134,6 @@ namespace AutoNumber.Views
             var zb = d as ZoomBorder;
             if (zb!.child != null)
             {
-                //Trace.WriteLine($"onZoom {e.NewValue}");
                 var st = zb.GetScaleTransform(zb.child);
                 st.ScaleX = (double)e.NewValue;
                 st.ScaleY = st.ScaleX;
@@ -169,7 +151,6 @@ namespace AutoNumber.Views
             var zb = d as ZoomBorder;
             if (zb != null)
             {
-                //Trace.WriteLine($"onPnX {e.NewValue}");
                 var tx = zb.GetTranslateTransform(zb.child!);
                 tx.X = (double)e.NewValue;
             }
@@ -186,7 +167,6 @@ namespace AutoNumber.Views
             var zb = d as ZoomBorder;
             if (zb != null)
             {
-                //Trace.WriteLine($"onPnY {e.NewValue}");
                 var tx = zb.GetTranslateTransform(zb.child!);
                 tx.Y = (double)e.NewValue;
             }
@@ -241,11 +221,6 @@ namespace AutoNumber.Views
                 this.Cursor = Cursors.Arrow;
             }
         }
-
-        //void child_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        //{
-        //    this.Reset();
-        //}
 
         private void child_MouseMove(object sender, MouseEventArgs e)
         {

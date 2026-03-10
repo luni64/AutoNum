@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 
 namespace AutoNumber.ViewModels
 {
@@ -19,14 +14,14 @@ namespace AutoNumber.ViewModels
                 Number = nr,
                 CenterX = labelPosition.X,
                 CenterY = labelPosition.Y,
-                visible = true,
-                isLocked = false,
+                Visible = true,
+                IsLocked = false,
             };
             Name = new TextLabel(this)
             {
                 Text = name,
-                visible = false,
-                isLocked = true,
+                Visible = false,
+                IsLocked = true,
             };                   
         }
         public string FullName => $"{Label.Number}) {Name.Text}";

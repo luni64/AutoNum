@@ -31,7 +31,7 @@
                     Text="Renumber" Style="{StaticResource MahApps.Styles.TextBlock.Watermark}" FontSize="12" HorizontalAlignment="Center"/>
                 <Button 
                     DockPanel.Dock="Bottom" Width="30" Height="30"
-                    Command="{Binding cmdNumerate}"   Padding="5" HorizontalAlignment="Center" Focusable="True"
+                    Command="{Binding NumerateCommand}"
                     Style="{StaticResource MahApps.Styles.Button.Circle}"
                     Content="{iconPacks:Material Kind=Refresh, Width=15, Height=15}"
                     ToolTip="Ordnet die Label-Nummern neu"/>

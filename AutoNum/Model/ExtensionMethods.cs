@@ -1,10 +1,5 @@
 ﻿using AutoNumber.ViewModels;
 using System.Drawing;
-using System.Drawing.Imaging;
-
-
-
-//using ImageModel = AutoNumber.ViewModels.ImageModel;
 
 namespace AutoNumber.Model
 {
@@ -14,9 +9,6 @@ namespace AutoNumber.Model
         {
             return 0.711f * (float)sz * 96 / gFinal.DpiX;
         }
-
-        public static void drawTitle()
-        { }
 
         public static void drawLabels(List<MarkerLabel> labels, Bitmap bmp, int offset)
         {
@@ -51,23 +43,16 @@ namespace AutoNumber.Model
             foreach (var name in names)
             {
                 PointF pos = new PointF((float)name.X, offset + (float)name.Y);
-                g.DrawString(name.person.FullName, font, textBrush, pos, format);
+                g.DrawString(name.Person.FullName, font, textBrush, pos, format);
             }
         }
-       
-        //static PropertyItem CreatePropertyItem() // PropertyItem has no constructor => work around
-        //{
-        //    Type type = typeof(PropertyItem);
-        //    PropertyItem item = (PropertyItem)Activator.CreateInstance(type, true);
-        //    return item;
-        //}
 
         public static Bitmap? toNumberedBitmap(this ImageModel model)
         {
             if (model?.Bitmap == null) return null;
 
-            var nvm = model.parent.nameManager;
-            var tvm = model.parent.titleManager;
+            var nvm = model.Parent.NameManager;
+            var tvm = model.Parent.TitleManager;
 
             var names = model.Persons.Select(p => p.Name).ToList();
             var labels = model.Persons.Select(p => p.Label).ToList();
@@ -121,123 +106,5 @@ namespace AutoNumber.Model
 
             return bmpFinal;
         }
-        //static float getLargestLabelWidth(IEnumerable<string> names, Bitmap bitmap, Font font, Graphics g)
-        //{
-        //    float maxSize = 0;
-
-        //    foreach (var name in names)
-        //    {               
-        //        SizeF textSize = g.MeasureString(name, font);
-        //        if (textSize.Width > maxSize)
-        //        {
-        //            maxSize = textSize.Width;
-        //        }
-        //    }
-        //    return maxSize;
-        //}
-                
-        //public static List<string> names { get; } = new List<string>
-        //    {
-        //    "Hans Müller",
-        //    "Anna Schmidt",
-        //    "Peter Fischer",
-        //    "Sabine Schneider",
-        //    "Thomas Meyer",
-        //    "Julia Wagner",
-        //    "Markus Weber",
-        //    "Lena Becker",
-        //    "Stefan Hoffmann",
-        //    "Claudia Schäfer",
-        //    "Jan Schmid",
-        //    "Johanna Braun",
-        //    "Michael Wolf",
-        //    "Franziska Richter",
-        //    "Tobias Baumann",
-        //    "Lisa Koch",
-        //    "Christian Neumann",
-        //    "Katharina Krause",
-        //    "Lukas Vogel",
-        //    "Susanne Schubert",
-        //    "Matthias Lehmann",
-        //    "Nicole Schäfer",
-        //    "Alexander Schulz",
-        //    "Clara Bauer",
-        //    "Florian Roth",
-        //    "Carolin Haas",
-        //    "Patrick Keller",
-        //    "Laura Maier",
-        //    "Sebastian Groß",
-        //    "Marie Hartmann",
-        //    "Jonas Lang",
-        //    "Anja Schmitt",
-        //    "Benjamin Kaiser",
-        //    "Vanessa Böhm",
-        //    "Moritz Peters",
-        //    "Andrea Frank",
-        //    "Johannes Brandt",
-        //    "Melanie Winter",
-        //    "Tim Arnold",
-        //    "Verena Bergmann",
-        //    "Erik Albrecht",
-        //    "Jutta Schuster",
-        //    "Hendrik Beck",
-        //    "Nadine Heinemann",
-        //    "Philipp König",
-        //    "Maren Simon",
-        //    "Oliver Hermann",
-        //    "Sarah Seidel",
-        //    "Maximilian Fuchs",
-        //    "Helena Lorenz",
-        //    "Dominik Moser",
-        //    "Isabell Horn",
-        //    "Jonas Weiß",
-        //    "Theresa Gebhardt",
-        //    "Christoph Auer",
-        //    "Lisa Schädtler",
-        //    "Paul Metzger",
-        //    "Nora Blum",
-        //    "Felix Kroll",
-        //    "Amelie Schneider",
-        //    "Konstantin Engel",
-        //    "Johanna Kraemer",
-        //    "Simon Herzog",
-        //    "Pauline Urban",
-        //    "Daniel Kraft",
-        //    "Miriam Seyfried",
-        //    "Leon Rieger",
-        //    "Carolin Busch",
-        //    "Andreas Schwarz",
-        //    "Viktoria Wendt",
-        //    "Theo Meier",
-        //    "Rebecca Hübner",
-        //    "Martin Böhmer",
-        //    "Hanna Vogt",
-        //    "Julian Weiss",
-        //    "Paula Siebert",
-        //    "Marcel Bischof",
-        //    "Annalena Dietrich",
-        //    "Lukas Ziegler",
-        //    "Magdalena Paul",
-        //    "Rico Schauer",
-        //    "Nadine Vogler",
-        //    "Fabian Hein",
-        //    "Tanja Sommer",
-        //    "Kilian Reinhardt",
-        //    "Jasmin Lindner",
-        //    "Nico Pohl",
-        //    "Friederike Krämer",
-        //    "Viktor Schlegel",
-        //    "Lea Brunner",
-        //    "Sven Henning",
-        //    "Rebecca Bruns",
-        //    "Leonhard Oster",
-        //    "Eva Voigt",
-        //    "Christoph Bayer",
-        //    "Maria Franke",
-        //    "Florian Mayer",
-        //    "Theresa Ludwig",
-        //    "Jonas Reuter",
-        //    "Sara Pfeiffer"
-        //};
     }
 }

@@ -61,7 +61,7 @@ namespace AutoNumber.Model
 
         public static double PlacePersonNames(ICollectionView persons, double width, double height)
         {
-            using Font font = new Font(TextLabel.fontFamily, (float)TextLabel.FontSize);
+            using Font font = new Font(TextLabel.FontFamily, (float)TextLabel.FontSize);
 
             var bb = getLargestBoundingBox<Person>(persons.OfType<Person>(), p => !string.IsNullOrEmpty(p.Name.Text) ? p.FullName : "______________", font);
             var nrOfColumns = (int)Math.Floor(width / bb.Width);
@@ -80,7 +80,7 @@ namespace AutoNumber.Model
                     rowNr++;
                     colNr = 0;
                 }
-                person.Name.visible = true;
+                person.Name.Visible = true;
             }
             return (Math.Max(1, rowNr + 1) * bb.Height);
         }

@@ -9,7 +9,7 @@
     xmlns:is="clr-namespace:AutoNumber.Infrastructure">
     <mah:MathSubtractConverter x:Key="MathSubtractConverter"/>
 
-    <is:boolToVisibiltiyConverter x:Key="boo2Vis"/>
+    <is:BoolToVisibilityConverter x:Key="boo2Vis"/>
     <is:DrawingColToMediaBrush x:Key="ColorConverter"/>
 
 
@@ -46,12 +46,6 @@
                         HeadersVisibility="Column" GridLinesVisibility="All"        
                         SelectionMode="Single"
                     >
-                        <!--<DataGrid.Resources>
-                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MahApps.Styles.DataGridColumnHeader}">
-                                <Setter Property="BorderThickness" Value="1"/>                                
-                                <Setter Property="Padding" Value="2"/>
-                            </Style>
-                        </DataGrid.Resources>-->
 
                         <DataGrid.Columns >
                             <DataGridTextColumn Header="Nr." Binding="{Binding Label.Number}" Width="auto" IsReadOnly="True"/>

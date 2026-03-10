@@ -17,7 +17,7 @@
     <UserControl.Resources>
         <mah:MathMultiplyConverter x:Key="MathMultiplyConverter"/>
         <is:BitmapToBitmapSource x:Key="Bitmap2BitmapSource"/>
-        <is:boolToVisibiltiyConverter x:Key="Bool2Vis"/>
+        <is:BoolToVisibilityConverter x:Key="Bool2Vis"/>
         <is:DrawingColToMediaBrush  x:Key="Col2Brush"/>
         <is:DrawingFontFamilyToMediaFontFamily x:Key="DrawingFontFamilyToMediaFontFamily"/>
     </UserControl.Resources>
@@ -31,7 +31,7 @@
         Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"                  
         >
         <Canvas x:Name="PageCanvas">
-            <Border DataContext="{Binding titleManager}"
+            <Border DataContext="{Binding TitleManager}"
                 Visibility="{Binding IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
                 BorderThickness="1,1,1,0"
                 BorderBrush="DarkGray"   
@@ -41,7 +41,7 @@
                 Height="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay}"  
                 Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"               
                />
-            <TextBlock DataContext="{Binding titleManager}"
+            <TextBlock DataContext="{Binding TitleManager}"
                 Text="{Binding Title}" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
                 x:Name="tbTitle" Visibility="{Binding IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"              
                 Canvas.Left="0" Canvas.Top="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay, ConverterParameter=-1, Converter={StaticResource MathMultiplyConverter}}"  
@@ -61,11 +61,11 @@
                 />
             <Border               
                 Canvas.Left="0"    
-                Visibility="{Binding nameManager.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
+                Visibility="{Binding NameManager.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
                 Canvas.Top="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
                 Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
-                Height="{Binding pictureVM.NamesRegionHeight}"  
-                BorderThickness="1,0,1,1"  BorderBrush="Black" Background="{Binding nameManager.BackgroundColor, Converter={StaticResource Col2Brush}}"
+                Height="{Binding PictureVM.NamesRegionHeight}"  
+                BorderThickness="1,0,1,1"  BorderBrush="Black" Background="{Binding NameManager.BackgroundColor, Converter={StaticResource Col2Brush}}"
                 />
         </Canvas>
     </view:ZoomBorder>

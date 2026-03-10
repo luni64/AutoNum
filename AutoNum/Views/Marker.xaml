@@ -16,13 +16,13 @@
 
         <is:DrawingFontFamilyToMediaFontFamily x:Key="DrawingFontFamilyToMediaFontFamily"/>
         <mah:MathMultiplyConverter x:Key="MathMultiplyConverter"/>
-        <is:boolToVisibiltiyConverter x:Key="bool2Vis"/>
+        <is:BoolToVisibilityConverter x:Key="bool2Vis"/>
         <is:DrawingColToMediaBrush x:Key="Col2Brush"/>
         
         <DataTemplate DataType="{x:Type vm:MarkerLabel}">
             <Grid 
-                Visibility="{Binding visible, Converter={StaticResource bool2Vis}}"                
-                ToolTip="{Binding person.Name.Text}" ToolTipService.InitialShowDelay="25">
+                Visibility="{Binding Visible, Converter={StaticResource bool2Vis}}"
+                ToolTip="{Binding Person.Name.Text}" ToolTipService.InitialShowDelay="25">
 
                 <Ellipse                                    
                     HorizontalAlignment="Center"  VerticalAlignment="Center" Height="{Binding Diameter}" Width="{Binding Diameter}"
@@ -32,7 +32,7 @@
                     />
 
                 <TextBlock                        
-                    Text="{Binding person.Label.Number}"  LineStackingStrategy="BlockLineHeight" 
+                    Text="{Binding Person.Label.Number}"
                     FontSize="{Binding FontSize}" FontWeight="Normal" FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                     Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"    
                     TextAlignment="Center"
@@ -54,10 +54,10 @@
         <!--FontSize="{Binding FontSize}" FontWeight="Normal"   LineStackingStrategy="BlockLineHeight"-->
         <DataTemplate DataType="{x:Type vm:TextLabel}">
             <Grid 
-                Visibility="{Binding visible, Converter={StaticResource bool2Vis}}">
+                Visibility="{Binding Visible, Converter={StaticResource bool2Vis}}">
 
                 <TextBlock                        
-                    Text="{Binding person.FullName}" FontFamily="{Binding fontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                    Text="{Binding Person.FullName}" FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                     Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"  
                     Background="Transparent"                      
                     FontSize="{Binding FontSize}"             

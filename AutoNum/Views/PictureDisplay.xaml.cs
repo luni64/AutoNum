@@ -1,16 +1,9 @@
 ﻿using AutoNumber.ViewModels;
-using System;
-using System.Collections;
 using System.Collections.Specialized;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Input;
-using static Emgu.CV.Dai.OpenVino;
-
-
-
 
 namespace AutoNumber.Views
 {
@@ -84,20 +77,6 @@ namespace AutoNumber.Views
 
         }
 
-        //void RemoveMarker(IList MarkerVMs)
-        //{
-        //    var markerUIs = PageCanvas.Children.OfType<Marker>();  // we are only interested in canvas-children of type Marker
-
-        //    foreach (MarkerVM markerVM in MarkerVMs)
-        //    {
-        //        var markerUI = markerUIs.FirstOrDefault(b => b.Uid == markerVM.Id.ToString());  // find the canvas child which corresponds to the removed view marriageModel
-        //        if (markerUI != null)
-        //        {
-        //            PageCanvas.Children.Remove(markerUI);
-        //        }
-        //    }
-        //}
-
         void ClearMarkers()
         {
             var ml = PageCanvas.Children.OfType<Marker>().ToList();
@@ -110,14 +89,6 @@ namespace AutoNumber.Views
         void AddMarker(MarkerVM markerVM)
         {            
             var marker = new Marker(markerVM);
-
-            //marker.SetBinding(MarkerUI.TextProperty, new Binding
-            //{
-            //    Source = markerVM,
-            //    Path = new PropertyPath("Title"),
-            //    Mode = BindingMode.TwoWay,
-            //    UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
-            //});
 
             marker.SetBinding(Canvas.TopProperty, new Binding
             {
@@ -147,47 +118,20 @@ namespace AutoNumber.Views
                 Mode = BindingMode.TwoWay,
             });
 
-
-            //marker.Width = markerVM.W;
-            //marker.Height = markerVM.H;
-
-
-
             Canvas.SetLeft(marker, markerVM.X);
             Canvas.SetTop(marker, markerVM.Y);
-            // marker.flip(markerVM.X);
 
 
             int idx = PageCanvas.Children.Add(marker);
             PageCanvas.Children[idx].Uid = markerVM.Id.ToString();
         }
 
-        //public override string ToString()
-        //{
-        //    var dc = DataContext as BookVM;
-        //    return $"B.{dc!.SelectedPage?.SheetNr} Book:{dc.Title}";
-        //}
-
-        private void AddBookmarkClick(object sender, RoutedEventArgs e)
-        {
-            //if (DataContext is BookVM dc)
-            //{
-            //    var pos = Mouse.GetPosition(pageimg);                
-            //    dc.cmdAddBookmark.Execute(((int)pos.X,(int)pos.Y));
-            //}
-        }
-
         private void tbTitle_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (DataContext is MainVM mainVM)
             {
-                mainVM.pictureVM.TitleRegionHeight = e.NewSize.Height;
-                //mainVM.titleManager.TitleHeight = e.NewSize.Height;
-                var x = tbTitle.Padding;
+                mainVM.PictureVM.TitleRegionHeight = e.NewSize.Height;
             }
-
         }
     }
-
 }
-;

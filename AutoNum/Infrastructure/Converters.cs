@@ -1,6 +1,4 @@
-﻿using Emgu.CV;
-using System;
-using System.Diagnostics;
+﻿using System;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
@@ -39,13 +37,6 @@ namespace AutoNumber.Infrastructure
                 }               
             }
             return null;
-
-
-            //if (value is Emgu.CV.Mat mat)
-            //{
-            //    return mat.ToBitmapSource();
-            //}
-            //return null;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
@@ -144,22 +135,6 @@ namespace AutoNumber.Infrastructure
         }
     }
 
-    //public class BoolToObjectConverter2 : IValueConverter
-    //{
-    //    //PackIconMaterialKind checkedIconKind = PackIconMaterialKind.Star;
-    //    //PackIconBase uncheckedIcon = new PackIconMaterial() { Kind = PackIconMaterialKind.Star,Width = 10, Height = 10 };
-
-    //    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    //    {
-    //        return (bool)value ? PackIconMaterialKind.Star : PackIconMaterialKind.StarOutline;
-    //    }
-
-    //    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    //    {
-    //        throw new NotSupportedException();
-    //    }
-    //}
-
     public class StringToImageConverter : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -188,60 +163,7 @@ namespace AutoNumber.Infrastructure
         }
     }
 
-    //public class StringToImageWidth : IValueConverter
-    //{
-    //    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    //    {
-    //        object? result = null;
-    //        var path = value as string;
-
-    //        if (!string.IsNullOrEmpty(path) && File.Exists(path))
-    //        {
-    //            using (var stream = File.OpenRead(path))
-    //            {
-    //                var image = new BitmapImage();
-    //                image.BeginInit();
-    //                image.CacheOption = BitmapCacheOption.OnLoad;
-    //                image.StreamSource = stream;
-    //                image.EndInit();
-    //                result = image;
-    //            }
-    //        }
-    //        return result;
-    //    }
-
-    //    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    //    {
-    //        throw new NotSupportedException();
-    //    }
-    //}
-
-    //public class BookTypeToIconConverter : IValueConverter
-    //{
-    //    public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-    //    {
-    //        if (value is BookType bookType && parameter is string size)
-    //        {
-    //            int sz = int.Parse(size);
-    //            return bookType switch
-    //            {
-    //                BookType.Sterbebücher => new PackIconPhosphorIcons() { Kind = PackIconPhosphorIconsKind.CrossBold, Width = sz, Height = sz },
-    //                BookType.Hochzeitsbücher => new PackIconMaterial() { Kind = PackIconMaterialKind.HumanMaleFemale, Width = sz, Height = sz },
-    //                //BookType.Taufbücher => new PackIconModern() { Kind = PackIconModernKind.Baby, Width = sz, Height = sz },
-    //                BookType.Taufbücher => new PackIconMaterial() { Kind = PackIconMaterialKind.BabyCarriage, Width = sz, Height = sz },
-    //                _ => null
-    //            };
-    //        }
-    //        return null;
-    //    }
-
-    //    public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-    //    {
-    //        throw new NotSupportedException();
-    //    }
-    //}
-
-    public class intToMarginConverter : IValueConverter
+    public class IntToMarginConverter : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -254,7 +176,7 @@ namespace AutoNumber.Infrastructure
         }
     }
 
-    public class nullToEnabledConverter : IValueConverter
+    public class NullToEnabledConverter : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -266,7 +188,7 @@ namespace AutoNumber.Infrastructure
         }
     }
 
-    public class nullToVisibiltiyConverter : IValueConverter
+    public class NullToVisibilityConverter : IValueConverter
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
@@ -279,7 +201,7 @@ namespace AutoNumber.Infrastructure
         }
     }
 
-    public class boolToVisibiltiyConverter : IValueConverter
+    public class BoolToVisibilityConverter : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {

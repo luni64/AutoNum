@@ -1,5 +1,4 @@
 ﻿using MahApps.Metro.Controls;
-using Microsoft.Win32;
 using AutoNumber.ViewModels;
 using System.Windows;
 using MahApps.Metro.Controls.Dialogs;
@@ -19,25 +18,11 @@ namespace AutoNumber
           mainVM.DialogCoordinator  =   DialogCoordinator.Instance;
         }
 
-        //private void Button_Click(object sender, RoutedEventArgs e)
-        //{
-        //    var dialog = new OpenFileDialog()
-        //    {
-
-        //    };
-
-        //    if(dialog.ShowDialog() == true && DataContext is MainVM mvm && mvm.CurrentStep is FileManager vm)
-        //    {
-        //        vm.cmdOpenImage.Execute(dialog.FileName);
-        //    }
-
-        //}
-
         private void Border_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if(DataContext is MainVM mainVM)
             {
-                mainVM.pictureVM.CanvasSize = new System.Drawing.Size((int)e.NewSize.Width, (int)e.NewSize.Height);
+                mainVM.PictureVM.CanvasSize = new System.Drawing.Size((int)e.NewSize.Width, (int)e.NewSize.Height);
             }
         }
     }

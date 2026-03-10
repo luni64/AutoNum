@@ -6,28 +6,19 @@ namespace AutoNumber.ViewModels
     public class TextLabel : MarkerVM
     {
         #region properties ------------------------------------------------------
-        //public string Number
-        //{
-        //    get => _nr;
-        //    set
-        //    {
-        //        SetProperty(ref _nr, value);
-        //        OnPropertyChanged("FullName");
-        //    }
-        //}
         public string? Text
         {
             get => _text == "" ? null : _text;
             set
             {
                 SetProperty(ref _text, value);
-                person.OnPropertyChanged("FullName");
+                Person.OnPropertyChanged("FullName");
             }
         }
 
                      
 
-        public static FontFamily fontFamily { get; } = new FontFamily("Calibri");
+        public static FontFamily FontFamily { get; } = new FontFamily("Calibri");
         public static Color FontColor
         {
             get => _fontColor;
@@ -48,8 +39,6 @@ namespace AutoNumber.ViewModels
                 if (_fontSize != value)
                 {
                     _fontSize = value;
-                    //BaselineOffset = 0.04 * TitleFontSize;
-
                     OnStaticPropertyChanged(nameof(FontSize));
 
                 }
@@ -59,7 +48,7 @@ namespace AutoNumber.ViewModels
 
         #region events --------------------------------------------------------
         public static event EventHandler<PropertyChangedEventArgs>? StaticPropertyChanged;
-        private static void OnStaticPropertyChanged(string name) //=> StaticPropertyChanged?.Invoke(null, new PropertyChangedEventArgs(name));
+        private static void OnStaticPropertyChanged(string name)
         {
             var handler = StaticPropertyChanged;
             if (handler != null)
@@ -75,16 +64,15 @@ namespace AutoNumber.ViewModels
 
         public TextLabel(Person person)
         {
-            this.person = person;
+            this.Person = person;
         }
 
-        public Person person { get; }
+        public Person Person { get; }
 
         #region private fields -----------------------------------------------
         private static Color _fontColor = Color.Black;
-        private static double _fontSize;// = _defaultFontSize;
+        private static double _fontSize;
 
-        private string _nr = string.Empty;
         private string? _text;       
 
         #endregion

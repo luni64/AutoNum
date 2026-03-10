@@ -10,7 +10,7 @@
         <Border Background="White" Padding="10,0" BorderBrush="DarkGray" BorderThickness="0,0,1,0" TextBlock.FontFamily="Calibri" TextBlock.FontSize="16">
             <StackPanel>        
                 <Button 
-                    Content="Bild öffnen" Command="{Binding cmdOpenImage}" 
+                    Content="Bild öffnen" Command="{Binding OpenImageCommand}"
                     HorizontalAlignment="Stretch" Padding="20,5" Margin="0,0,0,5"
                     Style="{StaticResource MahApps.Styles.Button.Square.Accent}" FontSize="13" mah:ControlsHelper.ContentCharacterCasing="Upper" 
                     />
@@ -27,11 +27,10 @@
                 </TextBlock>
 
                 <Button 
-                    Content="Ergebnis speichern" Command="{Binding cmdSaveImage}"  
+                    Content="Ergebnis speichern" Command="{Binding SaveImageCommand}"
                     HorizontalAlignment="Stretch" Padding="20,5" Margin="0,25,0,10"
                     Style="{StaticResource MahApps.Styles.Button.Square.Accent}" FontSize="13" mah:ControlsHelper.ContentCharacterCasing="Upper" 
                     />
-                <!--<TextBox x:Name="tbPath" Text="{Binding ImageFile }" HorizontalScrollBarVisibility="Auto" IsReadOnly="True" Margin="0,20,0,0"/>-->
                 <TextBlock  TextWrapping="Wrap"  TextAlignment="Justify" FontSize="13">                                        
                     <Run Text="Speichert eine Kopie des Originals mit der erzeugten Beschriftung."/><LineBreak/><LineBreak/><LineBreak/>
                     <Run FontWeight="Bold" FontSize="16" Text="Hinweis:"/><LineBreak/>

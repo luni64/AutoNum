@@ -8,8 +8,8 @@
         public double W { get => _w; set => SetProperty(ref _w, value); }
         public double H { get => _h; set => SetProperty(ref _h, value); }
         public double StrokeThickness => Math.Max(2, W / 25.0);
-        public bool isLocked { get => _isLocked; set => SetProperty(ref _isLocked, value); }
-        public bool visible { get => _visible; set => SetProperty(ref _visible, value); }
+        public bool IsLocked { get => _isLocked; set => SetProperty(ref _isLocked, value); }
+        public bool Visible { get => _visible; set => SetProperty(ref _visible, value); }
 
         private double _x, _y, _w, _h;                
         private bool _isLocked = true, _visible = true;        

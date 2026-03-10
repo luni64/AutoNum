@@ -25,7 +25,7 @@ namespace AutoNumber.ViewModels
             get => _fontSizeSliderValue;
             set
             {
-                var pvm = parent.pictureVM;
+                var pvm = parent.PictureVM;
                 if (_fontSizeSliderValue != value)
                 {
                     _fontSizeSliderValue = value;

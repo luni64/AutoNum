@@ -10,7 +10,7 @@ namespace AutoNumber.ViewModels
 
         public ImageModel(MainVM parent)
         {
-            this.parent = parent;
+            this.Parent = parent;
         }
 
 
@@ -20,7 +20,7 @@ namespace AutoNumber.ViewModels
             get => _bitmap;
             set => SetProperty(ref _bitmap, value);
         }
-        public MainVM parent { get; }
+        public MainVM Parent { get; }
         public string OriginalImageFilename { get; set; } = string.Empty;
         public ObservableCollection<Person> Persons { get; } = [];
         public double LabelDiameter
@@ -100,27 +100,27 @@ namespace AutoNumber.ViewModels
 
             NameManager.DefaultFontSize = 80;
 
-            parent.labelManager.BackgroundColor = Color.FromArgb(md.LabelsFont.background);
-            parent.labelManager.FontColor = Color.FromArgb(md.LabelsFont.foreground);
+            Parent.LabelManager.BackgroundColor = Color.FromArgb(md.LabelsFont.background);
+            Parent.LabelManager.FontColor = Color.FromArgb(md.LabelsFont.foreground);
 
             var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95; // fallback for old images where metadata doesn't contain label size           
-            parent.labelManager.d_0 = labelSize;
+            Parent.LabelManager.DefaultDiameter = labelSize;
             LabelDiameter = labelSize;
 
-            parent.titleManager.BackgroundColor = Color.FromArgb(md.TitleFont.background);
-            parent.titleManager.TitleFontColor = Color.FromArgb(md.TitleFont.foreground);
-            parent.titleManager.Title = md.Title;
-            if (!string.IsNullOrEmpty(md.Title)) parent.titleManager.IsEnabled = true;
+            Parent.TitleManager.BackgroundColor = Color.FromArgb(md.TitleFont.background);
+            Parent.TitleManager.TitleFontColor = Color.FromArgb(md.TitleFont.foreground);
+            Parent.TitleManager.Title = md.Title;
+            if (!string.IsNullOrEmpty(md.Title)) Parent.TitleManager.IsEnabled = true;
 
-            parent.nameManager.BackgroundColor = Color.FromArgb(md.NamesFont.background);
-            parent.nameManager.FontColor = Color.FromArgb(md.NamesFont.foreground);
-            parent.nameManager.FontFamily = new FontFamily(md.NamesFont.Family);
-            if (Persons.Count > 0) parent.nameManager.IsEnabled = true;
+            Parent.NameManager.BackgroundColor = Color.FromArgb(md.NamesFont.background);
+            Parent.NameManager.FontColor = Color.FromArgb(md.NamesFont.foreground);
+            Parent.NameManager.FontFamily = new FontFamily(md.NamesFont.Family);
+            if (Persons.Count > 0) Parent.NameManager.IsEnabled = true;
 
-            parent.nameManager.ShowNames();
+            Parent.NameManager.ShowNames();
 
-            parent.labelManager.Diameter = 0;
-            parent.labelManager.Diameter = 50; // slider value 
+            Parent.LabelManager.Diameter = 0;
+            Parent.LabelManager.Diameter = 50; // slider value 
         }
 
         public void Init()
@@ -134,9 +134,9 @@ namespace AutoNumber.ViewModels
             PanX = (int)((CanvasSize.Width - ImageWidth * Zoom) / 2);
             PanY = (int)((CanvasSize.Height - ImageHeight * Zoom) / 2);
 
-            MarkerLabel.BackgroundColor = parent.labelManager.BackgroundColor;
-            MarkerLabel.EdgeColor = parent.labelManager.EdgeColor;
-            MarkerLabel.FontColor = parent.labelManager.FontColor;
+            MarkerLabel.BackgroundColor = Parent.LabelManager.BackgroundColor;
+            MarkerLabel.EdgeColor = Parent.LabelManager.EdgeColor;
+            MarkerLabel.FontColor = Parent.LabelManager.FontColor;
             MarkerLabel.FontSize = 12;
             NameManager.DefaultFontSize = 80;
         }

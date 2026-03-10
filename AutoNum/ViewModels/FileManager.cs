@@ -25,14 +25,14 @@ namespace AutoNumber.ViewModels
 
     public class FileManager(MainVM parent) : BaseViewModel
     {
-        public RelayCommand cmdOpenImage => _cmdOpenImage ??= new(doOpenImage);
-        async void doOpenImage(object? o)
+        public RelayCommand OpenImageCommand => _openImageCommand ??= new(ExecuteOpenImage);
+        async void ExecuteOpenImage(object? o)
         {
             if (GetFilename(out string filename))
             {
                 try
                 {
-                    var pvm = parent.pictureVM;
+                    var pvm = parent.PictureVM;
                     var bitmap = new Bitmap(filename);  // Dialog ensures that the file exists
                     var metadata = bitmap.getMetadata();
 
@@ -42,13 +42,13 @@ namespace AutoNumber.ViewModels
                         pvm.OriginalImageFilename = filename;
                         pvm.Bitmap = bitmap;
                         pvm.Init();
-                        parent.labelManager.SetLabels(faces);
+                        parent.LabelManager.SetLabels(faces);
                     }
                     else
                     {
                         if (!File.Exists(metadata.OriginalImage))  // we are AutoNumber generated but don't find the original file
                         {
-                            string imagePath = await askForOriginalFilename(metadata.OriginalImage); // ask user to search for the image
+                            string imagePath = await AskForOriginalFilename(metadata.OriginalImage);
                             if (string.IsNullOrEmpty(imagePath)) throw new FileNotFoundException();
                             metadata.OriginalImage = imagePath;
                         }
@@ -67,10 +67,10 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public RelayCommand cmdSaveImage => _cmdSaveImage ??= new(doSaveImage);
-        void doSaveImage(object? o)
+        public RelayCommand SaveImageCommand => _saveImageCommand ??= new(ExecuteSaveImage);
+        void ExecuteSaveImage(object? o)
         {
-            var fullFilename = parent.pictureVM.OriginalImageFilename;
+            var fullFilename = parent.PictureVM.OriginalImageFilename;
             var path = Path.GetDirectoryName(fullFilename)!;
             var file = Path.GetFileNameWithoutExtension(fullFilename);
             var extension = Path.GetExtension(fullFilename);
@@ -87,9 +87,9 @@ namespace AutoNumber.ViewModels
 
             if (parent.DialogService.ShowDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
             {
-                if (filename != parent.pictureVM.OriginalImageFilename) // we don't want to overwrite the original file
+                if (filename != parent.PictureVM.OriginalImageFilename)
                 {
-                    using var bmp = parent.pictureVM.toNumberedBitmap();
+                    using var bmp = parent.PictureVM.toNumberedBitmap();
                     bmp?.Save(filename, ImageFormat.Jpeg);
                 }
                 else
@@ -100,7 +100,7 @@ namespace AutoNumber.ViewModels
         }
 
 
-        private async Task<string> askForOriginalFilename(string orignalFilename)
+        private async Task<string> AskForOriginalFilename(string orignalFilename)
         {
             var settings = new MetroDialogSettings()
             {
@@ -124,11 +124,6 @@ namespace AutoNumber.ViewModels
 
             if (result == MessageDialogResult.Affirmative)
             {
-                var info = new OpenFileInfo
-                {
-                    Filter = "All Image Files (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|All Files (*.*)|*.*",
-                    FilterIndex = 1, // Sets "All Image Files" as the default filter                
-                };
                 return GetFilename(out string filename) ? filename : string.Empty;
             }
             return string.Empty;
@@ -146,7 +141,7 @@ namespace AutoNumber.ViewModels
         }
 
         private MainVM parent { get; set; } = parent;
-        private RelayCommand? _cmdOpenImage;
-        private RelayCommand? _cmdSaveImage;
+        private RelayCommand? _openImageCommand;
+        private RelayCommand? _saveImageCommand;
     }
 }

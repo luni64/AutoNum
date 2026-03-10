@@ -12,7 +12,7 @@
     >
         
     <is:DrawingColToMediaBrush x:Key="ColorConverter"/>
-    <is:boolToVisibiltiyConverter x:Key="boo2Vis"/>    
+    <is:BoolToVisibilityConverter x:Key="boo2Vis"/>
 
 
     <DataTemplate DataType="{x:Type vm:TitleManager}">
@@ -47,27 +47,6 @@
                     SelectedFontSize="{Binding FontSizeSliderValue}"
                     
                     />
-
-
-                <!--<Grid   
-                    Visibility ="{Binding IsEnabled, Converter={StaticResource boo2Vis}}" Grid.Row="2" Margin="0,5,0,40">
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="auto"/>
-                        <ColumnDefinition Width="auto"/>
-                    </Grid.ColumnDefinitions>
-                    <Label 
-                        Grid.Column="0"  HorizontalAlignment="Center"
-                        Content="{iconPacks:RadixIcons Kind=FontSize}"/>                    
-
-                    <Slider                       
-                        Grid.Column="1"
-                        HorizontalAlignment="Stretch"
-                        Value="{Binding FontSizeSliderValue}" Minimum="0" Maximum="100"
-                        mah:SliderHelper.EnableMouseWheel="MouseHover"                        
-                />
-                </Grid>-->
 
 
             </Grid>

@@ -84,11 +84,11 @@ namespace AutoNumber.Model
             Created = DateTime.Now;
             OriginalImage = model.OriginalImageFilename;
             AutoNumImage = string.Empty;
-            Title = model.parent.titleManager.Title;
+            Title = model.Parent.TitleManager.Title;
 
-            var lm = model.parent.labelManager;
-            var nm = model.parent.nameManager;
-            var tm = model.parent.titleManager;
+            var lm = model.Parent.LabelManager;
+            var nm = model.Parent.NameManager;
+            var tm = model.Parent.TitleManager;
             LabelsFont = new AutoNumFont(MarkerLabel.FontColor, lm.BackgroundColor, MarkerLabel.FontFamily.Name, MarkerLabel.FontSize);
             LabelsSize = MarkerLabel.Diameter;
             NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.FontSize);

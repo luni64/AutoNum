@@ -1,7 +1,5 @@
 ﻿using AutoNumber.Infrastructure;
 using AutoNumber.ViewModels;
-using System.Configuration;
-using System.Data;
 using System.Windows;
 
 namespace AutoNumber

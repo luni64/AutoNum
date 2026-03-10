@@ -1,5 +1,4 @@
-﻿using Emgu.CV.ML;
-using AutoNumber.Model;
+﻿using AutoNumber.Model;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -12,7 +11,7 @@ namespace AutoNumber.ViewModels
     {
         public ICollectionView PersonsView { get; }
 
-        public MainVM parent { get; set; }
+        public MainVM Parent { get; set; }
 
         bool _isEnabled = false;
         public bool IsEnabled
@@ -27,7 +26,7 @@ namespace AutoNumber.ViewModels
 
         public void ShowNames()
         {            
-            var pvm = parent.pictureVM;
+            var pvm = Parent.PictureVM;
 
             if (pvm.Persons.Count == 0) return;
 
@@ -40,7 +39,7 @@ namespace AutoNumber.ViewModels
             {
                 foreach (Person person in PersonsView)
                 {
-                    person.Name.visible = false;
+                    person.Name.Visible = false;
                 }
             }
         }
@@ -69,7 +68,7 @@ namespace AutoNumber.ViewModels
             get => _fontSizeSliderValue;
             set
             {
-                var pvm = parent.pictureVM;
+                var pvm = Parent.PictureVM;
                 if (_fontSizeSliderValue != value)
                 {
                     _fontSizeSliderValue = value;
@@ -83,7 +82,7 @@ namespace AutoNumber.ViewModels
 
         public FontFamily FontFamily { get; set; } = new FontFamily("Calibri");
 
-        public void refresh()
+        public void Refresh()
         {
             if (PersonsView is IEditableCollectionView ecv)
             {
@@ -96,9 +95,9 @@ namespace AutoNumber.ViewModels
 
         public NameManager(MainVM parent)
         {
-            this.parent = parent;
+            this.Parent = parent;
 
-            PersonsView = CollectionViewSource.GetDefaultView(parent.pictureVM.Persons);
+            PersonsView = CollectionViewSource.GetDefaultView(parent.PictureVM.Persons);
             PersonsView.SortDescriptions.Add(new SortDescription("Label.Number", ListSortDirection.Ascending));
             PersonsView.CollectionChanged += PersonsView_CollectionChanged;
 
@@ -130,7 +129,7 @@ namespace AutoNumber.ViewModels
 
         private void Person_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            refresh();
+            Refresh();
             ShowNames();
         }
     }
