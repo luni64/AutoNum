@@ -17,19 +17,19 @@ namespace AutoNumber.Views
             InitializeComponent();
         }
 
-        public ImageModel Page
+        public ImageVM Page
         {
-            get => (ImageModel)GetValue(PageProperty);
+            get => (ImageVM)GetValue(PageProperty);
             set => SetValue(PageProperty, value);
         }
 
         public static readonly DependencyProperty PageProperty =
-            DependencyProperty.Register("Page", typeof(ImageModel), typeof(PictureDisplay), new PropertyMetadata(null, OnPageChanged));
+            DependencyProperty.Register("Page", typeof(ImageVM), typeof(PictureDisplay), new PropertyMetadata(null, OnPageChanged));
 
 
         static void OnPageChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (e.NewValue is ImageModel pageVM)
+            if (e.NewValue is ImageVM pageVM)
             {
                 var that = ((PictureDisplay)d);
                 pageVM.Persons.CollectionChanged -= that.Marker_CollectionChanged; // remove old handler

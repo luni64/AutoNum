@@ -25,12 +25,12 @@ namespace AutoNumber.ViewModels
 
         public void ShowNames()
         {            
-            if (_imageModel.Persons.Count == 0) return;
+            if (_imageVM.Persons.Count == 0) return;
 
             if (IsEnabled)
             {
-                var height = Analyzer.PlacePersonNames(PersonsView, _imageModel.ImageWidth, _imageModel.ImageHeight);
-                _imageModel.NamesRegionHeight = height;
+                var height = Analyzer.PlacePersonNames(PersonsView, _imageVM.ImageWidth, _imageVM.ImageHeight);
+                _imageVM.NamesRegionHeight = height;
             }
             else
             {
@@ -48,7 +48,7 @@ namespace AutoNumber.ViewModels
             set
             {
                 SetProperty(ref _fontColor, value);
-                TextLabel.FontColor = value;
+                TextLabel.Style.FontColor = value;
             }
         }
 
@@ -68,7 +68,7 @@ namespace AutoNumber.ViewModels
                 if (_fontSizeSliderValue != value)
                 {
                     _fontSizeSliderValue = value;
-                    TextLabel.FontSize = DefaultFontSize * (0.5 + 0.0002 * (_fontSizeSliderValue * _fontSizeSliderValue));
+                    TextLabel.Style.FontSize = DefaultFontSize * (0.5 + 0.0002 * (_fontSizeSliderValue * _fontSizeSliderValue));
                     ShowNames();
                     OnPropertyChanged();
                 }
@@ -89,11 +89,11 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public NameManager(ImageModel imageModel)
+        public NameManager(ImageVM imageVM)
         {
-            _imageModel = imageModel;
+            _imageVM = imageVM;
 
-            PersonsView = CollectionViewSource.GetDefaultView(imageModel.Persons);
+            PersonsView = CollectionViewSource.GetDefaultView(imageVM.Persons);
             PersonsView.SortDescriptions.Add(new SortDescription("Label.Number", ListSortDirection.Ascending));
             PersonsView.CollectionChanged += PersonsView_CollectionChanged;
 
@@ -117,7 +117,7 @@ namespace AutoNumber.ViewModels
                 BackgroundColor = Color.FromArgb(md.NamesFont.Background);
                 FontColor = Color.FromArgb(md.NamesFont.Foreground);
                 FontFamily = new FontFamily(md.NamesFont.Family);
-                if (_imageModel.Persons.Count > 0) IsEnabled = true;
+                if (_imageVM.Persons.Count > 0) IsEnabled = true;
                 ShowNames();
             });
         }
@@ -151,7 +151,7 @@ namespace AutoNumber.ViewModels
             ShowNames();
         }
 
-        private readonly ImageModel _imageModel;
+        private readonly ImageVM _imageVM;
     }
 }
 

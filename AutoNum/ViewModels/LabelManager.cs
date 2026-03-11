@@ -14,8 +14,8 @@ namespace AutoNumber.ViewModels
         public RelayCommand NumerateCommand => _numerateCommand ??= new RelayCommand(Numerate);
         public void Numerate(object? _ = null)
         {
-            if (_imageModel.Persons.Count == 0) return;
-            var persons = _imageModel.Persons;
+            if (_imageVM.Persons.Count == 0) return;
+            var persons = _imageVM.Persons;
 
             double minY = persons.Min(p => p.Label.CenterY);
             double maxY = persons.Max(p => p.Label.CenterY);
@@ -51,7 +51,7 @@ namespace AutoNumber.ViewModels
             set
             {
                 SetProperty(ref _diameter, value);
-                _imageModel.LabelDiameter = DefaultDiameter * (0.5 + 0.0002 * (_diameter * _diameter));
+                _imageVM.LabelDiameter = DefaultDiameter * (0.5 + 0.0002 * (_diameter * _diameter));
             }
         }
         public Color FontColor
@@ -60,7 +60,7 @@ namespace AutoNumber.ViewModels
             set
             {
                 SetProperty(ref _fontColor, value);
-                MarkerLabel.FontColor = _fontColor;
+                MarkerLabel.Style.FontColor = _fontColor;
             }
         }
         public Color BackgroundColor
@@ -69,7 +69,7 @@ namespace AutoNumber.ViewModels
             set
             {
                 SetProperty(ref _backgroundColor, value);
-                MarkerLabel.BackgroundColor = value;
+                MarkerLabel.Style.BackgroundColor = value;
             }
         }
         public Color EdgeColor
@@ -78,7 +78,7 @@ namespace AutoNumber.ViewModels
             set
             {
                 SetProperty(ref _edgeColor, value);
-                MarkerLabel.EdgeColor = value;
+                MarkerLabel.Style.EdgeColor = value;
             }
         }
 
@@ -89,12 +89,12 @@ namespace AutoNumber.ViewModels
             {
                 DefaultDiameter = Math.Max(faces.Average(m => m.Width), faces.Average(m => m.Height)) / 2;
             }
-            else DefaultDiameter = _imageModel.Bitmap?.Width / 20 ?? 50;
+            else DefaultDiameter = _imageVM.Bitmap?.Width / 20 ?? 50;
 
             foreach (var face in faces)
             {
                 PointF labelPos = new PointF((float)(face.X + face.Width / 2), (float)(face.Y + face.Height * 1.05));               
-                _imageModel.Persons.Add(new Person(0, "", labelPos));
+                _imageVM.Persons.Add(new Person(0, "", labelPos));
             }
 
             Numerate();
@@ -103,19 +103,19 @@ namespace AutoNumber.ViewModels
             Diameter = 50; // slider value 
         }
 
-        public LabelManager(ImageModel imageModel)
+        public LabelManager(ImageVM imageVM)
         {
-            _imageModel = imageModel;
+            _imageVM = imageVM;
             BackgroundColor = Color.White;
             FontColor = Color.Black;
             EdgeColor = Color.Black;
 
             WeakReferenceMessenger.Default.Register<NewImageOpenedMessage>(this, (r, msg) =>
             {
-                MarkerLabel.BackgroundColor = BackgroundColor;
-                MarkerLabel.EdgeColor = EdgeColor;
-                MarkerLabel.FontColor = FontColor;
-                MarkerLabel.FontSize = 12;
+                MarkerLabel.Style.BackgroundColor = BackgroundColor;
+                MarkerLabel.Style.EdgeColor = EdgeColor;
+                MarkerLabel.Style.FontColor = FontColor;
+                MarkerLabel.Style.FontSize = 12;
                 SetLabels(msg.Faces);
             });
 
@@ -133,7 +133,7 @@ namespace AutoNumber.ViewModels
 
         public double DefaultDiameter { get; set; } = 50;
 
-        private readonly ImageModel _imageModel;
+        private readonly ImageVM _imageVM;
         private Color _edgeColor, _fontColor, _backgroundColor;
         private int _diameter;
     }

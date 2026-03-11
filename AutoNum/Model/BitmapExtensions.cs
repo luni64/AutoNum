@@ -2,13 +2,26 @@
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
+using System.Reflection;
 using System.Text;
 
 namespace AutoNumber.Model
 {
     internal static class BitmapExtensions
     {
-        public static AutoNumMetaData_V1? GetMetadata(this Bitmap bitmap)        
+        /// <summary>
+        /// Loads a bitmap from file without holding a GDI+ file lock.
+        /// The file is read entirely into a MemoryStream so the file handle is released immediately.
+        /// </summary>
+        public static Bitmap LoadBitmapFromFile(string filename)
+        {
+            var bytes = File.ReadAllBytes(filename);
+            var ms = new MemoryStream(bytes);
+            return new Bitmap(ms); // GDI+ keeps ms alive internally; no file lock held
+        }
+
+        public static AutoNumMetaData_V1? GetMetadata(this Bitmap bitmap)
         {
             Trace.WriteLine("Check if bitmap has AutoNum metadata in user_comment tag");
 
@@ -28,7 +41,7 @@ namespace AutoNumber.Model
         }
 
 
-        public static Bitmap AddMetadata(this Bitmap bitmap, ImageModel model, LabelManager lm, NameManager nm, TitleManager tm)
+        public static Bitmap AddMetadata(this Bitmap bitmap, ImageVM model, LabelManager lm, NameManager nm, TitleManager tm)
         {
             var md = new AutoNumMetaData_V1(model, lm, nm, tm);
 
@@ -38,14 +51,53 @@ namespace AutoNumber.Model
             byte[] jsonBytes = Encoding.Unicode.GetBytes(jsonString + "\0"); // Null-terminate the string
 
             PropertyItem propItem = CreatePropertyItem();
-            propItem.Id = 0x9286; // Image Description
+            propItem.Id = 0x9286; // UserComment
             propItem.Type = 7;
             propItem.Value = jsonBytes;
             propItem.Len = jsonBytes.Length;
 
-            // Set the metadata property to the bitmap
             bitmap.SetPropertyItem(propItem);
+
+            // EXIF Software tag — identifies the application that produced the image
+            var version = Assembly.GetExecutingAssembly().GetName().Version;
+            var versionString = version is not null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.0";
+            byte[] swBytes = Encoding.ASCII.GetBytes($"AutoNum {versionString}\0");
+
+            PropertyItem swItem = CreatePropertyItem();
+            swItem.Id = 0x0131; // Software
+            swItem.Type = 2;    // ASCII
+            swItem.Value = swBytes;
+            swItem.Len = swBytes.Length;
+
+            bitmap.SetPropertyItem(swItem);
             return bitmap;
+        }
+
+        /// <summary>
+        /// Copies property items from a cached array to the destination bitmap.
+        /// Skips Orientation (already applied) and UserComment (overwritten by AddMetadata).
+        /// </summary>
+        public static void CopyMetadataFrom(this Bitmap destination, PropertyItem[]? source)
+        {
+            if (source is null) return;
+
+            const int ExifOrientationId = 0x0112;
+            const int ExifUserCommentId = 0x9286;
+
+            foreach (var prop in source)
+            {
+                if (prop.Id is ExifOrientationId or ExifUserCommentId)
+                    continue;
+
+                try
+                {
+                    destination.SetPropertyItem(prop);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Skipped metadata tag 0x{prop.Id:X4}: {ex.Message}");
+                }
+            }
         }
         /// <summary>
         /// Reads the EXIF orientation tag and applies the corresponding rotation/flip

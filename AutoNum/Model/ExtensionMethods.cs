@@ -14,9 +14,9 @@ namespace AutoNumber.Model
         {
             using var gFinal = Graphics.FromImage(bmp);
 
-            float fontSize = MarkerLabel.FontSize.toGdiFontSize(gFinal);            
-            using Brush fillBrush = new SolidBrush(MarkerLabel.BackgroundColor);
-            using Brush textBrush = new SolidBrush(MarkerLabel.FontColor);
+            float fontSize = MarkerLabel.Style.FontSize.toGdiFontSize(gFinal);            
+            using Brush fillBrush = new SolidBrush(MarkerLabel.Style.BackgroundColor);
+            using Brush textBrush = new SolidBrush(MarkerLabel.Style.FontColor);
             using Font font = new Font("Calibri", fontSize);
 
             StringFormat format = new StringFormat(StringFormat.GenericDefault);
@@ -24,7 +24,7 @@ namespace AutoNumber.Model
             foreach (var label in labels)
             {
                 PointF circlePos = new PointF((float)label.X, (float)label.Y + offset);
-                SizeF circleSize = new SizeF(MarkerLabel.Diameter, MarkerLabel.Diameter);
+                SizeF circleSize = new SizeF(MarkerLabel.Style.Diameter, MarkerLabel.Style.Diameter);
                 RectangleF BB = new RectangleF(circlePos, circleSize);
                 gFinal.FillEllipse(fillBrush, BB);                
 
@@ -37,7 +37,7 @@ namespace AutoNumber.Model
         {
             using var g = Graphics.FromImage(bmp);
 
-            using Brush textBrush = new SolidBrush(TextLabel.FontColor);
+            using Brush textBrush = new SolidBrush(TextLabel.Style.FontColor);
             StringFormat format = new StringFormat(StringFormat.GenericDefault);
 
             foreach (var name in names)
@@ -47,7 +47,7 @@ namespace AutoNumber.Model
             }
         }
 
-        public static Bitmap? ToNumberedBitmap(this ImageModel model, LabelManager lm, NameManager nm, TitleManager tm)
+        public static Bitmap? ToNumberedBitmap(this ImageVM model, LabelManager lm, NameManager nm, TitleManager tm)
         {
             if (model?.Bitmap is null) return null;
 
@@ -93,12 +93,13 @@ namespace AutoNumber.Model
                 using Brush fg = new SolidBrush(nm.FontColor);
                 g.FillRectangle(bg, new Rectangle(0, newHeight - footerHeight, bmpFinal.Width, footerHeight));
 
-                var fontSize = TextLabel.FontSize.toGdiFontSize(g);
+                var fontSize = TextLabel.Style.FontSize.toGdiFontSize(g);
                 using var font = new Font(nm.FontFamily, fontSize);
                 drawNames(names, bmpFinal, font, titleHeight);
             }
             drawLabels(labels, bmpFinal, titleHeight);
 
+            bmpFinal.CopyMetadataFrom(model.OriginalPropertyItems);
             bmpFinal.AddMetadata(model, lm, nm, tm);
 
             return bmpFinal;

@@ -35,7 +35,7 @@ namespace AutoNumber.ViewModels
                 if (!GetFilename(out string filename)) return;
 
                 var pvm = parent.PictureVM;
-                var bitmap = new Bitmap(filename);  // Dialog ensures that the file exists
+                var bitmap = BitmapExtensions.LoadBitmapFromFile(filename);
                 bitmap.ApplyExifOrientation();
                 var metadata = bitmap.GetMetadata();
 
@@ -43,6 +43,7 @@ namespace AutoNumber.ViewModels
                 {
                     var faces = FaceDetector.Detect(bitmap);
                     pvm.OriginalImageFilename = filename;
+                    pvm.OriginalPropertyItems = bitmap.PropertyItems;
                     pvm.Bitmap = bitmap;
                     pvm.Init();
                     WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
@@ -57,8 +58,9 @@ namespace AutoNumber.ViewModels
                     }
 
                     bitmap.Dispose(); // we will load the original image instead of the numbered copy
-                    var originalBitmap = new Bitmap(metadata.OriginalImage);
+                    var originalBitmap = BitmapExtensions.LoadBitmapFromFile(metadata.OriginalImage);
                     originalBitmap.ApplyExifOrientation();
+                    pvm.OriginalPropertyItems = originalBitmap.PropertyItems;
                     pvm.Bitmap = originalBitmap;
                     pvm.OriginalImageFilename = metadata.OriginalImage;
                     pvm.InitFromMetadata(metadata);

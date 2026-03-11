@@ -10,7 +10,7 @@ namespace AutoNumber.ViewModels
         public NameManager NameManager { get; }
         public TitleManager TitleManager { get; }       
         public LabelManager LabelManager { get; }
-        public ImageModel PictureVM { get; }
+        public ImageVM PictureVM { get; }
 
         public IDialogService DialogService { get; }
         public string Title => $"AutoNumber V{Environment.GetEnvironmentVariable("ClickOnce_CurrentVersion") ?? "x.x"}";
@@ -18,7 +18,7 @@ namespace AutoNumber.ViewModels
         public MainVM(IDialogService DialogService)
         {
             this.DialogService = DialogService;
-            PictureVM = new ImageModel();
+            PictureVM = new ImageVM();
 
             LabelManager = new LabelManager(PictureVM);
             NameManager = new NameManager(PictureVM);

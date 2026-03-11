@@ -57,14 +57,14 @@ namespace AutoNumber.Model
 
         public static double PlaceTitle(TitleManager tm)
         {
-            using var font = new Font(MarkerLabel.FontFamily, (int) tm.TitleFontSize);
+            using var font = new Font(MarkerLabel.Style.FontFamily, (int) tm.TitleFontSize);
             SizeF thisSize = measureString(tm.Title, font, GraphicsUnit.Point);
             return thisSize.Height;
         }
 
         public static double PlacePersonNames(ICollectionView persons, double width, double height)
         {
-            using Font font = new Font(TextLabel.FontFamily, (float)TextLabel.FontSize);
+            using Font font = new Font(TextLabel.Style.FontFamily, (float)TextLabel.Style.FontSize);
 
             var bb = GetLargestBoundingBox<Person>(persons.OfType<Person>(), p => !string.IsNullOrEmpty(p.Name.Text) ? p.FullName : "______________", font);
             var nrOfColumns = (int)Math.Floor(width / bb.Width);

@@ -1,13 +1,14 @@
-﻿using AutoNumber.Infrastructure;
+using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Drawing;
+using System.Drawing.Imaging;
 
 
 namespace AutoNumber.ViewModels
 {
-    public class ImageModel : BaseViewModel, IDisposable
+    public class ImageVM : BaseViewModel, IDisposable
     {
 
         #region Properties ----------------------------------------------------
@@ -22,6 +23,7 @@ namespace AutoNumber.ViewModels
             }
         }
         public string OriginalImageFilename { get; set; } = string.Empty;
+        public PropertyItem[]? OriginalPropertyItems { get; set; }
         public ObservableCollection<Person> Persons { get; } = [];
         public double LabelDiameter
         {
@@ -30,13 +32,13 @@ namespace AutoNumber.ViewModels
             {
                 if (_labelDiameter != value)
                 {
-                    MarkerLabel.Diameter = (float)value;
+                    MarkerLabel.Style.Diameter = (float)value;
 
-                    using Font font = new Font(MarkerLabel.FontFamily, (float)MarkerLabel.FontSize);
+                    using Font font = new Font(MarkerLabel.Style.FontFamily, (float)MarkerLabel.Style.FontSize);
                     var result = Analyzer.GetLargestItem(Persons, p => p.Label.Number.ToString(), font);
                     if(result.d_max > 0)
                     {
-                        MarkerLabel.FontSize = 1.5 * MarkerLabel.Diameter / result.d_max * MarkerLabel.FontSize; // scale the current size up/down, 1.75 generates a size nicely fitting                
+                        MarkerLabel.Style.FontSize = 1.5 * MarkerLabel.Style.Diameter / result.d_max * MarkerLabel.Style.FontSize; // scale the current size up/down, 1.75 generates a size nicely fitting                
                     }
                     SetProperty(ref _labelDiameter, value);
                 }

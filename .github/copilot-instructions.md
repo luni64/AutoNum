@@ -1,5 +1,8 @@
 # Copilot Instructions
 
+## Architecture Reference
+- **Architecture overview:** `docs/ARCHITECTURE.md` — project structure, design patterns, dependency flow, data flow, external dependencies. Read this first when starting a new session.
+
 ## Project Guidelines
 - When asked to "review" code, provide findings as a report only — do not make changes unless explicitly asked.
 - **Never commit without explicit user request. Do not stage or commit changes autonomously.**

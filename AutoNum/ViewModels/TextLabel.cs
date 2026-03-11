@@ -5,6 +5,8 @@ namespace AutoNumber.ViewModels
 {
     public class TextLabel : MarkerVM
     {
+        public static TextStyle Style { get; set; } = new();
+
         #region properties ------------------------------------------------------
         public string? Text
         {
@@ -16,65 +18,27 @@ namespace AutoNumber.ViewModels
             }
         }
 
-                     
-
-        public static FontFamily FontFamily { get; } = new FontFamily("Calibri");
-        public static Color FontColor
-        {
-            get => _fontColor;
-            set
-            {
-                if (_fontColor != value)
-                {
-                    _fontColor = value;
-                    OnStaticPropertyChanged(nameof(FontColor));
-                }
-            }
-        }
-        public static double FontSize
-        {
-            get => _fontSize;
-            set
-            {
-                if (_fontSize != value)
-                {
-                    _fontSize = value;
-                    OnStaticPropertyChanged(nameof(FontSize));
-
-                }
-            }
-        }
+        // Instance properties delegating to the shared style
+        public FontFamily FontFamily => Style.FontFamily;
+        public Color FontColor => Style.FontColor;
+        public double FontSize => Style.FontSize;
         #endregion
 
-        #region events --------------------------------------------------------
-        public static event EventHandler<PropertyChangedEventArgs>? StaticPropertyChanged;
-        private static void OnStaticPropertyChanged(string name)
-        {
-            var handler = StaticPropertyChanged;
-            if (handler != null)
-            {
-                handler(null, new PropertyChangedEventArgs(name));
-            }
-        }
-        #endregion
-        public override string ToString()
-        {
-            return $"TL {Text}";
-        }
+        public override string ToString() => $"TL {Text}";
 
         public TextLabel(Person person)
         {
             this.Person = person;
+            PropertyChangedEventManager.AddHandler(Style, OnStyleChanged, string.Empty);
         }
+
+        private void OnStyleChanged(object? sender, PropertyChangedEventArgs e)
+            => OnPropertyChanged(e.PropertyName!);
 
         public Person Person { get; }
 
         #region private fields -----------------------------------------------
-        private static Color _fontColor = Color.Black;
-        private static double _fontSize;
-
-        private string? _text;       
-
+        private string? _text;
         #endregion
     }
 }

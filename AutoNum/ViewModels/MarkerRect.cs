@@ -5,10 +5,16 @@ namespace AutoNumber.ViewModels
 {
     public class MarkerLabel : MarkerVM
     {
+        public static LabelStyle Style { get; set; } = new();
+
         public MarkerLabel(Person person)
         {
             this.Person = person;
+            PropertyChangedEventManager.AddHandler(Style, OnStyleChanged, string.Empty);
         }
+
+        private void OnStyleChanged(object? sender, PropertyChangedEventArgs e)
+            => OnPropertyChanged(e.PropertyName!);
 
         #region properties ------------------------------------------------------
         override public double X
@@ -57,105 +63,25 @@ namespace AutoNumber.ViewModels
             set => SetProperty(ref _centerY, value);
         }
 
-        public static float Diameter
-        {
-            get => _diameter;
-            set
-            {
-                if (_diameter != value)
-                {
-                    _diameter = value;
-                    OnStaticPropertyChanged(nameof(Diameter));
-                }
-            }
-        }
-
-        public static double FontSize
-        {
-            get => _fontSize;
-            set
-            {
-                if (_fontSize != value)
-                {
-                    _fontSize = value;                   
-                    OnStaticPropertyChanged(nameof(FontSize));
-                }
-            }
-        }
-
-        public static FontFamily FontFamily { get; } = new FontFamily("Calibri");
-
-        public static Color FontColor
-        {
-            get => _fontColor;
-            set
-            {
-                if (_fontColor != value)
-                {
-                    _fontColor = value;
-                    OnStaticPropertyChanged(nameof(FontColor));
-                }
-            }
-        }
-        public static Color EdgeColor
-        {
-            get { return _edgeColor; }
-            set
-            {
-                if (_edgeColor != value)
-                {
-                    _edgeColor = value;
-                    OnStaticPropertyChanged(nameof(EdgeColor));
-                }
-            }
-        }
-        public static Color BackgroundColor
-        {
-            get { return _backgroundColor; }
-            set
-            {
-                if (value != _backgroundColor)
-                {
-                    _backgroundColor = value;
-                    OnStaticPropertyChanged(nameof(BackgroundColor));
-                }
-            }
-        }
+        // Instance properties delegating to the shared style
+        public float Diameter => Style.Diameter;
+        public double FontSize => Style.FontSize;
+        public FontFamily FontFamily => Style.FontFamily;
+        public Color FontColor => Style.FontColor;
+        public Color EdgeColor => Style.EdgeColor;
+        public Color BackgroundColor => Style.BackgroundColor;
 
         public Person Person { get; }
 
         #endregion
 
-        #region events --------------------------------------------------------
-        public static event EventHandler<PropertyChangedEventArgs>? StaticPropertyChanged;
-        protected static void OnStaticPropertyChanged(string name)
-        {
-            var handler = StaticPropertyChanged;
-
-            if (handler != null)
-            {
-                handler(null, new PropertyChangedEventArgs(name));
-            }
-        }
-        #endregion
-
-        public override string ToString()
-        {
-            return $"LB: {Number}-{Name}";
-        }
+        public override string ToString() => $"LB: {Number}-{Name}";
 
         #region private fields -----------------------------------------------
-        private static Color _edgeColor = Color.White;
-        private static Color _backgroundColor = Color.Green;
-        private static Color _fontColor = Color.Black;
-        private static double _fontSize=12;
-
         private int _nr;
         private string? _name;
         private double _centerX;
         private double _centerY;
-        private static float _diameter;
-
         #endregion
     }
 }

@@ -83,16 +83,16 @@ namespace AutoNumber.Model
         public string Title { get; set; } = string.Empty;
         public List<AutoNumPerson> Persons { get; set; } = [];
 
-        public AutoNumMetaData_V1(ImageModel model, LabelManager lm, NameManager nm, TitleManager tm)
+        public AutoNumMetaData_V1(ImageVM model, LabelManager lm, NameManager nm, TitleManager tm)
         {
             Created = DateTime.Now;
             OriginalImage = model.OriginalImageFilename;
             AutoNumImage = string.Empty;
             Title = tm.Title;
 
-            LabelsFont = new AutoNumFont(MarkerLabel.FontColor, lm.BackgroundColor, MarkerLabel.FontFamily.Name, MarkerLabel.FontSize);
-            LabelsSize = MarkerLabel.Diameter;
-            NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.FontSize);
+            LabelsFont = new AutoNumFont(MarkerLabel.Style.FontColor, lm.BackgroundColor, MarkerLabel.Style.FontFamily.Name, MarkerLabel.Style.FontSize);
+            LabelsSize = MarkerLabel.Style.Diameter;
+            NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.Style.FontSize);
             TitleFont = new AutoNumFont(tm.TitleFontColor, tm.BackgroundColor, tm.TitleFontFamily.Name, tm.TitleFontSize);
 
             foreach (var person in model.Persons)
