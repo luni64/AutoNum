@@ -1,4 +1,6 @@
-﻿using AutoNumber.Model;
+﻿using AutoNumber.Infrastructure;
+using AutoNumber.Model;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
 using System.Drawing;
 
@@ -8,19 +10,17 @@ namespace AutoNumber.ViewModels
     public class ImageModel : BaseViewModel, IDisposable
     {
 
-        public ImageModel(MainVM parent)
-        {
-            this.Parent = parent;
-        }
-
-
         #region Properties ----------------------------------------------------
         public Bitmap? Bitmap
         {
             get => _bitmap;
-            set => SetProperty(ref _bitmap, value);
+            set
+            {
+                if (_bitmap != value)
+                    _bitmap?.Dispose();
+                SetProperty(ref _bitmap, value);
+            }
         }
-        public MainVM Parent { get; }
         public string OriginalImageFilename { get; set; } = string.Empty;
         public ObservableCollection<Person> Persons { get; } = [];
         public double LabelDiameter
@@ -33,7 +33,7 @@ namespace AutoNumber.ViewModels
                     MarkerLabel.Diameter = (float)value;
 
                     using Font font = new Font(MarkerLabel.FontFamily, (float)MarkerLabel.FontSize);
-                    var result = Analyzer.getLargestItem(Persons, p => p.Label.Number.ToString(), font);
+                    var result = Analyzer.GetLargestItem(Persons, p => p.Label.Number.ToString(), font);
                     if(result.d_max > 0)
                     {
                         MarkerLabel.FontSize = 1.5 * MarkerLabel.Diameter / result.d_max * MarkerLabel.FontSize; // scale the current size up/down, 1.75 generates a size nicely fitting                
@@ -98,29 +98,10 @@ namespace AutoNumber.ViewModels
                 this.Persons.Add(new Person(p.Label.Number, p.Name.Text, new PointF(p.Label.CenterX, p.Label.CenterY)));
             }
 
-            NameManager.DefaultFontSize = 80;
-
-            Parent.LabelManager.BackgroundColor = Color.FromArgb(md.LabelsFont.background);
-            Parent.LabelManager.FontColor = Color.FromArgb(md.LabelsFont.foreground);
-
-            var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95; // fallback for old images where metadata doesn't contain label size           
-            Parent.LabelManager.DefaultDiameter = labelSize;
+            var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95;
             LabelDiameter = labelSize;
 
-            Parent.TitleManager.BackgroundColor = Color.FromArgb(md.TitleFont.background);
-            Parent.TitleManager.TitleFontColor = Color.FromArgb(md.TitleFont.foreground);
-            Parent.TitleManager.Title = md.Title;
-            if (!string.IsNullOrEmpty(md.Title)) Parent.TitleManager.IsEnabled = true;
-
-            Parent.NameManager.BackgroundColor = Color.FromArgb(md.NamesFont.background);
-            Parent.NameManager.FontColor = Color.FromArgb(md.NamesFont.foreground);
-            Parent.NameManager.FontFamily = new FontFamily(md.NamesFont.Family);
-            if (Persons.Count > 0) Parent.NameManager.IsEnabled = true;
-
-            Parent.NameManager.ShowNames();
-
-            Parent.LabelManager.Diameter = 0;
-            Parent.LabelManager.Diameter = 50; // slider value 
+            WeakReferenceMessenger.Default.Send(new MetadataLoadedMessage(md));
         }
 
         public void Init()
@@ -133,12 +114,6 @@ namespace AutoNumber.ViewModels
             Zoom = 0.95 * Math.Min((double)CanvasSize.Width / ImageWidth, (double)CanvasSize.Height / ImageHeight);
             PanX = (int)((CanvasSize.Width - ImageWidth * Zoom) / 2);
             PanY = (int)((CanvasSize.Height - ImageHeight * Zoom) / 2);
-
-            MarkerLabel.BackgroundColor = Parent.LabelManager.BackgroundColor;
-            MarkerLabel.EdgeColor = Parent.LabelManager.EdgeColor;
-            MarkerLabel.FontColor = Parent.LabelManager.FontColor;
-            MarkerLabel.FontSize = 12;
-            NameManager.DefaultFontSize = 80;
         }
         public void Dispose() => Bitmap?.Dispose();
 

@@ -1,20 +1,24 @@
 ﻿using AutoNumber.ViewModels;
+using System.Diagnostics;
 using System.Drawing;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AutoNumber.Model
 {
     public class AutoNumFont
     {
-        public int foreground { get; set; } = Color.Black.ToArgb();
-        public int background { get; set; } = Color.White.ToArgb();
+        [JsonPropertyName("foreground")]
+        public int Foreground { get; set; } = Color.Black.ToArgb();
+        [JsonPropertyName("background")]
+        public int Background { get; set; } = Color.White.ToArgb();
         public string Family { get; set; } = string.Empty;
         public double Size { get; set; }
 
         public AutoNumFont(Color fg, Color bg, string family, double size)
         {
-            foreground = fg.ToArgb();
-            background = bg.ToArgb();
+            Foreground = fg.ToArgb();
+            Background = bg.ToArgb();
             Family = family;
             Size = size;
         }
@@ -79,16 +83,13 @@ namespace AutoNumber.Model
         public string Title { get; set; } = string.Empty;
         public List<AutoNumPerson> Persons { get; set; } = [];
 
-        public AutoNumMetaData_V1(ImageModel model)
+        public AutoNumMetaData_V1(ImageModel model, LabelManager lm, NameManager nm, TitleManager tm)
         {
             Created = DateTime.Now;
             OriginalImage = model.OriginalImageFilename;
             AutoNumImage = string.Empty;
-            Title = model.Parent.TitleManager.Title;
+            Title = tm.Title;
 
-            var lm = model.Parent.LabelManager;
-            var nm = model.Parent.NameManager;
-            var tm = model.Parent.TitleManager;
             LabelsFont = new AutoNumFont(MarkerLabel.FontColor, lm.BackgroundColor, MarkerLabel.FontFamily.Name, MarkerLabel.FontSize);
             LabelsSize = MarkerLabel.Diameter;
             NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.FontSize);
@@ -104,21 +105,22 @@ namespace AutoNumber.Model
 
         public string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
 
-        public static bool fromJson(string json, out AutoNumMetaData_V1? MetaData)
+        public static bool FromJson(string json, out AutoNumMetaData_V1? MetaData)
         {
             MetaData = null;
 
             try
             {
-                if (json.getVersion(out string version) && version == "V1")
+                if (json.GetVersion(out string version) && version == "V1")
                 {
                     MetaData = JsonSerializer.Deserialize<AutoNumMetaData_V1>(json);
                     return true;
                 }
                 return false;
             }
-            catch
+            catch (Exception ex)
             {
+                Trace.WriteLine($"Failed to parse AutoNum metadata: {ex}");
                 return false;
             }
         }
@@ -132,15 +134,16 @@ namespace AutoNumber.Model
 
     public static class Ext
     {
-        public static bool getVersion(this string json, out string version)
+        public static bool GetVersion(this string json, out string version)
         {
             try
             {
                 var r = JsonSerializer.Deserialize<VersionTest>(json);
                 version = (r != null && r.Creator == "AutoNumber" && !string.IsNullOrEmpty(r.Version)) ? r.Version : "";
             }
-            catch
+            catch (Exception ex)
             {
+                Trace.WriteLine($"Failed to parse version from metadata: {ex}");
                 version = string.Empty;
             }
 

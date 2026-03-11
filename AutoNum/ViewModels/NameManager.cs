@@ -1,5 +1,6 @@
-﻿using AutoNumber.Model;
-using System.Collections.ObjectModel;
+﻿using AutoNumber.Infrastructure;
+using AutoNumber.Model;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Specialized;
 using System.ComponentModel;
 using System.Drawing;
@@ -10,8 +11,6 @@ namespace AutoNumber.ViewModels
     public class NameManager : BaseViewModel
     {
         public ICollectionView PersonsView { get; }
-
-        public MainVM Parent { get; set; }
 
         bool _isEnabled = false;
         public bool IsEnabled
@@ -26,14 +25,12 @@ namespace AutoNumber.ViewModels
 
         public void ShowNames()
         {            
-            var pvm = Parent.PictureVM;
-
-            if (pvm.Persons.Count == 0) return;
+            if (_imageModel.Persons.Count == 0) return;
 
             if (IsEnabled)
             {
-                var height = Analyzer.PlacePersonNames(PersonsView, pvm.ImageWidth, pvm.ImageHeight);
-                pvm.NamesRegionHeight = height;
+                var height = Analyzer.PlacePersonNames(PersonsView, _imageModel.ImageWidth, _imageModel.ImageHeight);
+                _imageModel.NamesRegionHeight = height;
             }
             else
             {
@@ -68,7 +65,6 @@ namespace AutoNumber.ViewModels
             get => _fontSizeSliderValue;
             set
             {
-                var pvm = Parent.PictureVM;
                 if (_fontSizeSliderValue != value)
                 {
                     _fontSizeSliderValue = value;
@@ -93,18 +89,40 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public NameManager(MainVM parent)
+        public NameManager(ImageModel imageModel)
         {
-            this.Parent = parent;
+            _imageModel = imageModel;
 
-            PersonsView = CollectionViewSource.GetDefaultView(parent.PictureVM.Persons);
+            PersonsView = CollectionViewSource.GetDefaultView(imageModel.Persons);
             PersonsView.SortDescriptions.Add(new SortDescription("Label.Number", ListSortDirection.Ascending));
             PersonsView.CollectionChanged += PersonsView_CollectionChanged;
 
             FontSizeSliderValue = 50;
+
+            WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
+            {
+                Refresh();
+                ShowNames();
+            });
+
+            WeakReferenceMessenger.Default.Register<NewImageOpenedMessage>(this, (r, msg) =>
+            {
+                DefaultFontSize = 80;
+            });
+
+            WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
+            {
+                var md = msg.Metadata;
+                DefaultFontSize = 80;
+                BackgroundColor = Color.FromArgb(md.NamesFont.Background);
+                FontColor = Color.FromArgb(md.NamesFont.Foreground);
+                FontFamily = new FontFamily(md.NamesFont.Family);
+                if (_imageModel.Persons.Count > 0) IsEnabled = true;
+                ShowNames();
+            });
         }
 
-        private void PersonsView_CollectionChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+        private void PersonsView_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             switch (e.Action)  // attach handlers for property changes
             {
@@ -132,6 +150,8 @@ namespace AutoNumber.ViewModels
             Refresh();
             ShowNames();
         }
+
+        private readonly ImageModel _imageModel;
     }
 }
 

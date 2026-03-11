@@ -18,12 +18,12 @@ namespace AutoNumber.ViewModels
         public MainVM(IDialogService DialogService)
         {
             this.DialogService = DialogService;
-            this.PictureVM = new(this);
+            PictureVM = new ImageModel();
 
-            FileManager = new FileManager(this);            
-            LabelManager = new LabelManager(this);
-            NameManager = new NameManager(this);
-            TitleManager = new TitleManager(this);
+            LabelManager = new LabelManager(PictureVM);
+            NameManager = new NameManager(PictureVM);
+            TitleManager = new TitleManager();
+            FileManager = new FileManager(this);
         }
     }   
 }

@@ -1,4 +1,6 @@
-﻿using AutoNumber.Model;
+﻿using AutoNumber.Infrastructure;
+using AutoNumber.Model;
+using CommunityToolkit.Mvvm.Messaging;
 using System.Drawing;
 
 
@@ -25,7 +27,6 @@ namespace AutoNumber.ViewModels
             get => _fontSizeSliderValue;
             set
             {
-                var pvm = parent.PictureVM;
                 if (_fontSizeSliderValue != value)
                 {
                     _fontSizeSliderValue = value;
@@ -34,7 +35,7 @@ namespace AutoNumber.ViewModels
                 }
             }
         }
-        
+
         public double TitleFontSize
         {
             get => _fontSize;
@@ -56,13 +57,20 @@ namespace AutoNumber.ViewModels
 
         public static double DefaultFontSize = 80;
 
-        public TitleManager(MainVM parent)
+        public TitleManager()
         {
-            this.parent = parent;
             FontSizeSliderValue = 50;
+
+            WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
+            {
+                var md = msg.Metadata;
+                BackgroundColor = Color.FromArgb(md.TitleFont.Background);
+                TitleFontColor = Color.FromArgb(md.TitleFont.Foreground);
+                Title = md.Title;
+                if (!string.IsNullOrEmpty(md.Title)) IsEnabled = true;
+            });
         }
 
-        MainVM parent { get; set; }
         bool _isEnabled = false;
         double _fontSizeSliderValue;
         string _title = string.Empty;

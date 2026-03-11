@@ -7,24 +7,30 @@ namespace AutoNumber.Model
 {
     public static class Analyzer
     {
-        static Graphics g = Graphics.FromImage(new Bitmap(1, 1));
-
-        public static float getCircumscribingDiameter(string s, Font font)
+        private static SizeF measureString(string text, Font font, GraphicsUnit unit = GraphicsUnit.Display)
         {
-            SizeF size = g.MeasureString(s, font);
+            using var bmp = new Bitmap(1, 1);
+            using var g = Graphics.FromImage(bmp);
+            g.PageUnit = unit;
+            return g.MeasureString(text, font);
+        }
+
+        public static float GetCircumscribingDiameter(string s, Font font)
+        {
+            SizeF size = measureString(s, font);
             return (float)Math.Sqrt(size.Width * size.Width + size.Height * size.Height);
         }
 
-        public static (float d_max, T? item) getLargestItem<T>(IEnumerable<T> list, Func<T, string?> selector, Font font)
+        public static (float d_max, T? item) GetLargestItem<T>(IEnumerable<T> list, Func<T, string?> selector, Font font)
         {
             float d_max = 0;
             T? largestItem = list.FirstOrDefault();
             foreach (T item in list)
             {
                 string? str = selector(item);
-                if (str == null) continue;
+                if (str is null) continue;
 
-                var r = getCircumscribingDiameter(str, font);
+                var r = GetCircumscribingDiameter(str, font);
                 if (r > d_max)
                 {
                     d_max = r;
@@ -34,16 +40,15 @@ namespace AutoNumber.Model
             return (d_max, largestItem);
         }
 
-        public static SizeF getLargestBoundingBox<T>(IEnumerable<T> items, Func<T, string?> selector, Font font)
+        public static SizeF GetLargestBoundingBox<T>(IEnumerable<T> items, Func<T, string?> selector, Font font)
         {
-            g.PageUnit = GraphicsUnit.Point;
             SizeF largest = new SizeF();
             foreach (T item in items)
             {
                 string? str = selector(item);
-                if (str == null) continue;
+                if (str is null) continue;
 
-                SizeF thisSize = g.MeasureString(str, font);
+                SizeF thisSize = measureString(str, font, GraphicsUnit.Point);
                 largest.Width = Math.Max(largest.Width, thisSize.Width);
                 largest.Height = Math.Max(largest.Height, thisSize.Height);
             }
@@ -52,10 +57,8 @@ namespace AutoNumber.Model
 
         public static double PlaceTitle(TitleManager tm)
         {
-            g.PageUnit = GraphicsUnit.Point;
-
             using var font = new Font(MarkerLabel.FontFamily, (int) tm.TitleFontSize);
-            SizeF thisSize = g.MeasureString(tm.Title, font);
+            SizeF thisSize = measureString(tm.Title, font, GraphicsUnit.Point);
             return thisSize.Height;
         }
 
@@ -63,7 +66,7 @@ namespace AutoNumber.Model
         {
             using Font font = new Font(TextLabel.FontFamily, (float)TextLabel.FontSize);
 
-            var bb = getLargestBoundingBox<Person>(persons.OfType<Person>(), p => !string.IsNullOrEmpty(p.Name.Text) ? p.FullName : "______________", font);
+            var bb = GetLargestBoundingBox<Person>(persons.OfType<Person>(), p => !string.IsNullOrEmpty(p.Name.Text) ? p.FullName : "______________", font);
             var nrOfColumns = (int)Math.Floor(width / bb.Width);
 
             int colNr = 0;

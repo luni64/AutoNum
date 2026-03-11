@@ -6,18 +6,20 @@ namespace AutoNumber.ViewModels
     public static class FaceDetector 
     {
         static public double ScaleFactor { get; set; } = 1.2;
-        static public int minNeighbors { get; set; } = 7;
-        static public int minSize { get; set; } = 0;
-        static public int maxSize { get; set; } = 0;
+        static public int MinNeighbors { get; set; } = 7;
+        static public int MinSize { get; set; } = 0;
+        static public int MaxSize { get; set; } = 0;
+
+        private static readonly Lazy<CascadeClassifier> _faceCascade =
+            new(() => new CascadeClassifier("Classifiers/haarcascade_frontalface_default.xml"));
 
         static public List<Rectangle> Detect(Bitmap bitmap)
         {
-            using var matt =bitmap.ToMat();
+            using var matt = bitmap.ToMat();
             using var gray = new Mat();
             CvInvoke.CvtColor(matt, gray, Emgu.CV.CvEnum.ColorConversion.Bgr2Gray);
-                       
-            var faceCascade = new CascadeClassifier("Classifiers/haarcascade_frontalface_default.xml");
-            var faceMarkers = faceCascade.DetectMultiScale(gray, ScaleFactor, minNeighbors, minSize: new Size(minSize, minSize), maxSize: new Size(maxSize, maxSize));            
+
+            var faceMarkers = _faceCascade.Value.DetectMultiScale(gray, ScaleFactor, MinNeighbors, minSize: new Size(MinSize, MinSize), maxSize: new Size(MaxSize, MaxSize));            
             return faceMarkers.ToList();
         }        
     }

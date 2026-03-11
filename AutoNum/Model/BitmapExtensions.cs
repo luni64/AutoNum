@@ -8,7 +8,7 @@ namespace AutoNumber.Model
 {
     internal static class BitmapExtensions
     {
-        public static AutoNumMetaData_V1? getMetadata(this Bitmap bitmap)        
+        public static AutoNumMetaData_V1? GetMetadata(this Bitmap bitmap)        
         {
             Trace.WriteLine("Check if bitmap has AutoNum metadata in user_comment tag");
 
@@ -19,7 +19,7 @@ namespace AutoNumber.Model
                 Trace.WriteLine("- has user_comment tag");
 
                 var json = Encoding.Unicode.GetString(UserCommentItem.Value).TrimEnd('\0');
-                bool OK = AutoNumMetaData_V1.fromJson(json, out AutoNumMetaData_V1? metaData);
+                bool OK = AutoNumMetaData_V1.FromJson(json, out AutoNumMetaData_V1? metaData);
                 Trace.WriteLine($"- Parsing: {(OK ? "OK" : "Error")}");
                 return OK ? metaData : null;
             }
@@ -28,9 +28,9 @@ namespace AutoNumber.Model
         }
 
 
-        public static Bitmap AddMetadata(this Bitmap bitmap, ImageModel model)
+        public static Bitmap AddMetadata(this Bitmap bitmap, ImageModel model, LabelManager lm, NameManager nm, TitleManager tm)
         {
-            var md = new AutoNumMetaData_V1(model);
+            var md = new AutoNumMetaData_V1(model, lm, nm, tm);
 
             var jsonString = md.ToJson();
 

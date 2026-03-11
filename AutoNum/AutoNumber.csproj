@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
     <PackageReference Include="Emgu.CV.runtime.windows" Version="4.10.0.5680" />
     <PackageReference Include="Emgu.CV.Wpf" Version="4.10.0.5680" />
     <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0513" />

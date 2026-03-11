@@ -1,4 +1,6 @@
-﻿using AutoNumber.Model;
+﻿using AutoNumber.Infrastructure;
+using AutoNumber.Model;
+using CommunityToolkit.Mvvm.Messaging;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
 using System.Diagnostics;
@@ -28,44 +30,51 @@ namespace AutoNumber.ViewModels
         public RelayCommand OpenImageCommand => _openImageCommand ??= new(ExecuteOpenImage);
         async void ExecuteOpenImage(object? o)
         {
-            if (GetFilename(out string filename))
+            try
             {
+                if (!GetFilename(out string filename)) return;
+
+                var pvm = parent.PictureVM;
+                var bitmap = new Bitmap(filename);  // Dialog ensures that the file exists
+                bitmap.ApplyExifOrientation();
+                var metadata = bitmap.GetMetadata();
+
+                if (metadata is null)  // not written by AutoNumber => use as original image
+                {
+                    var faces = FaceDetector.Detect(bitmap);
+                    pvm.OriginalImageFilename = filename;
+                    pvm.Bitmap = bitmap;
+                    pvm.Init();
+                    WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
+                }
+                else
+                {
+                    if (!File.Exists(metadata.OriginalImage))  // we are AutoNumber generated but don't find the original file
+                    {
+                        string imagePath = await AskForOriginalFilename(metadata.OriginalImage);
+                        if (string.IsNullOrEmpty(imagePath)) throw new FileNotFoundException();
+                        metadata.OriginalImage = imagePath;
+                    }
+
+                    bitmap.Dispose(); // we will load the original image instead of the numbered copy
+                    var originalBitmap = new Bitmap(metadata.OriginalImage);
+                    originalBitmap.ApplyExifOrientation();
+                    pvm.Bitmap = originalBitmap;
+                    pvm.OriginalImageFilename = metadata.OriginalImage;
+                    pvm.InitFromMetadata(metadata);
+                }
+            }
+            catch (InvalidOperationException) { Trace.WriteLine("No faces found"); }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Error opening image: {ex}");
                 try
                 {
-                    var pvm = parent.PictureVM;
-                    var bitmap = new Bitmap(filename);  // Dialog ensures that the file exists
-                    bitmap.ApplyExifOrientation();
-                    var metadata = bitmap.getMetadata();
-
-                    if (metadata == null)  // not written by AutoNumber => use as original image
-                    {
-                        var faces = FaceDetector.Detect(bitmap);
-                        pvm.OriginalImageFilename = filename;
-                        pvm.Bitmap = bitmap;
-                        pvm.Init();
-                        parent.LabelManager.SetLabels(faces);
-                    }
-                    else
-                    {
-                        if (!File.Exists(metadata.OriginalImage))  // we are AutoNumber generated but don't find the original file
-                        {
-                            string imagePath = await AskForOriginalFilename(metadata.OriginalImage);
-                            if (string.IsNullOrEmpty(imagePath)) throw new FileNotFoundException();
-                            metadata.OriginalImage = imagePath;
-                        }
-
-                        bitmap.Dispose(); // we will load the original image instead of the numbered copy
-                        var originalBitmap = new Bitmap(metadata.OriginalImage);
-                        originalBitmap.ApplyExifOrientation();
-                        pvm.Bitmap = originalBitmap;
-                        pvm.OriginalImageFilename = metadata.OriginalImage;
-                        pvm.InitFromMetadata(metadata);
-                    }
-                }
-                catch (InvalidOperationException) { Trace.WriteLine("No faces found"); }
-                catch
-                {
                     await parent.DialogCoordinator!.ShowMessageAsync(parent, "Fehler", "Fehler beim Öffnen des Bildes");
+                }
+                catch (Exception dlgEx)
+                {
+                    Trace.WriteLine($"Error showing dialog: {dlgEx}");
                 }
             }
         }
@@ -92,7 +101,7 @@ namespace AutoNumber.ViewModels
             {
                 if (filename != parent.PictureVM.OriginalImageFilename)
                 {
-                    using var bmp = parent.PictureVM.toNumberedBitmap();
+                    using var bmp = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager);
                     bmp?.Save(filename, ImageFormat.Jpeg);
                 }
                 else

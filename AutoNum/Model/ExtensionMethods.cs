@@ -47,18 +47,15 @@ namespace AutoNumber.Model
             }
         }
 
-        public static Bitmap? toNumberedBitmap(this ImageModel model)
+        public static Bitmap? ToNumberedBitmap(this ImageModel model, LabelManager lm, NameManager nm, TitleManager tm)
         {
-            if (model?.Bitmap == null) return null;
-
-            var nvm = model.Parent.NameManager;
-            var tvm = model.Parent.TitleManager;
+            if (model?.Bitmap is null) return null;
 
             var names = model.Persons.Select(p => p.Name).ToList();
             var labels = model.Persons.Select(p => p.Label).ToList();
 
-            bool hasNames = nvm.IsEnabled && names.Count > 0;
-            bool hasTitle = tvm.IsEnabled && !string.IsNullOrEmpty(tvm.Title);
+            bool hasNames = nm.IsEnabled && names.Count > 0;
+            bool hasTitle = tm.IsEnabled && !string.IsNullOrEmpty(tm.Title);
 
             var oldWidth = model.Bitmap.Width;
             var oldHeight = model.Bitmap.Height;
@@ -73,14 +70,14 @@ namespace AutoNumber.Model
 
             if (hasTitle)
             {
-                using Brush bg = new SolidBrush(tvm.BackgroundColor);
-                using Brush fg = new SolidBrush(tvm.TitleFontColor);
+                using Brush bg = new SolidBrush(tm.BackgroundColor);
+                using Brush fg = new SolidBrush(tm.TitleFontColor);
                 RectangleF BB = new RectangleF(0, 0, bmpFinal.Width, titleHeight);
 
                 g.FillRectangle(bg, BB);
 
-                var fontSize = tvm.TitleFontSize.toGdiFontSize(g);
-                using var font = new Font(tvm.TitleFontFamily, fontSize);
+                var fontSize = tm.TitleFontSize.toGdiFontSize(g);
+                using var font = new Font(tm.TitleFontFamily, fontSize);
 
                 StringFormat format = new StringFormat
                 {
@@ -88,21 +85,21 @@ namespace AutoNumber.Model
                     Alignment = StringAlignment.Center
                 };
 
-                g.DrawString(tvm.Title, font, fg, BB, format);
+                g.DrawString(tm.Title, font, fg, BB, format);
             }
             if (hasNames)
             {
-                using Brush bg = new SolidBrush(nvm.BackgroundColor);
-                using Brush fg = new SolidBrush(nvm.FontColor);
+                using Brush bg = new SolidBrush(nm.BackgroundColor);
+                using Brush fg = new SolidBrush(nm.FontColor);
                 g.FillRectangle(bg, new Rectangle(0, newHeight - footerHeight, bmpFinal.Width, footerHeight));
 
                 var fontSize = TextLabel.FontSize.toGdiFontSize(g);
-                using var font = new Font(nvm.FontFamily, fontSize);
+                using var font = new Font(nm.FontFamily, fontSize);
                 drawNames(names, bmpFinal, font, titleHeight);
             }
             drawLabels(labels, bmpFinal, titleHeight);
 
-            bmpFinal.AddMetadata(model);
+            bmpFinal.AddMetadata(model, lm, nm, tm);
 
             return bmpFinal;
         }
