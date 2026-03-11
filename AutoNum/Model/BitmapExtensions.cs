@@ -47,6 +47,45 @@ namespace AutoNumber.Model
             bitmap.SetPropertyItem(propItem);
             return bitmap;
         }
+        /// <summary>
+        /// Reads the EXIF orientation tag and applies the corresponding rotation/flip
+        /// so the pixel data matches the intended display orientation.
+        /// </summary>
+        public static void ApplyExifOrientation(this Bitmap bitmap)
+        {
+            const int ExifOrientationId = 0x0112;
+
+            if (!bitmap.PropertyIdList.Contains(ExifOrientationId))
+                return;
+
+            var prop = bitmap.GetPropertyItem(ExifOrientationId);
+            if (prop?.Value is null || prop.Value.Length < 2)
+                return;
+
+            int orientation = BitConverter.ToUInt16(prop.Value, 0);
+
+            var flip = orientation switch
+            {
+                2 => RotateFlipType.RotateNoneFlipX,
+                3 => RotateFlipType.Rotate180FlipNone,
+                4 => RotateFlipType.RotateNoneFlipY,
+                5 => RotateFlipType.Rotate90FlipX,
+                6 => RotateFlipType.Rotate90FlipNone,
+                7 => RotateFlipType.Rotate270FlipX,
+                8 => RotateFlipType.Rotate270FlipNone,
+                _ => RotateFlipType.RotateNoneFlipNone,
+            };
+
+            if (flip is RotateFlipType.RotateNoneFlipNone)
+                return;
+
+            bitmap.RotateFlip(flip);
+
+            // Reset orientation tag to Normal so it won't be double-applied later
+            prop.Value = BitConverter.GetBytes((ushort)1);
+            bitmap.SetPropertyItem(prop);
+        }
+
         static PropertyItem CreatePropertyItem() // PropertyItem has no constructor => work around
         {
             Type type = typeof(PropertyItem);

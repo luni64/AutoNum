@@ -34,6 +34,7 @@ namespace AutoNumber.ViewModels
                 {
                     var pvm = parent.PictureVM;
                     var bitmap = new Bitmap(filename);  // Dialog ensures that the file exists
+                    bitmap.ApplyExifOrientation();
                     var metadata = bitmap.getMetadata();
 
                     if (metadata == null)  // not written by AutoNumber => use as original image
@@ -54,7 +55,9 @@ namespace AutoNumber.ViewModels
                         }
 
                         bitmap.Dispose(); // we will load the original image instead of the numbered copy
-                        pvm.Bitmap = new Bitmap(metadata.OriginalImage);
+                        var originalBitmap = new Bitmap(metadata.OriginalImage);
+                        originalBitmap.ApplyExifOrientation();
+                        pvm.Bitmap = originalBitmap;
                         pvm.OriginalImageFilename = metadata.OriginalImage;
                         pvm.InitFromMetadata(metadata);
                     }
