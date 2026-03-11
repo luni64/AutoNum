@@ -103,7 +103,7 @@ namespace AutoNumber.Model
         public AutoNumMetaData_V1() { }
 
 
-        public string ToJson() => JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        public string ToJson() => JsonSerializer.Serialize(this, this.GetType(), new JsonSerializerOptions { WriteIndented = true });
 
         public static bool FromJson(string json, out AutoNumMetaData_V1? MetaData)
         {
@@ -111,12 +111,17 @@ namespace AutoNumber.Model
 
             try
             {
-                if (json.GetVersion(out string version) && version == "V1")
+                if (!json.GetVersion(out string version))
+                    return false;
+
+                MetaData = version switch
                 {
-                    MetaData = JsonSerializer.Deserialize<AutoNumMetaData_V1>(json);
-                    return true;
-                }
-                return false;
+                    "V2" => JsonSerializer.Deserialize<AutoNumMetaData_V2>(json),
+                    "V1" => JsonSerializer.Deserialize<AutoNumMetaData_V1>(json),
+                    _ => null,
+                };
+
+                return MetaData is not null;
             }
             catch (Exception ex)
             {

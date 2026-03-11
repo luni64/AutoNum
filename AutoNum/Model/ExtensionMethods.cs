@@ -1,8 +1,19 @@
 ﻿using AutoNumber.ViewModels;
 using System.Drawing;
+using System.Drawing.Imaging;
+using System.IO;
 
 namespace AutoNumber.Model
 {
+    /// <summary>
+    /// Result of <see cref="ExtensionMethods.ToNumberedBitmap"/> containing both the
+    /// rendered composite bitmap and the pixel patches captured before labels were drawn.
+    /// </summary>
+    internal record NumberedBitmapResult(Bitmap Bitmap, List<PatchData> Patches) : IDisposable
+    {
+        public void Dispose() => Bitmap.Dispose();
+    }
+
     public static class ExtensionMethods
     {      
         private static float toGdiFontSize(this double sz, Graphics gFinal)
@@ -47,7 +58,27 @@ namespace AutoNumber.Model
             }
         }
 
-        public static Bitmap? ToNumberedBitmap(this ImageVM model, LabelManager lm, NameManager nm, TitleManager tm)
+        /// <summary>
+        /// Captures a rectangular pixel region from the bitmap and encodes it as PNG.
+        /// Adds a 1px margin to cover GDI+ anti-aliasing bleed at ellipse edges.
+        /// </summary>
+        private static PatchData capturePatch(Bitmap bmp, RectangleF region)
+        {
+            // Expand to integer pixel grid: floor(origin) → ceil(origin + size), plus 1px AA margin
+            const int margin = 1;
+            int left = Math.Max(0, (int)Math.Floor(region.X) - margin);
+            int top = Math.Max(0, (int)Math.Floor(region.Y) - margin);
+            int right = Math.Min(bmp.Width, (int)Math.Ceiling(region.X + region.Width) + margin);
+            int bottom = Math.Min(bmp.Height, (int)Math.Ceiling(region.Y + region.Height) + margin);
+
+            var rect = new Rectangle(left, top, right - left, bottom - top);
+            using var patch = bmp.Clone(rect, bmp.PixelFormat);
+            using var ms = new MemoryStream();
+            patch.Save(ms, ImageFormat.Png);
+            return new PatchData(rect.X, rect.Y, rect.Width, rect.Height, ms.ToArray());
+        }
+
+        internal static NumberedBitmapResult? ToNumberedBitmap(this ImageVM model, LabelManager lm, NameManager nm, TitleManager tm)
         {
             if (model?.Bitmap is null) return null;
 
@@ -97,12 +128,26 @@ namespace AutoNumber.Model
                 using var font = new Font(nm.FontFamily, fontSize);
                 drawNames(names, bmpFinal, font, titleHeight);
             }
+
+            // Capture patches BEFORE drawing labels (Approach B — pre-JPEG pixels)
+            g.Flush(); // ensure all drawing above is committed
+            var patches = new List<PatchData>(labels.Count);
+            foreach (var label in labels)
+            {
+                var region = new RectangleF(
+                    (float)label.X,
+                    (float)label.Y + titleHeight,
+                    MarkerLabel.Style.Diameter,
+                    MarkerLabel.Style.Diameter);
+                patches.Add(capturePatch(bmpFinal, region));
+            }
+
             drawLabels(labels, bmpFinal, titleHeight);
 
             bmpFinal.CopyMetadataFrom(model.OriginalPropertyItems);
             bmpFinal.AddMetadata(model, lm, nm, tm);
 
-            return bmpFinal;
+            return new NumberedBitmapResult(bmpFinal, patches);
         }
     }
 }

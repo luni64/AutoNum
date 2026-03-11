@@ -43,7 +43,7 @@ namespace AutoNumber.Model
 
         public static Bitmap AddMetadata(this Bitmap bitmap, ImageVM model, LabelManager lm, NameManager nm, TitleManager tm)
         {
-            var md = new AutoNumMetaData_V1(model, lm, nm, tm);
+            var md = new AutoNumMetaData_V2(model, lm, nm, tm);
 
             var jsonString = md.ToJson();
 
@@ -98,6 +98,30 @@ namespace AutoNumber.Model
                     Trace.WriteLine($"Skipped metadata tag 0x{prop.Id:X4}: {ex.Message}");
                 }
             }
+        }
+
+        /// <summary>
+        /// Reconstructs the clean base image from a numbered composite bitmap.
+        /// Crops the title/footer regions using the stored dimensions and pastes
+        /// cached pixel patches back over the label positions.
+        /// </summary>
+        public static Bitmap RestoreFromPatches(this Bitmap composite, AutoNumMetaData_V2 md, List<PatchData> patches)
+        {
+            // Composite layout: [title bar (TitleHeight) | original image | footer]
+            // Step 1: Paste patches onto composite at their saved coordinates (composite space)
+            using (var g = Graphics.FromImage(composite))
+            {
+                foreach (var patch in patches)
+                {
+                    using var pngStream = new MemoryStream(patch.PngBytes);
+                    using var patchBmp = new Bitmap(pngStream);
+                    g.DrawImage(patchBmp, patch.X, patch.Y, patch.Width, patch.Height);
+                }
+            }
+
+            // Step 2: Crop to original image region (skip title at top, footer at bottom)
+            var cropRect = new Rectangle(0, md.TitleHeight, md.OriginalImageWidth, md.OriginalImageHeight);
+            return composite.Clone(cropRect, composite.PixelFormat);
         }
         /// <summary>
         /// Reads the EXIF orientation tag and applies the corresponding rotation/flip

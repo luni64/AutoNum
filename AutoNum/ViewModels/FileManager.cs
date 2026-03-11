@@ -48,22 +48,32 @@ namespace AutoNumber.ViewModels
                     pvm.Init();
                     WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
                 }
+                else if (metadata is AutoNumMetaData_V2 v2)
+                {
+                    // V2: self-contained — restore clean base image from embedded patches
+                    var fileBytes = File.ReadAllBytes(filename);
+                    var patches = AppSegmentIO.ReadSegments(fileBytes);
+
+                    if (patches is not null && patches.Count > 0)
+                    {
+                        var restored = bitmap.RestoreFromPatches(v2, patches);
+                        bitmap.Dispose();
+
+                        pvm.OriginalPropertyItems = restored.PropertyItems;
+                        pvm.Bitmap = restored;
+                        pvm.OriginalImageFilename = filename;
+                        pvm.InitFromMetadata(v2);
+                    }
+                    else
+                    {
+                        // V2 without patches — fall back to V1 original-file flow
+                        await openFromOriginalFile(bitmap, metadata, pvm);
+                    }
+                }
                 else
                 {
-                    if (!File.Exists(metadata.OriginalImage))  // we are AutoNumber generated but don't find the original file
-                    {
-                        string imagePath = await AskForOriginalFilename(metadata.OriginalImage);
-                        if (string.IsNullOrEmpty(imagePath)) throw new FileNotFoundException();
-                        metadata.OriginalImage = imagePath;
-                    }
-
-                    bitmap.Dispose(); // we will load the original image instead of the numbered copy
-                    var originalBitmap = BitmapExtensions.LoadBitmapFromFile(metadata.OriginalImage);
-                    originalBitmap.ApplyExifOrientation();
-                    pvm.OriginalPropertyItems = originalBitmap.PropertyItems;
-                    pvm.Bitmap = originalBitmap;
-                    pvm.OriginalImageFilename = metadata.OriginalImage;
-                    pvm.InitFromMetadata(metadata);
+                    // V1: needs the original file on disk
+                    await openFromOriginalFile(bitmap, metadata, pvm);
                 }
             }
             catch (InvalidOperationException) { Trace.WriteLine("No faces found"); }
@@ -103,8 +113,16 @@ namespace AutoNumber.ViewModels
             {
                 if (filename != parent.PictureVM.OriginalImageFilename)
                 {
-                    using var bmp = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager);
-                    bmp?.Save(filename, ImageFormat.Jpeg);
+                    using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager);
+                    if (result is null) return;
+
+                    // Encode bitmap to JPEG in memory, then inject APP4 patch segments
+                    using var jpegStream = new MemoryStream();
+                    result.Bitmap.Save(jpegStream, ImageFormat.Jpeg);
+                    var jpegBytes = jpegStream.ToArray();
+
+                    var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
+                    File.WriteAllBytes(filename, finalBytes);
                 }
                 else
                 {
@@ -113,6 +131,24 @@ namespace AutoNumber.ViewModels
             }
         }
 
+
+        private async Task openFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm)
+        {
+            if (!File.Exists(metadata.OriginalImage))
+            {
+                string imagePath = await AskForOriginalFilename(metadata.OriginalImage);
+                if (string.IsNullOrEmpty(imagePath)) throw new FileNotFoundException();
+                metadata.OriginalImage = imagePath;
+            }
+
+            numberedBitmap.Dispose();
+            var originalBitmap = BitmapExtensions.LoadBitmapFromFile(metadata.OriginalImage);
+            originalBitmap.ApplyExifOrientation();
+            pvm.OriginalPropertyItems = originalBitmap.PropertyItems;
+            pvm.Bitmap = originalBitmap;
+            pvm.OriginalImageFilename = metadata.OriginalImage;
+            pvm.InitFromMetadata(metadata);
+        }
 
         private async Task<string> AskForOriginalFilename(string orignalFilename)
         {
