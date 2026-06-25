@@ -117,7 +117,12 @@ namespace AutoNumber.ViewModels
                 BackgroundColor = Color.FromArgb(md.NamesFont.Background);
                 FontColor = Color.FromArgb(md.NamesFont.Foreground);
                 FontFamily = new FontFamily(md.NamesFont.Family);
-                if (_imageVM.Persons.Count > 0) IsEnabled = true;
+
+                FontSizeSliderValue = (double.IsFinite(md.NamesFont.Size) && md.NamesFont.Size > 0)
+                    ? ToSliderValue(md.NamesFont.Size, DefaultFontSize)
+                    : 50;
+
+                IsEnabled = _imageVM.Persons.Count > 0 && (md.NamesEnabled ?? true);
                 ShowNames();
             });
         }
@@ -149,6 +154,22 @@ namespace AutoNumber.ViewModels
         {
             Refresh();
             ShowNames();
+        }
+
+        private static double ToSliderValue(double fontSize, double defaultFontSize)
+        {
+            if (!double.IsFinite(fontSize) || !double.IsFinite(defaultFontSize) || defaultFontSize <= 0)
+            {
+                return 50;
+            }
+
+            var normalized = (fontSize / defaultFontSize) - 0.5;
+            if (normalized <= 0)
+            {
+                return 0;
+            }
+
+            return Math.Clamp(Math.Sqrt(normalized / 0.0002), 0, 100);
         }
 
         private readonly ImageVM _imageVM;

@@ -22,7 +22,12 @@ namespace AutoNumber.ViewModels
                 SetProperty(ref _bitmap, value);
             }
         }
+        // Path of the true source photo that must not be overwritten.
         public string OriginalImageFilename { get; set; } = string.Empty;
+
+        // Path of the currently opened/edited image (used for save suggestions).
+        public string CurrentImageFilename { get; set; } = string.Empty;
+
         public PropertyItem[]? OriginalPropertyItems { get; set; }
         public ObservableCollection<Person> Persons { get; } = [];
         public double LabelDiameter

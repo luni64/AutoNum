@@ -43,6 +43,7 @@ namespace AutoNumber.ViewModels
                 {
                     var faces = FaceDetector.Detect(bitmap);
                     pvm.OriginalImageFilename = filename;
+                    pvm.CurrentImageFilename = filename;
                     pvm.OriginalPropertyItems = bitmap.PropertyItems;
                     pvm.Bitmap = bitmap;
                     pvm.Init();
@@ -61,19 +62,20 @@ namespace AutoNumber.ViewModels
 
                         pvm.OriginalPropertyItems = restored.PropertyItems;
                         pvm.Bitmap = restored;
-                        pvm.OriginalImageFilename = filename;
+                        pvm.OriginalImageFilename = string.IsNullOrWhiteSpace(v2.OriginalImage) ? filename : v2.OriginalImage;
+                        pvm.CurrentImageFilename = filename;
                         pvm.InitFromMetadata(v2);
                     }
                     else
                     {
                         // V2 without patches — fall back to V1 original-file flow
-                        await openFromOriginalFile(bitmap, metadata, pvm);
+                        await openFromOriginalFile(bitmap, metadata, pvm, filename);
                     }
                 }
                 else
                 {
                     // V1: needs the original file on disk
-                    await openFromOriginalFile(bitmap, metadata, pvm);
+                    await openFromOriginalFile(bitmap, metadata, pvm, filename);
                 }
             }
             catch (InvalidOperationException) { Trace.WriteLine("No faces found"); }
@@ -94,13 +96,17 @@ namespace AutoNumber.ViewModels
         public RelayCommand SaveImageCommand => _saveImageCommand ??= new(ExecuteSaveImage);
         void ExecuteSaveImage(object? o)
         {
-            var fullFilename = parent.PictureVM.OriginalImageFilename;
+            var fullFilename = !string.IsNullOrWhiteSpace(parent.PictureVM.CurrentImageFilename)
+                ? parent.PictureVM.CurrentImageFilename
+                : parent.PictureVM.OriginalImageFilename;
             var path = Path.GetDirectoryName(fullFilename)!;
             var file = Path.GetFileNameWithoutExtension(fullFilename);
             var extension = Path.GetExtension(fullFilename);
+            var isEditingProtectedOriginal = IsProtectedOriginalPath(fullFilename, parent.PictureVM.OriginalImageFilename);
 
-            var outputFile = file + "_num" + extension;
-            var outputFolder = Path.Combine(path, outputFile);
+            var outputFile = isEditingProtectedOriginal
+                ? file + "_num" + extension
+                : Path.GetFileName(fullFilename);
 
             var saveFileInfo = new SaveFileInfo
             {
@@ -111,28 +117,28 @@ namespace AutoNumber.ViewModels
 
             if (parent.DialogService.ShowDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
             {
-                if (filename != parent.PictureVM.OriginalImageFilename)
-                {
-                    using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager);
-                    if (result is null) return;
-
-                    // Encode bitmap to JPEG in memory, then inject APP4 patch segments
-                    using var jpegStream = new MemoryStream();
-                    result.Bitmap.Save(jpegStream, ImageFormat.Jpeg);
-                    var jpegBytes = jpegStream.ToArray();
-
-                    var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
-                    File.WriteAllBytes(filename, finalBytes);
-                }
-                else
+                if (IsProtectedOriginalPath(filename, parent.PictureVM.OriginalImageFilename))
                 {
                     parent.DialogService.ShowDialog("Das Originalbild darf nicht überschrieben werden");
+                    return;
                 }
+
+                using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager);
+                if (result is null) return;
+
+                // Encode bitmap to JPEG in memory, then inject APP4 patch segments
+                using var jpegStream = new MemoryStream();
+                result.Bitmap.Save(jpegStream, ImageFormat.Jpeg);
+                var jpegBytes = jpegStream.ToArray();
+
+                var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
+                File.WriteAllBytes(filename, finalBytes);
+                parent.PictureVM.CurrentImageFilename = filename;
             }
         }
 
 
-        private async Task openFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm)
+        private async Task openFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm, string currentFilename)
         {
             if (!File.Exists(metadata.OriginalImage))
             {
@@ -147,6 +153,7 @@ namespace AutoNumber.ViewModels
             pvm.OriginalPropertyItems = originalBitmap.PropertyItems;
             pvm.Bitmap = originalBitmap;
             pvm.OriginalImageFilename = metadata.OriginalImage;
+            pvm.CurrentImageFilename = currentFilename;
             pvm.InitFromMetadata(metadata);
         }
 
@@ -188,6 +195,18 @@ namespace AutoNumber.ViewModels
 
             filename = parent.DialogService.ShowDialog(info) as string ?? string.Empty;            
             return  !string.IsNullOrEmpty(filename);
+        }
+
+        private static bool IsProtectedOriginalPath(string selectedPath, string protectedOriginalPath)
+        {
+            if (string.IsNullOrWhiteSpace(selectedPath) || string.IsNullOrWhiteSpace(protectedOriginalPath))
+            {
+                return false;
+            }
+
+            var selectedFullPath = Path.GetFullPath(selectedPath);
+            var protectedFullPath = Path.GetFullPath(protectedOriginalPath);
+            return string.Equals(selectedFullPath, protectedFullPath, StringComparison.OrdinalIgnoreCase);
         }
 
         private MainVM parent { get; set; } = parent;

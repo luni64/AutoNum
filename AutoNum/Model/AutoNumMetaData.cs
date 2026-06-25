@@ -79,7 +79,9 @@ namespace AutoNumber.Model
         public AutoNumFont LabelsFont { get; set; } = new AutoNumFont();
         public double LabelsSize { get; set; } = double.NaN;
         public AutoNumFont NamesFont { get; set; } = new AutoNumFont();
+        public bool? NamesEnabled { get; set; }
         public AutoNumFont TitleFont { get; set; } = new AutoNumFont();
+        public bool? TitleEnabled { get; set; }
         public string Title { get; set; } = string.Empty;
         public List<AutoNumPerson> Persons { get; set; } = [];
 
@@ -93,7 +95,9 @@ namespace AutoNumber.Model
             LabelsFont = new AutoNumFont(MarkerLabel.Style.FontColor, lm.BackgroundColor, MarkerLabel.Style.FontFamily.Name, MarkerLabel.Style.FontSize);
             LabelsSize = MarkerLabel.Style.Diameter;
             NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.Style.FontSize);
+            NamesEnabled = nm.IsEnabled;
             TitleFont = new AutoNumFont(tm.TitleFontColor, tm.BackgroundColor, tm.TitleFontFamily.Name, tm.TitleFontSize);
+            TitleEnabled = tm.IsEnabled;
 
             foreach (var person in model.Persons)
             {

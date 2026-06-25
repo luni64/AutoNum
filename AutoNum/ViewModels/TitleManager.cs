@@ -66,9 +66,28 @@ namespace AutoNumber.ViewModels
                 var md = msg.Metadata;
                 BackgroundColor = Color.FromArgb(md.TitleFont.Background);
                 TitleFontColor = Color.FromArgb(md.TitleFont.Foreground);
+                FontSizeSliderValue = (double.IsFinite(md.TitleFont.Size) && md.TitleFont.Size > 0)
+                    ? ToSliderValue(md.TitleFont.Size, DefaultFontSize)
+                    : 50;
                 Title = md.Title;
-                if (!string.IsNullOrEmpty(md.Title)) IsEnabled = true;
+                IsEnabled = md.TitleEnabled ?? !string.IsNullOrEmpty(md.Title);
             });
+        }
+
+        private static double ToSliderValue(double fontSize, double defaultFontSize)
+        {
+            if (!double.IsFinite(fontSize) || !double.IsFinite(defaultFontSize) || defaultFontSize <= 0)
+            {
+                return 50;
+            }
+
+            var normalized = (fontSize / defaultFontSize) - 0.5;
+            if (normalized <= 0)
+            {
+                return 0;
+            }
+
+            return Math.Clamp(Math.Sqrt(normalized / 0.0002), 0, 100);
         }
 
         bool _isEnabled = false;
