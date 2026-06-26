@@ -24,12 +24,17 @@ namespace AutoNumber.ViewModels
         }
 
         public void ShowNames()
-        {            
-            if (_imageVM.Persons.Count == 0) return;
+        {
+            if (_imageVM.Persons.Count == 0)
+            {
+                _imageVM.NamesRegionHeight = 0;
+                return;
+            }
 
             if (IsEnabled)
             {
-                var height = Analyzer.PlacePersonNames(PersonsView, _imageVM.ImageWidth, _imageVM.ImageHeight);
+                var imageIdOffset = _imageIdManager.ShowImageIdLine ? _imageIdManager.LineHeight : 0;
+                var height = Analyzer.PlacePersonNames(PersonsView, _imageVM.ImageWidth, _imageVM.ImageHeight + imageIdOffset);
                 _imageVM.NamesRegionHeight = height;
             }
             else
@@ -38,6 +43,8 @@ namespace AutoNumber.ViewModels
                 {
                     person.Name.Visible = false;
                 }
+
+                _imageVM.NamesRegionHeight = 0;
             }
         }
 
@@ -59,22 +66,23 @@ namespace AutoNumber.ViewModels
             set => SetProperty(ref _backgroundColor, value);
         }
 
-        double _fontSizeSliderValue;
+        double _fontSizeSliderValue = SizingModel.SliderPercentDefault;
         public double FontSizeSliderValue
         {
             get => _fontSizeSliderValue;
             set
             {
-                if (_fontSizeSliderValue != value)
+                var clamped = Math.Clamp(value, SizingModel.SliderPercentMin, SizingModel.SliderPercentMax);
+                var changed = _fontSizeSliderValue != clamped;
+                _fontSizeSliderValue = clamped;
+                ApplyScaleFromSlider();
+                ShowNames();
+                if (changed)
                 {
-                    _fontSizeSliderValue = value;
-                    TextLabel.Style.FontSize = DefaultFontSize * (0.5 + 0.0002 * (_fontSizeSliderValue * _fontSizeSliderValue));
-                    ShowNames();
                     OnPropertyChanged();
                 }
             }
         }
-        public static double DefaultFontSize = 80;
 
         public FontFamily FontFamily { get; set; } = new FontFamily("Calibri");
 
@@ -89,42 +97,42 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public NameManager(ImageVM imageVM)
+        public NameManager(ImageVM imageVM, LabelManager labelManager, ImageIdManager imageIdManager)
         {
             _imageVM = imageVM;
+            _labelManager = labelManager;
+            _imageIdManager = imageIdManager;
 
             PersonsView = CollectionViewSource.GetDefaultView(imageVM.Persons);
             PersonsView.SortDescriptions.Add(new SortDescription("Label.Number", ListSortDirection.Ascending));
             PersonsView.CollectionChanged += PersonsView_CollectionChanged;
 
-            FontSizeSliderValue = 50;
+            FontSizeSliderValue = SizingModel.SliderPercentDefault;
 
             WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
             {
                 Refresh();
+                ApplyScaleFromSlider();
                 ShowNames();
-            });
-
-            WeakReferenceMessenger.Default.Register<NewImageOpenedMessage>(this, (r, msg) =>
-            {
-                DefaultFontSize = 80;
             });
 
             WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
             {
                 var md = msg.Metadata;
-                DefaultFontSize = 80;
                 BackgroundColor = Color.FromArgb(md.NamesFont.Background);
                 FontColor = Color.FromArgb(md.NamesFont.Foreground);
                 FontFamily = new FontFamily(md.NamesFont.Family);
 
-                FontSizeSliderValue = (double.IsFinite(md.NamesFont.Size) && md.NamesFont.Size > 0)
-                    ? ToSliderValue(md.NamesFont.Size, DefaultFontSize)
-                    : 50;
+                var scale = md is AutoNumMetaData_V3 v3
+                    ? v3.NameScale
+                    : ResolveLegacyScale(md.NamesFont.Size, md.LabelsFont.Size);
 
+                FontSizeSliderValue = SizingModel.ScaleToSliderPercent(scale);
                 IsEnabled = _imageVM.Persons.Count > 0 && (md.NamesEnabled ?? true);
                 ShowNames();
             });
+
+            _imageIdManager.PropertyChanged += ImageIdManager_PropertyChanged;
         }
 
         private void PersonsView_CollectionChanged(object? sender, NotifyCollectionChangedEventArgs e)
@@ -135,7 +143,7 @@ namespace AutoNumber.ViewModels
                     foreach (Person person in e.NewItems!)
                     {
                         person.PropertyChanged += Person_PropertyChanged;
-                    }                    
+                    }
                     break;
                 case NotifyCollectionChangedAction.Remove:
                     foreach (Person person in e.OldItems!)
@@ -156,23 +164,36 @@ namespace AutoNumber.ViewModels
             ShowNames();
         }
 
-        private static double ToSliderValue(double fontSize, double defaultFontSize)
+        private void ImageIdManager_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (!double.IsFinite(fontSize) || !double.IsFinite(defaultFontSize) || defaultFontSize <= 0)
+            if (e.PropertyName is nameof(ImageIdManager.LineHeight)
+                or nameof(ImageIdManager.ShowImageIdLine)
+                or nameof(ImageIdManager.IsEnabled)
+                or nameof(ImageIdManager.ImageId))
             {
-                return 50;
+                ShowNames();
+            }
+        }
+
+        private void ApplyScaleFromSlider()
+        {
+            var baseLabelFontSize = _labelManager.BaseLabelFontSize;
+            if (baseLabelFontSize <= 0)
+            {
+                return;
             }
 
-            var normalized = (fontSize / defaultFontSize) - 0.5;
-            if (normalized <= 0)
-            {
-                return 0;
-            }
+            TextLabel.Style.FontSize = SizingModel.ResolveSize(baseLabelFontSize, SizingModel.SliderPercentToScale(FontSizeSliderValue));
+        }
 
-            return Math.Clamp(Math.Sqrt(normalized / 0.0002), 0, 100);
+        private static double ResolveLegacyScale(double actualNameFontSize, double legacyLabelFontSize)
+        {
+            return SizingModel.SafeScale(actualNameFontSize, legacyLabelFontSize);
         }
 
         private readonly ImageVM _imageVM;
+        private readonly LabelManager _labelManager;
+        private readonly ImageIdManager _imageIdManager;
     }
 }
 

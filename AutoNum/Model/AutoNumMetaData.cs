@@ -80,24 +80,36 @@ namespace AutoNumber.Model
         public double LabelsSize { get; set; } = double.NaN;
         public AutoNumFont NamesFont { get; set; } = new AutoNumFont();
         public bool? NamesEnabled { get; set; }
+        public string ImageId { get; set; } = string.Empty;
+        public AutoNumFont ImageIdFont { get; set; } = new AutoNumFont();
+        public bool? ImageIdEnabled { get; set; }
         public AutoNumFont TitleFont { get; set; } = new AutoNumFont();
         public bool? TitleEnabled { get; set; }
         public string Title { get; set; } = string.Empty;
+        public AutoNumFont ImageInfoFont { get; set; } = new AutoNumFont();
+        public bool? ImageInfoEnabled { get; set; }
+        public string ImageInfo { get; set; } = string.Empty;
         public List<AutoNumPerson> Persons { get; set; } = [];
 
-        public AutoNumMetaData_V1(ImageVM model, LabelManager lm, NameManager nm, TitleManager tm)
+        public AutoNumMetaData_V1(ImageVM model, LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
         {
             Created = DateTime.Now;
             OriginalImage = model.OriginalImageFilename;
             AutoNumImage = string.Empty;
             Title = tm.Title;
+            ImageInfo = iim.ImageInfo;
 
             LabelsFont = new AutoNumFont(MarkerLabel.Style.FontColor, lm.BackgroundColor, MarkerLabel.Style.FontFamily.Name, MarkerLabel.Style.FontSize);
             LabelsSize = MarkerLabel.Style.Diameter;
             NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.Style.FontSize);
             NamesEnabled = nm.IsEnabled;
+            ImageId = idm.ImageId;
+            ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
+            ImageIdEnabled = idm.IsEnabled;
             TitleFont = new AutoNumFont(tm.TitleFontColor, tm.BackgroundColor, tm.TitleFontFamily.Name, tm.TitleFontSize);
             TitleEnabled = tm.IsEnabled;
+            ImageInfoFont = new AutoNumFont(iim.ImageInfoFontColor, iim.BackgroundColor, iim.ImageInfoFontFamily.Name, iim.ImageInfoFontSize);
+            ImageInfoEnabled = iim.IsEnabled;
 
             foreach (var person in model.Persons)
             {
@@ -120,6 +132,7 @@ namespace AutoNumber.Model
 
                 MetaData = version switch
                 {
+                    "V3" => JsonSerializer.Deserialize<AutoNumMetaData_V3>(json),
                     "V2" => JsonSerializer.Deserialize<AutoNumMetaData_V2>(json),
                     "V1" => JsonSerializer.Deserialize<AutoNumMetaData_V1>(json),
                     _ => null,

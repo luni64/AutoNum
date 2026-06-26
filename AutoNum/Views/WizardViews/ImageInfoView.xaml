@@ -1,0 +1,51 @@
+<ResourceDictionary 
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:view="clr-namespace:AutoNumber.Views"
+    xmlns:vm="clr-namespace:AutoNumber.ViewModels"
+    xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:is="clr-namespace:AutoNumber.Infrastructure"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    mc:Ignorable="d">
+
+    <is:DrawingColToMediaBrush x:Key="ColorConverter"/>
+    <is:BoolToVisibilityConverter x:Key="boo2Vis"/>
+
+    <DataTemplate DataType="{x:Type vm:ImageInfoManager}">
+        <Border BorderBrush="DarkGray" BorderThickness="1,0,0,0" Padding="10,0,10,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+
+                <mah:ToggleSwitch
+                    Content="Bildinformation"
+                    IsOn="{Binding IsEnabled}"
+                    Grid.Row="0"/>
+
+                <TextBox
+                    Text="{Binding ImageInfo, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap"
+                    AcceptsReturn="True"
+                    Grid.Row="1"
+                    MinHeight="60"
+                    Height="60"
+                    Margin="0,5,0,0"
+                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"
+                    mah:TextBoxHelper.Watermark="Bildinformation"
+                    VerticalScrollBarVisibility="Auto"/>
+
+                <view:FontManager
+                    Grid.Row="2"
+                    Margin="0,10,0,20"
+                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"
+                    FontColor="{Binding ImageInfoFontColor, Converter={StaticResource ColorConverter}}"
+                    BackgroundColor="{Binding BackgroundColor, Converter={StaticResource ColorConverter}}"
+                    SelectedFontSize="{Binding FontSizeSliderValue}"/>
+            </Grid>
+        </Border>
+    </DataTemplate>
+</ResourceDictionary>

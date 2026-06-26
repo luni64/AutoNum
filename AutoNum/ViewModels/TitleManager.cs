@@ -27,10 +27,12 @@ namespace AutoNumber.ViewModels
             get => _fontSizeSliderValue;
             set
             {
-                if (_fontSizeSliderValue != value)
+                var clamped = Math.Clamp(value, SizingModel.SliderPercentMin, SizingModel.SliderPercentMax);
+                var changed = _fontSizeSliderValue != clamped;
+                _fontSizeSliderValue = clamped;
+                ApplyScaleFromSlider();
+                if (changed)
                 {
-                    _fontSizeSliderValue = value;
-                    TitleFontSize = DefaultFontSize * (0.5 + 0.0002 * (_fontSizeSliderValue * _fontSizeSliderValue));
                     OnPropertyChanged();
                 }
             }
@@ -55,43 +57,52 @@ namespace AutoNumber.ViewModels
             set => SetProperty(ref _backgroundColor, value);
         }
 
-        public static double DefaultFontSize = 80;
-
-        public TitleManager()
+        public TitleManager(LabelManager labelManager)
         {
-            FontSizeSliderValue = 50;
+            _labelManager = labelManager;
+            FontSizeSliderValue = SizingModel.SliderPercentDefault;
+
+            WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
+            {
+                ApplyScaleFromSlider();
+            });
 
             WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
             {
                 var md = msg.Metadata;
                 BackgroundColor = Color.FromArgb(md.TitleFont.Background);
                 TitleFontColor = Color.FromArgb(md.TitleFont.Foreground);
-                FontSizeSliderValue = (double.IsFinite(md.TitleFont.Size) && md.TitleFont.Size > 0)
-                    ? ToSliderValue(md.TitleFont.Size, DefaultFontSize)
-                    : 50;
+
+                var scale = md is AutoNumMetaData_V3 v3
+                    ? v3.TitleScale
+                    : ResolveLegacyScale(md.TitleFont.Size, md.LabelsFont.Size);
+
+                FontSizeSliderValue = SizingModel.ScaleToSliderPercent(scale);
                 Title = md.Title;
                 IsEnabled = md.TitleEnabled ?? !string.IsNullOrEmpty(md.Title);
             });
         }
 
-        private static double ToSliderValue(double fontSize, double defaultFontSize)
+        private void ApplyScaleFromSlider()
         {
-            if (!double.IsFinite(fontSize) || !double.IsFinite(defaultFontSize) || defaultFontSize <= 0)
+            var baseLabelFontSize = _labelManager.BaseLabelFontSize;
+            if (baseLabelFontSize <= 0)
             {
-                return 50;
+                return;
             }
 
-            var normalized = (fontSize / defaultFontSize) - 0.5;
-            if (normalized <= 0)
-            {
-                return 0;
-            }
-
-            return Math.Clamp(Math.Sqrt(normalized / 0.0002), 0, 100);
+            TitleFontSize = SizingModel.ResolveSize(baseLabelFontSize, SizingModel.SliderPercentToScale(FontSizeSliderValue));
         }
 
+        private static double ResolveLegacyScale(double actualTitleFontSize, double legacyLabelFontSize)
+        {
+            return SizingModel.SafeScale(actualTitleFontSize, legacyLabelFontSize);
+        }
+
+        private readonly LabelManager _labelManager;
+
         bool _isEnabled = false;
-        double _fontSizeSliderValue;
+        double _fontSizeSliderValue = SizingModel.SliderPercentDefault;
         string _title = string.Empty;
         Color _fontColor = Color.Black;
         double _fontSize = 1;

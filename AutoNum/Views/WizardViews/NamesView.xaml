@@ -31,28 +31,31 @@
                     Content="Namensliste">
                 </mah:ToggleSwitch>
 
-                <ScrollViewer  
-                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}" 
-                    Grid.Row="1" MaxHeight="{Binding ActualHeight, ConverterParameter=90, Converter={StaticResource MathSubtractConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Grid}}}"
-                    VerticalScrollBarVisibility="Auto"          >
+                <DataGrid
+                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"
+                    Margin="0,10,0,15"
+                    VerticalAlignment="Top"
+                    MaxHeight="{Binding ActualHeight, ConverterParameter=90, Converter={StaticResource MathSubtractConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Grid}}}"
+                    CanUserSortColumns="True"
+                    CanUserAddRows="False"
+                    AutoGenerateColumns="False"
+                    Grid.Row="1"
+                    BorderThickness="1"
+                    ItemsSource="{Binding PersonsView}"
+                    Style="{StaticResource MahApps.Styles.DataGrid}"
+                    mah:DataGridHelper.SelectionUnit="FullRow"
+                    mah:DataGridHelper.EnableCellEditAssist="True"
+                    HeadersVisibility="Column"
+                    GridLinesVisibility="All"
+                    SelectionMode="Single"
+                    HorizontalScrollBarVisibility="Disabled"
+                    ColumnWidth="*">
 
-                    <DataGrid                   
-                        Margin="0,10,0,15" VerticalAlignment="Top"    
-                        CanUserSortColumns="True" CanUserAddRows="False" AutoGenerateColumns="False" 
-                        Grid.Row="1" BorderThickness="1"                        
-                        ItemsSource="{Binding PersonsView}" 
-                        Style="{StaticResource MahApps.Styles.DataGrid}"  
-                        mah:DataGridHelper.SelectionUnit="FullRow"   mah:DataGridHelper.EnableCellEditAssist="True" 
-                        HeadersVisibility="Column" GridLinesVisibility="All"        
-                        SelectionMode="Single"
-                    >
-
-                        <DataGrid.Columns >
-                            <DataGridTextColumn Header="Nr." Binding="{Binding Label.Number}" Width="auto" IsReadOnly="True"/>
-                            <DataGridTextColumn Header="Name" Binding="{Binding Name.Text }" Width="*" />
-                        </DataGrid.Columns>
-                    </DataGrid>
-                </ScrollViewer>
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Nr." Binding="{Binding Label.Number}" Width="Auto" IsReadOnly="True"/>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name.Text }" Width="*" MinWidth="120"/>
+                    </DataGrid.Columns>
+                </DataGrid>
 
                 <view:FontManager
                     Grid.Row="2" Margin="0,20,0,0"

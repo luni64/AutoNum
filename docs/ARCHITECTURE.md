@@ -1,105 +1,122 @@
 # AutoNum — Architecture Overview
 
 ## Purpose
-AutoNum is a WPF desktop application (.NET 8, C# 12) that opens a photo, automatically detects faces using OpenCV (Emgu.CV), places numbered labels on each person, and exports a numbered copy with optional name list and title. It uses MahApps.Metro for the UI shell.
+AutoNum is a WPF desktop application (.NET 8, C# 12) that opens photos, detects faces via OpenCV (Emgu.CV), places numbered labels, and exports a numbered image with optional stacked text blocks (title, image information, image ID) and name list. It uses MahApps.Metro for the shell and dialogs.
 
 ## Project Structure
 
 ```
 AutoNum/
-├── Infrastructure/         # Cross-cutting: dialogs, converters, messages
-│   ├── Messages.cs         # WeakReferenceMessenger message types
-│   ├── DialogService.cs    # IDialogService implementation (Open/Save dialogs)
+├── Infrastructure/             # Cross-cutting services/converters/messages
+│   ├── Messages.cs             # WeakReferenceMessenger message types
+│   ├── DialogService.cs        # Open/Save/error dialogs
 │   ├── IDialogService.cs
-│   └── Converters.cs       # WPF value converters (Bitmap↔BitmapSource, Color, Font, etc.)
-├── Model/                  # Domain/persistence logic (no UI concerns)
-│   ├── Analyzer.cs         # Text measurement, name/title layout placement
-│   ├── AutoNumMetaData.cs  # JSON metadata (V1) serialized into EXIF UserComment tag
-│   ├── BitmapExtensions.cs # Read/write EXIF metadata, apply EXIF orientation
-│   └── ExtensionMethods.cs # Bitmap rendering: draw labels, names, title → export image
-├── ViewModels/             # MVVM ViewModels — all implement INotifyPropertyChanged
-│   ├── BaseViewmodel.cs    # Hand-rolled INPC base, RelayCommand, AsyncCommand
-│   ├── MainVM.cs           # Root ViewModel / DataContext for MainWindow
-│   ├── ImageVM.cs          # Holds the loaded Bitmap, Persons collection, zoom/pan state
-│   ├── FileManager.cs      # Open/Save commands, image loading, face detection orchestration
-│   ├── LabelManager.cs     # Label colors, diameter slider, numbering algorithm
-│   ├── NameManager.cs      # Name list visibility, font size slider, layout
-│   ├── TitleManager.cs     # Title text, font size, colors
-│   ├── FaceDetector.cs     # Static OpenCV face detection (Haar cascade, lazy-cached)
-│   ├── Person.cs           # Pairs a MarkerLabel + TextLabel per detected person
-│   ├── MarkerVM.cs         # Base for draggable canvas markers (X, Y, W, H)
-│   ├── MarkerRect.cs       # MarkerLabel: numbered circle label (extends MarkerVM)
-│   ├── TextLabel.cs        # Name text label (extends MarkerVM)
-│   ├── LabelStyle.cs       # Shared label styling (Diameter, FontSize, colors) — INPC
-│   └── TextStyle.cs        # Shared name styling (FontSize, FontColor) — INPC
-├── Views/                  # WPF Views (XAML + minimal code-behind)
-│   ├── MainWindow.xaml/.cs # MahApps MetroWindow, sets DataContext = MainVM
-│   ├── PictureDisplay.xaml/.cs  # Canvas with image + draggable markers
-│   ├── Marker.xaml/.cs     # DataTemplate-driven marker (Label ellipse or Name text)
-│   ├── FontManager.xaml/.cs # Reusable color/font-size control
-│   ├── ZoomBorder.cs       # Mouse zoom/pan + right-click to add person
-│   └── S1_SelectFile.xaml  # (Unused placeholder)
+│   └── Converters.cs           # WPF converters (bitmap/color/visibility/etc.)
+├── Model/                      # Persistence and image-processing helpers
+│   ├── Analyzer.cs             # Text layout and measurement logic
+│   ├── AutoNumMetaData.cs      # Metadata schema + JSON (V1/V2/V3 router)
+│   ├── AutoNumMetaData_V2.cs   # V2 metadata additions
+│   ├── AutoNumMetaData_V3.cs   # V3 sizing anchors + relative scales
+│   ├── AppSettings.cs          # App-wide settings model + %AppData% JSON store
+│   ├── BitmapExtensions.cs     # EXIF read/write/orientation + patch restore
+│   ├── ExtensionMethods.cs     # Render/export pipeline
+│   ├── AppSegmentIO.cs         # JPEG APP4 segment read/write for patches
+│   ├── SizingModel.cs          # Shared label/name/title baseline + scale math
+│   └── PatchData.cs            # Patch payload model
+├── ViewModels/                 # MVVM view models (INotifyPropertyChanged)
+│   ├── MainVM.cs               # Composition root for managers/view models
+│   ├── ImageVM.cs              # Loaded bitmap, persons, zoom/pan, file paths
+│   ├── FileManager.cs          # Open/save orchestration + overwrite protection
+│   ├── LabelManager.cs         # Number labels styling and numbering
+│   ├── NameManager.cs          # Name list behavior and layout
+│   ├── TitleManager.cs         # Title behavior and styling
+│   ├── ImageInfoManager.cs     # Secondary image-information banner behavior and styling
+│   ├── ImageIdManager.cs       # Image ID behavior and styling
+│   ├── SettingsManager.cs      # App-wide defaults (persisted settings)
+│   ├── FaceDetector.cs         # Static OpenCV detector configuration/execution
+│   ├── Person.cs, MarkerVM.cs, MarkerRect.cs, TextLabel.cs
+│   └── LabelStyle.cs, TextStyle.cs
+├── Views/
+│   ├── MainWindow.xaml/.cs
+│   ├── PictureDisplay.xaml/.cs
+│   ├── FontManager.xaml/.cs
+│   ├── Marker.xaml/.cs
+│   ├── ZoomBorder.cs
+│   ├── SettingsWindow.xaml/.cs # Modal tabbed settings dialog (gear in title bar)
+│   └── WizardViews/
+│       ├── FilesView.xaml
+│       ├── LabelWiz.xaml
+│       ├── NamesView.xaml
+│       ├── ImageInfoView.xaml
+│       ├── ImageIdView.xaml
+│       └── TiltleView.xaml
 └── docs/release/
-    ├── NEXT_RELEASE.md     # Scratchpad for upcoming release notes
-    ├── CHANGELOG.md        # Released version history
-    └── RELEASE_PROCESS.md  # Tagging/publishing steps
+    ├── NEXT_RELEASE.md
+    ├── CHANGELOG.md
+    └── RELEASE_PROCESS.md
 ```
 
 ## Key Design Patterns
 
-### MVVM with Message Bus
-- ViewModels never reference Views. Views bind via `{Binding}` in XAML.
-- **Cross-VM communication** uses `CommunityToolkit.Mvvm.WeakReferenceMessenger` (not direct references):
-  - `NewImageOpenedMessage(List<Rectangle> Faces)` — FileManager → LabelManager
-  - `MetadataLoadedMessage(AutoNumMetaData_V1)` — ImageVM → LabelManager, NameManager, TitleManager
-  - `LabelsChangedMessage` — LabelManager → NameManager
-- `BaseViewModel` is hand-rolled (not the toolkit's `ObservableObject`). CommunityToolkit.Mvvm is used **only** for the messenger.
+### MVVM + Messenger
+- Views bind to ViewModels only; no View references inside ViewModels.
+- Cross-VM events use `CommunityToolkit.Mvvm.WeakReferenceMessenger`:
+  - `NewImageOpenedMessage` (fresh image loaded)
+  - `MetadataLoadedMessage` (saved AutoNum image restored)
+  - `LabelsChangedMessage` (renumber/layout refresh)
 
-### Dependency Flow (no god-object)
-```
-MainVM  ──creates──►  ImageVM          (standalone, no parent reference)
-        ──creates──►  LabelManager     (injected: ImageVM)
-        ──creates──►  NameManager      (injected: ImageVM)
-        ──creates──►  TitleManager     (no dependencies)
-        ──creates──►  FileManager      (injected: MainVM — for dialog coordination only)
-```
-- **FileManager** retains a `MainVM` reference solely because MahApps `IDialogCoordinator.ShowMessageAsync` requires the window's DataContext as a context object.
-- The save path (`ToNumberedBitmap`, `AddMetadata`, `AutoNumMetaData_V1`) receives `LabelManager`, `NameManager`, `TitleManager` as explicit parameters — no navigation through `model.Parent`.
+### Composition Root in `MainVM`
+`MainVM` constructs and exposes `ImageVM`, `FileManager`, `LabelManager`, `NameManager`, `TitleManager`, `ImageInfoManager`, `ImageIdManager`, and `SettingsManager`.
 
-### Shared Style Objects (not static fields)
-- `LabelStyle` — owned as `MarkerLabel.Style` (static property), holds Diameter, FontSize, FontColor, EdgeColor, BackgroundColor.
-- `TextStyle` — owned as `TextLabel.Style` (static property), holds FontSize, FontColor.
-- Each `MarkerLabel`/`TextLabel` instance delegates style properties to the shared style and subscribes via `PropertyChangedEventManager` (weak references — no memory leaks).
-- Managers set style via `MarkerLabel.Style.FontColor = value`, not via former scattered static fields.
+### Shared Style Objects
+`MarkerLabel.Style` (`LabelStyle`) and `TextLabel.Style` (`TextStyle`) hold shared visual settings and notify through weak subscriptions.
+
+### Relative Sizing Model
+- Label diameter baseline is computed once from detected face size (or an image-width fallback).
+- Label font 100% baseline is fitted to that baseline diameter.
+- Name and title font 100% baselines reuse the fitted label font baseline.
+- UI sliders now represent scale percentages (25%–200%) around those baselines.
+- V3 metadata stores both exact anchors and relative scales so reopen is deterministic while V1/V2 files migrate through legacy size ratios.
 
 ## Data Flow
 
-### Opening a new image
-1. `FileManager.ExecuteOpenImage` → loads `Bitmap`, applies EXIF orientation, checks for AutoNum metadata
-2. **No metadata**: detects faces → sets `ImageVM.Bitmap` → calls `Init()` → sends `NewImageOpenedMessage(faces)`
-3. `LabelManager` receives message → resets MarkerLabel style defaults → calls `SetLabels(faces)` → adds `Person` objects → calls `Numerate()`
-4. `Numerate()` assigns row-sorted numbers → sends `LabelsChangedMessage`
-5. `NameManager` receives → refreshes sorted view → repositions name labels
+### Open fresh image (no AutoNum metadata)
+1. `FileManager` loads bitmap and applies EXIF orientation.
+2. Faces are detected via `FaceDetector`.
+3. `ImageVM` is initialized; `NewImageOpenedMessage` triggers label/name setup.
+4. `SettingsManager.ApplyFreshImageDefaults(...)` applies app default toggles/sliders.
 
-### Opening a previously saved AutoNum image
-1. `FileManager` reads EXIF metadata → loads the **original** (un-numbered) image
-2. `ImageVM.InitFromMetadata(md)` → restores dimensions, zoom, persons → sends `MetadataLoadedMessage(md)`
-3. Each manager receives and applies its styling from metadata (colors, fonts, diameter, title, names)
+### Open saved AutoNum image
+1. Metadata is read from EXIF UserComment.
+2. V2/V3 path restores a clean base image from embedded APP4 patches (`AppSegmentIO` + `RestoreFromPatches`).
+3. `ImageVM.InitFromMetadata(...)` rebuilds persons and publishes `MetadataLoadedMessage`.
+4. Managers restore styling/toggles/font sizes from metadata:
+   - V3 restores exact sizing anchors/scales
+   - V1/V2 migrate legacy absolute sizes via stored ratios for visually equivalent results
+   - `TitleManager`, `ImageInfoManager`, and `ImageIdManager` independently restore text, visibility, and style settings for their stacked blocks
 
-### Saving
-1. `FileManager.ExecuteSaveImage` → calls `ImageVM.ToNumberedBitmap(lm, nm, tm)` (extension method)
-2. Renders labels, names, title onto a new composite bitmap
-3. Embeds `AutoNumMetaData_V1` as JSON in EXIF UserComment tag → saves as JPEG
+### Save image
+1. `FileManager` proposes output name:
+   - protected original + setting enabled => suggest `_num`
+   - otherwise suggest current filename
+2. Prevent overwrite only for the protected original file path.
+3. Render with `ToNumberedBitmap(...)`, including optional stacked title, image-information, image-ID, and names blocks in order: Title, Information, Image, ID, Names.
+4. Save JPEG bytes, inject APP4 patches, embed metadata as `Version = "V3"` with exact sizing anchors plus relative scales.
 
-## Key External Dependencies
-- **Emgu.CV** 4.10 — OpenCV wrapper for face detection (Haar cascade classifier, lazily cached)
-- **MahApps.Metro** 3.0-alpha — Metro-style WPF shell, `IDialogCoordinator` for async dialogs
-- **CommunityToolkit.Mvvm** 8.4 — `WeakReferenceMessenger` only (not ObservableObject/source generators)
+## Settings Architecture
+- App-wide defaults are persisted in `%AppData%/AutoNum/settings.json`.
+- `SettingsManager` exposes bindable settings in `SettingsWindow` (modal dialog opened from a title-bar gear command).
+- Scope:
+  - affects **new fresh-image sessions** and detector/save defaults
+  - does **not** override per-image values restored from metadata
 
-## Coding Conventions
-- C# 12 / .NET 8 features; file-scoped namespaces preferred
-- PascalCase public members; camelCase private fields
-- `is null` / `is not null` over `==`/`!=`
-- `nameof(...)` over string literals
-- No business logic in code-behind; async/await for I/O
-- Release notes go to `docs/release/NEXT_RELEASE.md` during development
+## External Dependencies
+- **Emgu.CV** — face detection
+- **MahApps.Metro** — WPF shell + dialogs
+- **CommunityToolkit.Mvvm** — messenger only
+
+## Conventions
+- C# 12 / .NET 8
+- MVVM, no business logic in code-behind
+- `is null` / `is not null`, `nameof(...)`, PascalCase public API
+- Ongoing release notes in `docs/release/NEXT_RELEASE.md`

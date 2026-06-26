@@ -38,13 +38,6 @@ namespace AutoNumber.ViewModels
                 if (_labelDiameter != value)
                 {
                     MarkerLabel.Style.Diameter = (float)value;
-
-                    using Font font = new Font(MarkerLabel.Style.FontFamily, (float)MarkerLabel.Style.FontSize);
-                    var result = Analyzer.GetLargestItem(Persons, p => p.Label.Number.ToString(), font);
-                    if(result.d_max > 0)
-                    {
-                        MarkerLabel.Style.FontSize = 1.5 * MarkerLabel.Style.Diameter / result.d_max * MarkerLabel.Style.FontSize; // scale the current size up/down, 1.75 generates a size nicely fitting                
-                    }
                     SetProperty(ref _labelDiameter, value);
                 }
             }

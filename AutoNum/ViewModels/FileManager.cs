@@ -48,6 +48,7 @@ namespace AutoNumber.ViewModels
                     pvm.Bitmap = bitmap;
                     pvm.Init();
                     WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
+                    parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager);
                 }
                 else if (metadata is AutoNumMetaData_V2 v2)
                 {
@@ -104,7 +105,7 @@ namespace AutoNumber.ViewModels
             var extension = Path.GetExtension(fullFilename);
             var isEditingProtectedOriginal = IsProtectedOriginalPath(fullFilename, parent.PictureVM.OriginalImageFilename);
 
-            var outputFile = isEditingProtectedOriginal
+            var outputFile = (isEditingProtectedOriginal && parent.SettingsManager.AppendNumSuffixForOriginalSaves)
                 ? file + "_num" + extension
                 : Path.GetFileName(fullFilename);
 
@@ -123,7 +124,7 @@ namespace AutoNumber.ViewModels
                     return;
                 }
 
-                using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager);
+                using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
                 if (result is null) return;
 
                 // Encode bitmap to JPEG in memory, then inject APP4 patch segments

@@ -4,6 +4,7 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
         xmlns:local="clr-namespace:AutoNumber"
         xmlns:view="clr-namespace:AutoNumber.Views"
         xmlns:vm="clr-namespace:AutoNumber.ViewModels"
@@ -15,6 +16,14 @@
         d:DataContext="{d:DesignInstance Type=vm:MainVM}"
         Height="600" Width="1100">
 
+    <mah:MetroWindow.RightWindowCommands>
+        <mah:WindowCommands>
+            <Button Click="OpenSettings_Click" ToolTip="Einstellungen" Style="{StaticResource MahApps.Styles.Button.WindowCommands}">
+                <iconPacks:PackIconMaterial Kind="CogOutline" Width="16" Height="16"/>
+            </Button>
+        </mah:WindowCommands>
+    </mah:MetroWindow.RightWindowCommands>
+
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -23,6 +32,8 @@
                 <ResourceDictionary Source="WizardViews/LabelWiz.xaml"/>                
                 <ResourceDictionary Source="WizardViews/NamesView.xaml"/>
                 <ResourceDictionary Source="WizardViews/TiltleView.xaml"/>
+                <ResourceDictionary Source="WizardViews/ImageInfoView.xaml"/>
+                <ResourceDictionary Source="WizardViews/ImageIdView.xaml"/>
             </ResourceDictionary.MergedDictionaries>
             <is:StringToImageConverter x:Key="StringToImageConverter"/>
         </ResourceDictionary>
@@ -60,7 +71,9 @@
 
         <DockPanel Grid.Column="4" Grid.Row="0" Grid.RowSpan="2" >
             <ContentControl DockPanel.Dock="Top" Content="{Binding TitleManager}"/>
-            <ContentControl DockPanel.Dock="Bottom" Content="{Binding NameManager}"/>
+            <ContentControl DockPanel.Dock="Top" Content="{Binding ImageInfoManager}"/>
+            <ContentControl DockPanel.Dock="Top" Content="{Binding ImageIdManager}"/>
+            <ContentControl DockPanel.Dock="Top" Content="{Binding NameManager}"/>
         </DockPanel>
 
     </Grid>

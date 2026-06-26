@@ -1,5 +1,6 @@
 ﻿using MahApps.Metro.Controls;
 using AutoNumber.ViewModels;
+using AutoNumber.Views;
 using System.Windows;
 using MahApps.Metro.Controls.Dialogs;
 
@@ -24,6 +25,20 @@ namespace AutoNumber
             {
                 mainVM.PictureVM.CanvasSize = new System.Drawing.Size((int)e.NewSize.Width, (int)e.NewSize.Height);
             }
+        }
+
+        private void OpenSettings_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not MainVM mainVM)
+            {
+                return;
+            }
+
+            var settingsWindow = new SettingsWindow(mainVM.SettingsManager)
+            {
+                Owner = this
+            };
+            settingsWindow.ShowDialog();
         }
     }
 }

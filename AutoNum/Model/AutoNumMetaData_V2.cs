@@ -17,14 +17,14 @@ public class AutoNumMetaData_V2 : AutoNumMetaData_V1
         Version = "V2";
     }
 
-    public AutoNumMetaData_V2(ImageVM model, LabelManager lm, NameManager nm, TitleManager tm)
-        : base(model, lm, nm, tm)
+    public AutoNumMetaData_V2(ImageVM model, LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
+        : base(model, lm, nm, tm, iim, idm)
     {
         Version = "V2";
         OriginalImageWidth = model.Bitmap?.Width ?? 0;
         OriginalImageHeight = model.Bitmap?.Height ?? 0;
 
-        bool hasTitle = tm.IsEnabled && !string.IsNullOrEmpty(tm.Title);
-        TitleHeight = hasTitle ? (int)model.TitleRegionHeight : 0;
+        bool hasTopText = (tm.IsEnabled && !string.IsNullOrEmpty(tm.Title)) || (iim.IsEnabled && !string.IsNullOrEmpty(iim.ImageInfo));
+        TitleHeight = hasTopText ? (int)model.TitleRegionHeight : 0;
     }
 }

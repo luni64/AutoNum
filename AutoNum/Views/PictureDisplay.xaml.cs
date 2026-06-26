@@ -126,7 +126,7 @@ namespace AutoNumber.Views
             PageCanvas.Children[idx].Uid = markerVM.Id.ToString();
         }
 
-        private void tbTitle_SizeChanged(object sender, SizeChangedEventArgs e)
+        private void TopTextPanel_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (DataContext is MainVM mainVM)
             {

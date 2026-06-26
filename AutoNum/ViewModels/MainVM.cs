@@ -8,7 +8,10 @@ namespace AutoNumber.ViewModels
         public IDialogCoordinator DialogCoordinator { get; set; } = null!;
         public FileManager FileManager { get; }
         public NameManager NameManager { get; }
-        public TitleManager TitleManager { get; }       
+        public TitleManager TitleManager { get; }
+        public ImageInfoManager ImageInfoManager { get; }
+        public ImageIdManager ImageIdManager { get; }
+        public SettingsManager SettingsManager { get; }
         public LabelManager LabelManager { get; }
         public ImageVM PictureVM { get; }
 
@@ -21,8 +24,11 @@ namespace AutoNumber.ViewModels
             PictureVM = new ImageVM();
 
             LabelManager = new LabelManager(PictureVM);
-            NameManager = new NameManager(PictureVM);
-            TitleManager = new TitleManager();
+            ImageIdManager = new ImageIdManager(LabelManager);
+            NameManager = new NameManager(PictureVM, LabelManager, ImageIdManager);
+            TitleManager = new TitleManager(LabelManager);
+            ImageInfoManager = new ImageInfoManager(LabelManager);
+            SettingsManager = new SettingsManager();
             FileManager = new FileManager(this);
         }
     }   

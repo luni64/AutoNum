@@ -226,6 +226,44 @@ namespace AutoNumber.Infrastructure
         }
     }
 
+    public class CenteredGlyphOffsetConverter : IMultiValueConverter
+    {
+        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (values.Length < 3)
+            {
+                return 0d;
+            }
+
+            var text = values[0]?.ToString();
+            var fontFamily = values[1] as FontFamily;
+            if (string.IsNullOrWhiteSpace(text) || fontFamily is null || values[2] is not double fontSize || fontSize <= 0)
+            {
+                return 0d;
+            }
+
+            var typeface = new Typeface(fontFamily, FontStyles.Normal, FontWeights.Normal, FontStretches.Normal);
+            var formattedText = new FormattedText(
+                text,
+                culture,
+                FlowDirection.LeftToRight,
+                typeface,
+                fontSize,
+                Brushes.Black,
+                1.0);
+
+            var bounds = formattedText.BuildGeometry(new Point(0, 0)).Bounds;
+            var lineBoxCenter = formattedText.Height / 2.0;
+            var glyphCenter = bounds.Y + bounds.Height / 2.0;
+            return lineBoxCenter - glyphCenter;
+        }
+
+        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
     public class EnumBooleanConverter : IValueConverter
     {
         #region IValueConverter Members

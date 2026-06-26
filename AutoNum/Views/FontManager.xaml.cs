@@ -34,7 +34,7 @@ namespace AutoNumber.Views
 
 
         public static readonly DependencyProperty SelectedFontSizeProperty = DependencyProperty.Register(nameof(SelectedFontSize), typeof(double), typeof(FontManager), 
-            new FrameworkPropertyMetadata(12.0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+            new FrameworkPropertyMetadata(100.0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
         public double SelectedFontSize
         {

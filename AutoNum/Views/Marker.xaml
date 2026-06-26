@@ -18,6 +18,7 @@
         <mah:MathMultiplyConverter x:Key="MathMultiplyConverter"/>
         <is:BoolToVisibilityConverter x:Key="bool2Vis"/>
         <is:DrawingColToMediaBrush x:Key="Col2Brush"/>
+        <is:CenteredGlyphOffsetConverter x:Key="CenteredGlyphOffsetConverter"/>
         
         <DataTemplate DataType="{x:Type vm:MarkerLabel}">
             <Grid 
@@ -31,19 +32,25 @@
                     StrokeThickness="{Binding StrokeThickness}"                      
                     />
 
-                <TextBlock                        
+                <TextBlock x:Name="LabelNumberText"                       
                     Text="{Binding Person.Label.Number}"
                     FontSize="{Binding FontSize}" FontWeight="Normal" FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                     Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"    
                     TextAlignment="Center"
                     HorizontalAlignment="Center"
-                    VerticalAlignment="Center" 
-                    LineHeight="{Binding FontSize}"                       
-                    >
-                    
+                    VerticalAlignment="Center">
+
                     <TextBlock.RenderTransform>
                         <TransformGroup>
-                            <TranslateTransform x:Name="myTransform" Y="{Binding FontSize, ConverterParameter=0.04, Converter={StaticResource MathMultiplyConverter}}"/>
+                            <TranslateTransform x:Name="myTransform">
+                                <TranslateTransform.Y>
+                                    <MultiBinding Converter="{StaticResource CenteredGlyphOffsetConverter}">
+                                        <Binding Path="Person.Label.Number"/>
+                                        <Binding ElementName="LabelNumberText" Path="FontFamily"/>
+                                        <Binding ElementName="LabelNumberText" Path="FontSize"/>
+                                    </MultiBinding>
+                                </TranslateTransform.Y>
+                            </TranslateTransform>
                         </TransformGroup>
                     </TextBlock.RenderTransform>
                 </TextBlock>

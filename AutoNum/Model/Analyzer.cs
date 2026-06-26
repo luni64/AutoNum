@@ -55,14 +55,25 @@ namespace AutoNumber.Model
             return largest;
         }
 
-        public static double PlaceTitle(TitleManager tm)
+        public static double GetTextBlockHeight(string text, FontFamily fontFamily, double fontSize)
         {
-            using var font = new Font(MarkerLabel.Style.FontFamily, (int) tm.TitleFontSize);
-            SizeF thisSize = measureString(tm.Title, font, GraphicsUnit.Point);
+            if (string.IsNullOrWhiteSpace(text) || !double.IsFinite(fontSize) || fontSize <= 0)
+            {
+                return 0;
+            }
+
+            using var font = new Font(fontFamily, (float)fontSize);
+            SizeF thisSize = measureString(text, font, GraphicsUnit.Point);
             return thisSize.Height;
         }
 
-        public static double PlacePersonNames(ICollectionView persons, double width, double height)
+        public static double PlaceTitle(TitleManager tm, ImageInfoManager iim)
+        {
+            return GetTextBlockHeight(tm.Title, tm.TitleFontFamily, tm.TitleFontSize)
+                + GetTextBlockHeight(iim.ImageInfo, iim.ImageInfoFontFamily, iim.ImageInfoFontSize);
+        }
+
+        public static double PlacePersonNames(ICollectionView persons, double width, double startY)
         {
             using Font font = new Font(TextLabel.Style.FontFamily, (float)TextLabel.Style.FontSize);
 
@@ -74,7 +85,7 @@ namespace AutoNumber.Model
             foreach (Person person in persons)
             {
                 person.Name.X = colNr * bb.Width;
-                person.Name.Y = height + rowNr * bb.Height + bb.Height/8;
+                person.Name.Y = startY + rowNr * bb.Height + bb.Height / 8;
                 person.Name.W = bb.Width;
                 person.Name.H = bb.Height;
                 colNr++;

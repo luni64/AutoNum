@@ -31,27 +31,42 @@
         Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"                  
         >
         <Canvas x:Name="PageCanvas">
-            <Border DataContext="{Binding TitleManager}"
-                Visibility="{Binding IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
-                BorderThickness="1,1,1,0"
-                BorderBrush="DarkGray"   
-                Background="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}"
-                Canvas.Left="0" 
-                Canvas.Top="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay, ConverterParameter=-1, Converter={StaticResource MathMultiplyConverter}}"  
-                Height="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay}"  
-                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"               
-               />
-            <TextBlock DataContext="{Binding TitleManager}"
-                Text="{Binding Title}" HorizontalAlignment="Center" VerticalAlignment="Center" TextAlignment="Center"
-                x:Name="tbTitle" Visibility="{Binding IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"              
-                Canvas.Left="0" Canvas.Top="{Binding ActualHeight, ElementName=tbTitle, Mode=OneWay, ConverterParameter=-1, Converter={StaticResource MathMultiplyConverter}}"  
-                FontFamily="{Binding TitleFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}" 
-                FontSize="{Binding TitleFontSize}" 
-                Foreground="{Binding TitleFontColor, Converter={StaticResource Col2Brush}}"
-                Padding="0"
-                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"                      
-                SizeChanged="tbTitle_SizeChanged"
-                />
+            <StackPanel x:Name="topTextPanel"
+                Canvas.Left="0"
+                Canvas.Top="{Binding ActualHeight, ElementName=topTextPanel, Mode=OneWay, ConverterParameter=-1, Converter={StaticResource MathMultiplyConverter}}"
+                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
+                SizeChanged="TopTextPanel_SizeChanged">
+                <Border DataContext="{Binding TitleManager}"
+                    Visibility="{Binding IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
+                    BorderThickness="1,1,1,0"
+                    BorderBrush="DarkGray"
+                    Background="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}">
+                    <TextBlock
+                        Text="{Binding Title}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        TextAlignment="Center"
+                        FontFamily="{Binding TitleFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                        FontSize="{Binding TitleFontSize}"
+                        Foreground="{Binding TitleFontColor, Converter={StaticResource Col2Brush}}"
+                        Padding="0,4"/>
+                </Border>
+                <Border DataContext="{Binding ImageInfoManager}"
+                    Visibility="{Binding IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
+                    BorderThickness="1,1,1,0"
+                    BorderBrush="DarkGray"
+                    Background="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}">
+                    <TextBlock
+                        Text="{Binding ImageInfo}"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        TextAlignment="Center"
+                        FontFamily="{Binding ImageInfoFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                        FontSize="{Binding ImageInfoFontSize}"
+                        Foreground="{Binding ImageInfoFontColor, Converter={StaticResource Col2Brush}}"
+                        Padding="0,4"/>
+                </Border>
+            </StackPanel>
             <Image                         
                 x:Name="pageimg"                       
                 HorizontalAlignment="Left" VerticalAlignment="Top"      
@@ -59,14 +74,38 @@
                 Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
                 Source="{Binding Page.Bitmap, Converter={StaticResource Bitmap2BitmapSource}, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
                 />
-            <Border               
-                Canvas.Left="0"    
+            <Border DataContext="{Binding ImageIdManager}"
+                Visibility="{Binding ShowImageIdLine, Converter={StaticResource Bool2Vis}}"
+                Canvas.Left="0"
+                Canvas.Top="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
+                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
+                Height="{Binding LineHeight}"
+                BorderThickness="0"
+                Background="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}">
+                <TextBlock
+                    Text="{Binding ImageId}"
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Margin="8,0,8,0"
+                    Padding="4,2"
+                    FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                    FontSize="{Binding FontSize}"
+                    Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"
+                    Background="Transparent"/>
+            </Border>
+            <Border
+                Canvas.Left="0"
                 Visibility="{Binding NameManager.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
                 Canvas.Top="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
                 Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
-                Height="{Binding PictureVM.NamesRegionHeight}"  
-                BorderThickness="1,0,1,1"  BorderBrush="Black" Background="{Binding NameManager.BackgroundColor, Converter={StaticResource Col2Brush}}"
-                />
+                Height="{Binding PictureVM.NamesRegionHeight}"
+                BorderThickness="1,0,1,1"
+                BorderBrush="Black"
+                Background="{Binding NameManager.BackgroundColor, Converter={StaticResource Col2Brush}}">
+                <Border.RenderTransform>
+                    <TranslateTransform Y="{Binding ImageIdManager.LineHeight}"/>
+                </Border.RenderTransform>
+            </Border>
         </Canvas>
     </view:ZoomBorder>
 </UserControl>
