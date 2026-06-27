@@ -292,12 +292,36 @@ namespace AutoNumber.Infrastructure
         #endregion
     }
 
+    internal static class SliderScaleMapping
+    {
+        public const double SliderMin = 0.0;
+        public const double SliderMax = 1.0;
+        public const double SliderDefault = 0.5;
+        public const double ScaleMin = 0.25;
+        public const double ScaleMax = 4.0;
+        public const double ScaleDefault = 1.0;
+
+        public static double SliderToScale(double sliderPosition)
+        {
+            var clamped = Math.Clamp(sliderPosition, SliderMin, SliderMax);
+            return 0.25 * Math.Pow(16.0, clamped);
+        }
+
+        public static double ScaleToSlider(double scale)
+        {
+            if (!double.IsFinite(scale) || scale <= 0)
+            {
+                return SliderDefault;
+            }
+
+            var ratio = scale / 0.25;
+            var x = Math.Log(ratio) / Math.Log(16.0);
+            return Math.Clamp(x, SliderMin, SliderMax);
+        }
+    }
+
     /// <summary>
     /// Converts between slider position (0–1) and scale factor (0.25–4.0).
-    /// 
-    /// This is a VIEW-ONLY converter. Model layer should work exclusively with scales.
-    /// Slider position is purely a UI concern; the conversion happens here to keep
-    /// the model clean.
     /// </summary>
     public class SliderToScaleConverter : IValueConverter
     {
@@ -305,22 +329,20 @@ namespace AutoNumber.Infrastructure
         {
             if (value is double scale && double.IsFinite(scale) && scale > 0)
             {
-                // Model → View: Convert scale to slider position
-                var sliderPos = AutoNumber.Model.SizingModel.ScaleToSlider(scale);
-                return sliderPos;
+                return SliderScaleMapping.ScaleToSlider(scale);
             }
-            return 0.5; // Default to center
+
+            return SliderScaleMapping.SliderDefault;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             if (value is double sliderPosition && double.IsFinite(sliderPosition))
             {
-                // View → Model: Convert slider position to scale
-                var scale = AutoNumber.Model.SizingModel.SliderToScale(sliderPosition);
-                return scale;
+                return SliderScaleMapping.SliderToScale(sliderPosition);
             }
-            return 1.0; // Default to 1.0 scale
+
+            return SliderScaleMapping.ScaleDefault;
         }
     }
 

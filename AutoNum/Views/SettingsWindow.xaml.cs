@@ -24,14 +24,24 @@ public partial class SettingsWindow : MetroWindow
     {
         if (DataContext is SettingsManager settingsManager)
         {
-            // Apply defaults to the managers on the main screen
-            if (_mainVM.LabelManager != null)
-                settingsManager.ApplyFreshImageDefaults(
-                    _mainVM.LabelManager,
-                    _mainVM.NameManager,
-                    _mainVM.TitleManager,
-                    _mainVM.ImageInfoManager,
-                    _mainVM.ImageIdManager);
+            // Apply font defaults to the current image without changing visibility toggles.
+            settingsManager.ApplyCurrentImageFontDefaults(
+                _mainVM.NameManager,
+                _mainVM.TitleManager,
+                _mainVM.ImageInfoManager,
+                _mainVM.ImageIdManager);
+        }
+    }
+
+    private void ApplyVisibility_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsManager settingsManager)
+        {
+            settingsManager.ApplyCurrentImageVisibilityDefaults(
+                _mainVM.NameManager,
+                _mainVM.TitleManager,
+                _mainVM.ImageInfoManager,
+                _mainVM.ImageIdManager);
         }
     }
 }

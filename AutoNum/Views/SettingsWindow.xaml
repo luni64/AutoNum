@@ -34,52 +34,71 @@
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="70"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Titel" Margin="0,0,0,4"/>
                                 <Slider Minimum="0" Maximum="1" Value="{Binding DefaultTitleFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
                             </StackPanel>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="8,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultTitleFontScale, StringFormat={}{0:P0}}"/>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="5,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultTitleFontScale, StringFormat={}{0:P0}}"/>
                         </Grid>
 
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="70"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Beschreibung" Margin="0,0,0,4"/>
                                 <Slider Minimum="0" Maximum="1" Value="{Binding DefaultImageInfoFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
                             </StackPanel>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="8,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultImageInfoFontScale, StringFormat={}{0:P0}}"/>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="5,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultImageInfoFontScale, StringFormat={}{0:P0}}"/>
                         </Grid>
 
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="70"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Bild-ID" Margin="0,0,0,4"/>
                                 <Slider Minimum="0" Maximum="1" Value="{Binding DefaultImageIdFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
                             </StackPanel>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="8,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultImageIdFontScale, StringFormat={}{0:P0}}"/>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="5,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultImageIdFontScale, StringFormat={}{0:P0}}"/>
                         </Grid>
 
                         <Grid Margin="0,0,0,14">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="70"/>
+                                <ColumnDefinition Width="Auto"/>
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0">
                                 <TextBlock Text="Namensliste" Margin="0,0,0,4"/>
                                 <Slider Minimum="0" Maximum="1" Value="{Binding DefaultNamesFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
                             </StackPanel>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="8,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultNamesFontScale, StringFormat={}{0:P0}}"/>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="5,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultNamesFontScale, StringFormat={}{0:P0}}"/>
                         </Grid>
 
                         <Button Content="Anwenden" Padding="8,4" Margin="0,8,0,0" Click="Apply_Click"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Sichtbarkeit">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="Standard-Sichtbarkeit für neue Bilder" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="#666666" FontSize="12">
+                            Lege fest, welche Elemente bei neu geladenen Bildern standardmäßig sichtbar sein sollen. Diese Einstellungen beeinflussen nur neue Bilder und können pro Bild weiterhin individuell angepasst werden.
+                        </TextBlock>
+
+                        <mah:ToggleSwitch IsOn="{Binding DefaultTitleEnabled}" Content="Titel anzeigen" Margin="0,0,0,10"/>
+                        <mah:ToggleSwitch IsOn="{Binding DefaultImageInfoEnabled}" Content="Beschreibung anzeigen" Margin="0,0,0,10"/>
+                        <mah:ToggleSwitch IsOn="{Binding DefaultImageIdEnabled}" Content="Bild-ID anzeigen" Margin="0,0,0,10"/>
+                        <mah:ToggleSwitch IsOn="{Binding DefaultNamesEnabled}" Content="Namensliste anzeigen"/>
+
+                        <Button Content="Anwenden" Padding="8,4" Margin="0,12,0,0" Click="ApplyVisibility_Click"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

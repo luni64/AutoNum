@@ -7,14 +7,16 @@ namespace AutoNumber.Model;
 public class AppSettings
 {
     public int SchemaVersion { get; set; }
-    public bool DefaultNamesEnabled { get; set; } = false;
-    public bool DefaultTitleEnabled { get; set; } = false;
+    public bool DefaultNamesEnabled { get; set; } = true;
+    public bool DefaultTitleEnabled { get; set; } = true;
+    public bool DefaultImageInfoEnabled { get; set; } = true;
+    public bool DefaultImageIdEnabled { get; set; } = true;
 
-    public double DefaultLabelDiameterSlider { get; set; } = SizingModel.SliderPercentDefault;
-    public double DefaultNamesFontSlider { get; set; } = SizingModel.SliderPercentDefault;
-    public double DefaultTitleFontSlider { get; set; } = SizingModel.SliderPercentDefault;
-    public double DefaultImageInfoFontSlider { get; set; } = SizingModel.SliderPercentDefault;
-    public double DefaultImageIdFontSlider { get; set; } = SizingModel.SliderPercentDefault;
+    public double DefaultLabelDiameterScale { get; set; } = SizingModel.DefaultScale;
+    public double DefaultNamesFontScale { get; set; } = SizingModel.DefaultScale;
+    public double DefaultTitleFontScale { get; set; } = SizingModel.DefaultScale;
+    public double DefaultImageInfoFontScale { get; set; } = SizingModel.DefaultScale;
+    public double DefaultImageIdFontScale { get; set; } = SizingModel.DefaultScale;
 
     public double FaceScaleFactor { get; set; } = 1.2;
     public int FaceMinNeighbors { get; set; } = 7;

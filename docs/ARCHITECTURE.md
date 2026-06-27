@@ -120,8 +120,8 @@ AutoNum/
 - `FontManager.xaml/.cs` is a reusable UI control containing a slider and color pickers.
 - Exposes `SelectedScale` (double) as a dependency property (range 0.25–4.0, default 1.0).
 - Slider in XAML is bound two-way to `SelectedScale` through `SliderToScaleConverter`:
-  - Forward (VIEW → MODEL): slider position (0–1) → scale (0.25–4.0) via `SizingModel.SliderToScale(...)`
-  - Reverse (MODEL → VIEW): scale (0.25–4.0) → slider position (0–1) via `SizingModel.ScaleToSlider(...)`
+  - Forward (VIEW → MODEL): slider position (0–1) → scale (0.25–4.0) via UI-layer slider mapping (`SliderScaleMapping`)
+  - Reverse (MODEL → VIEW): scale (0.25–4.0) → slider position (0–1) via UI-layer slider mapping (`SliderScaleMapping`)
 - Used in three contexts:
   1. **Main window label wizard** (`LabelWiz.xaml`): binds `SelectedScale` to `LabelManager.LabelScale`
   2. **Text-format dialogs** (`TextFormatDialog.xaml.cs`): dynamically binds `SelectedScale` to whichever manager is open (TitleManager, ImageInfoManager, ImageIdManager, NameManager)

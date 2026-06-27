@@ -12,13 +12,14 @@ public class SettingsManager : BaseViewModel
 
         _defaultNamesEnabled = _settings.DefaultNamesEnabled;
         _defaultTitleEnabled = _settings.DefaultTitleEnabled;
+        _defaultImageInfoEnabled = _settings.DefaultImageInfoEnabled;
+        _defaultImageIdEnabled = _settings.DefaultImageIdEnabled;
 
-        // Convert old slider values (0-1) to scales (0.25-4.0)
-        _defaultLabelDiameterScale = ConvertSliderToScale(_settings.DefaultLabelDiameterSlider);
-        _defaultNamesFontScale = ConvertSliderToScale(_settings.DefaultNamesFontSlider);
-        _defaultTitleFontScale = ConvertSliderToScale(_settings.DefaultTitleFontSlider);
-        _defaultImageInfoFontScale = ConvertSliderToScale(_settings.DefaultImageInfoFontSlider);
-        _defaultImageIdFontScale = ConvertSliderToScale(_settings.DefaultImageIdFontSlider);
+        _defaultLabelDiameterScale = ClampDouble(_settings.DefaultLabelDiameterScale, 0.25, 4.0);
+        _defaultNamesFontScale = ClampDouble(_settings.DefaultNamesFontScale, 0.25, 4.0);
+        _defaultTitleFontScale = ClampDouble(_settings.DefaultTitleFontScale, 0.25, 4.0);
+        _defaultImageInfoFontScale = ClampDouble(_settings.DefaultImageInfoFontScale, 0.25, 4.0);
+        _defaultImageIdFontScale = ClampDouble(_settings.DefaultImageIdFontScale, 0.25, 4.0);
 
         _faceScaleFactor = ClampDouble(_settings.FaceScaleFactor, 1.05, 2.0);
         _faceMinNeighbors = ClampInt(_settings.FaceMinNeighbors, 1, 20);
@@ -27,34 +28,6 @@ public class SettingsManager : BaseViewModel
         ApplyDetectionDefaults();
     }
 
-    /// <summary>
-    /// Converts slider position (0-1) to scale (0.25-4.0).
-    /// Handles both old storage format and new format.
-    /// </summary>
-    private static double ConvertSliderToScale(double sliderValue)
-    {
-        // If value is already in scale range (0.25-4.0), use as-is
-        if (sliderValue >= 0.25 && sliderValue <= 4.0)
-        {
-            return sliderValue;
-        }
-
-        // If value is in slider range (0-1), convert to scale
-        if (sliderValue >= 0 && sliderValue <= 1.0)
-        {
-            return SizingModel.SliderToScale(sliderValue);
-        }
-
-        // Old format: 25-400 range converted to 0-1 then to scale
-        if (sliderValue >= 25 && sliderValue <= 400)
-        {
-            double normalizedSlider = (sliderValue - 25.0) / 375.0;
-            return SizingModel.SliderToScale(normalizedSlider);
-        }
-
-        // Unknown value, use default scale (1.0)
-        return 1.0;
-    }
 
     public bool DefaultNamesEnabled
     {
@@ -72,6 +45,26 @@ public class SettingsManager : BaseViewModel
         set
         {
             SetProperty(ref _defaultTitleEnabled, value);
+            SaveSettings();
+        }
+    }
+
+    public bool DefaultImageInfoEnabled
+    {
+        get => _defaultImageInfoEnabled;
+        set
+        {
+            SetProperty(ref _defaultImageInfoEnabled, value);
+            SaveSettings();
+        }
+    }
+
+    public bool DefaultImageIdEnabled
+    {
+        get => _defaultImageIdEnabled;
+        set
+        {
+            SetProperty(ref _defaultImageIdEnabled, value);
             SaveSettings();
         }
     }
@@ -239,19 +232,38 @@ public class SettingsManager : BaseViewModel
         titleManager.FontScale = DefaultTitleFontScale;
         titleManager.IsEnabled = DefaultTitleEnabled;
         imageInfoManager.FontScale = DefaultImageInfoFontScale;
+        imageInfoManager.IsEnabled = DefaultImageInfoEnabled;
         imageIdManager.FontScale = DefaultImageIdFontScale;
+        imageIdManager.IsEnabled = DefaultImageIdEnabled;
+    }
+
+    public void ApplyCurrentImageFontDefaults(NameManager nameManager, TitleManager titleManager, ImageInfoManager imageInfoManager, ImageIdManager imageIdManager)
+    {
+        nameManager.FontScale = DefaultNamesFontScale;
+        titleManager.FontScale = DefaultTitleFontScale;
+        imageInfoManager.FontScale = DefaultImageInfoFontScale;
+        imageIdManager.FontScale = DefaultImageIdFontScale;
+    }
+
+    public void ApplyCurrentImageVisibilityDefaults(NameManager nameManager, TitleManager titleManager, ImageInfoManager imageInfoManager, ImageIdManager imageIdManager)
+    {
+        nameManager.IsEnabled = DefaultNamesEnabled;
+        titleManager.IsEnabled = DefaultTitleEnabled;
+        imageInfoManager.IsEnabled = DefaultImageInfoEnabled;
+        imageIdManager.IsEnabled = DefaultImageIdEnabled;
     }
 
     private void SaveSettings()
     {
         _settings.DefaultNamesEnabled = DefaultNamesEnabled;
         _settings.DefaultTitleEnabled = DefaultTitleEnabled;
-        // Convert scales back to slider positions for persistent storage
-        _settings.DefaultLabelDiameterSlider = SizingModel.ScaleToSlider(DefaultLabelDiameterScale);
-        _settings.DefaultNamesFontSlider = SizingModel.ScaleToSlider(DefaultNamesFontScale);
-        _settings.DefaultTitleFontSlider = SizingModel.ScaleToSlider(DefaultTitleFontScale);
-        _settings.DefaultImageInfoFontSlider = SizingModel.ScaleToSlider(DefaultImageInfoFontScale);
-        _settings.DefaultImageIdFontSlider = SizingModel.ScaleToSlider(DefaultImageIdFontScale);
+        _settings.DefaultImageInfoEnabled = DefaultImageInfoEnabled;
+        _settings.DefaultImageIdEnabled = DefaultImageIdEnabled;
+        _settings.DefaultLabelDiameterScale = DefaultLabelDiameterScale;
+        _settings.DefaultNamesFontScale = DefaultNamesFontScale;
+        _settings.DefaultTitleFontScale = DefaultTitleFontScale;
+        _settings.DefaultImageInfoFontScale = DefaultImageInfoFontScale;
+        _settings.DefaultImageIdFontScale = DefaultImageIdFontScale;
         _settings.FaceScaleFactor = FaceScaleFactor;
         _settings.FaceMinNeighbors = FaceMinNeighbors;
         _settings.AppendNumSuffixForOriginalSaves = AppendNumSuffixForOriginalSaves;
@@ -272,6 +284,8 @@ public class SettingsManager : BaseViewModel
 
     private bool _defaultNamesEnabled;
     private bool _defaultTitleEnabled;
+    private bool _defaultImageInfoEnabled;
+    private bool _defaultImageIdEnabled;
     private double _defaultLabelDiameterScale;
     private double _defaultNamesFontScale;
     private double _defaultTitleFontScale;

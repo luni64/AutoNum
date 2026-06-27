@@ -31,6 +31,9 @@
 - Use `ObservableCollection<T>` and `INotifyPropertyChanged` for data binding.
 - Prefer async/await for hardware and I/O calls — never block the UI thread.
 
+## State Management
+- Persist only model-level scale values in settings/model code; do not persist view-specific slider positions because slider mapping is a UI implementation detail that may change.
+
 # Release Documentation
 
 - **Release scratchpad:** `docs/release/NEXT_RELEASE.md` — items for the next unreleased version
