@@ -22,17 +22,19 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public double FontSizeSliderValue
+        /// <summary>
+        /// Font scale factor (0.25–4.0). Model property that drives actual font size.
+        /// </summary>
+        public double FontScale
         {
-            get => _fontSizeSliderValue;
+            get => _fontScale;
             set
             {
-                var clamped = Math.Clamp(value, SizingModel.SliderPercentMin, SizingModel.SliderPercentMax);
-                var changed = _fontSizeSliderValue != clamped;
-                _fontSizeSliderValue = clamped;
-                ApplyScaleFromSlider();
-                if (changed)
+                var clamped = Math.Clamp(value, 0.25, 4.0);
+                if (_fontScale != clamped)
                 {
+                    _fontScale = clamped;
+                    ApplyScale();
                     OnPropertyChanged();
                 }
             }
@@ -60,11 +62,11 @@ namespace AutoNumber.ViewModels
         public TitleManager(LabelManager labelManager)
         {
             _labelManager = labelManager;
-            FontSizeSliderValue = SizingModel.SliderPercentDefault;
+            FontScale = 1.0;
 
             WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
             {
-                ApplyScaleFromSlider();
+                ApplyScale();
             });
 
             WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
@@ -77,13 +79,13 @@ namespace AutoNumber.ViewModels
                     ? v3.TitleScale
                     : ResolveLegacyScale(md.TitleFont.Size, md.LabelsFont.Size);
 
-                FontSizeSliderValue = SizingModel.ScaleToSliderPercent(scale);
+                FontScale = scale;
                 Title = md.Title;
                 IsEnabled = md.TitleEnabled ?? !string.IsNullOrEmpty(md.Title);
             });
         }
 
-        private void ApplyScaleFromSlider()
+        private void ApplyScale()
         {
             var baseLabelFontSize = _labelManager.BaseLabelFontSize;
             if (baseLabelFontSize <= 0)
@@ -91,7 +93,7 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            TitleFontSize = SizingModel.ResolveSize(baseLabelFontSize, SizingModel.SliderPercentToScale(FontSizeSliderValue));
+            TitleFontSize = SizingModel.ResolveSize(baseLabelFontSize, FontScale);
         }
 
         private static double ResolveLegacyScale(double actualTitleFontSize, double legacyLabelFontSize)
@@ -102,7 +104,7 @@ namespace AutoNumber.ViewModels
         private readonly LabelManager _labelManager;
 
         bool _isEnabled = false;
-        double _fontSizeSliderValue = SizingModel.SliderPercentDefault;
+        double _fontScale = 1.0;
         string _title = string.Empty;
         Color _fontColor = Color.Black;
         double _fontSize = 1;

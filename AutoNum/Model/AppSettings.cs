@@ -10,9 +10,11 @@ public class AppSettings
     public bool DefaultNamesEnabled { get; set; } = false;
     public bool DefaultTitleEnabled { get; set; } = false;
 
-    public int DefaultLabelDiameterSlider { get; set; } = (int)SizingModel.SliderPercentDefault;
+    public double DefaultLabelDiameterSlider { get; set; } = SizingModel.SliderPercentDefault;
     public double DefaultNamesFontSlider { get; set; } = SizingModel.SliderPercentDefault;
     public double DefaultTitleFontSlider { get; set; } = SizingModel.SliderPercentDefault;
+    public double DefaultImageInfoFontSlider { get; set; } = SizingModel.SliderPercentDefault;
+    public double DefaultImageIdFontSlider { get; set; } = SizingModel.SliderPercentDefault;
 
     public double FaceScaleFactor { get; set; } = 1.2;
     public int FaceMinNeighbors { get; set; } = 7;
@@ -86,16 +88,6 @@ public static class AppSettingsStore
             return;
         }
 
-        settings.DefaultLabelDiameterSlider = (int)Math.Round(LegacySliderToPercent(settings.DefaultLabelDiameterSlider));
-        settings.DefaultNamesFontSlider = LegacySliderToPercent(settings.DefaultNamesFontSlider);
-        settings.DefaultTitleFontSlider = LegacySliderToPercent(settings.DefaultTitleFontSlider);
         settings.SchemaVersion = 3;
-    }
-
-    private static double LegacySliderToPercent(double legacySliderValue)
-    {
-        var clamped = Math.Clamp(legacySliderValue, 0, 100);
-        var legacyScale = 0.5 + 0.0002 * clamped * clamped;
-        return Math.Clamp(legacyScale * 100.0, SizingModel.SliderPercentMin, SizingModel.SliderPercentMax);
     }
 }

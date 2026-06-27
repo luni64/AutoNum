@@ -35,7 +35,7 @@ namespace AutoNumber.ViewModels
             }
 
             RecalculateBaseLabelFontSize();
-            ApplyScaleFromSlider();
+            ApplyScale();
 
             try
             {
@@ -49,14 +49,17 @@ namespace AutoNumber.ViewModels
         #endregion
         #region Properties --------------------------------------------------
 
-        public int Diameter
+        /// <summary>
+        /// Label scale factor (0.25–4.0). Model property that drives label diameter and font size.
+        /// </summary>
+        public double LabelScale
         {
-            get => _diameter;
+            get => _labelScale;
             set
             {
-                var clamped = (int)Math.Round(Math.Clamp((double)value, SizingModel.SliderPercentMin, SizingModel.SliderPercentMax));
-                SetProperty(ref _diameter, clamped);
-                ApplyScaleFromSlider();
+                var clamped = Math.Clamp(value, 0.25, 4.0);
+                SetProperty(ref _labelScale, clamped);
+                ApplyScale();
             }
         }
         public Color FontColor
@@ -100,7 +103,7 @@ namespace AutoNumber.ViewModels
 
             RecalculateBaseLabelFontSize();
             Numerate();
-            Diameter = (int)SizingModel.SliderPercentDefault;
+            LabelScale = 1.0; // Default scale
         }
 
         public LabelManager(ImageVM imageVM)
@@ -118,6 +121,11 @@ namespace AutoNumber.ViewModels
                 SetLabels(msg.Faces);
             });
 
+            WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
+            {
+                ApplyScale();
+            });
+
             WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
             {
                 var md = msg.Metadata;
@@ -130,7 +138,7 @@ namespace AutoNumber.ViewModels
                     BaseLabelFontSize = double.IsFinite(v3.BaseLabelFontSize) && v3.BaseLabelFontSize > 0
                         ? v3.BaseLabelFontSize
                         : md.LabelsFont.Size;
-                    Diameter = (int)Math.Round(SizingModel.ScaleToSliderPercent(v3.LabelScale));
+                    LabelScale = v3.LabelScale;
                 }
                 else
                 {
@@ -140,7 +148,7 @@ namespace AutoNumber.ViewModels
                     BaseLabelFontSize = double.IsFinite(md.LabelsFont.Size) && md.LabelsFont.Size > 0
                         ? SizingModel.LegacyStoredFontSizeToVisibleSize(md.LabelsFont.Size)
                         : SizingModel.ComputeFittedLabelFontSize(BaseLabelDiameter, _imageVM.Persons);
-                    Diameter = (int)SizingModel.SliderPercentDefault;
+                    LabelScale = 1.0; // Default scale
                 }
             });
         }
@@ -153,16 +161,15 @@ namespace AutoNumber.ViewModels
             BaseLabelFontSize = SizingModel.ComputeFittedLabelFontSize(BaseLabelDiameter, _imageVM.Persons);
         }
 
-        private void ApplyScaleFromSlider()
+        private void ApplyScale()
         {
             if (BaseLabelDiameter <= 0)
             {
                 return;
             }
 
-            var scale = SizingModel.SliderPercentToScale(Diameter);
-            var actualDiameter = SizingModel.ResolveSize(BaseLabelDiameter, scale);
-            var actualFontSize = SizingModel.ResolveSize(BaseLabelFontSize, scale);
+            var actualDiameter = SizingModel.ResolveSize(BaseLabelDiameter, LabelScale);
+            var actualFontSize = SizingModel.ResolveSize(BaseLabelFontSize, LabelScale);
 
             MarkerLabel.Style.Diameter = (float)actualDiameter;
             MarkerLabel.Style.FontSize = actualFontSize;
@@ -171,6 +178,6 @@ namespace AutoNumber.ViewModels
 
         private readonly ImageVM _imageVM;
         private Color _edgeColor, _fontColor, _backgroundColor;
-        private int _diameter = (int)SizingModel.SliderPercentDefault;
+        private double _labelScale = 1.0; // Default scale
     }
 }

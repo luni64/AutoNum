@@ -3,43 +3,38 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"    
     xmlns:vm="clr-namespace:AutoNumber.ViewModels"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"    
-    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"      
-    xmlns:view="clr-namespace:AutoNumber.Views" 
-    xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
+    xmlns:local="clr-namespace:AutoNumber"
     xmlns:is="clr-namespace:AutoNumber.Infrastructure">
     <mah:MathSubtractConverter x:Key="MathSubtractConverter"/>
 
-    <is:BoolToVisibilityConverter x:Key="boo2Vis"/>
-    <is:DrawingColToMediaBrush x:Key="ColorConverter"/>
-
-
     <DataTemplate DataType="{x:Type vm:NameManager}">
-        <Border Padding="10,0,10,0" BorderBrush="DarkGray" BorderThickness="1,0,0,0" >
+        <Border Padding="10,0,10,0" BorderBrush="DarkGray" BorderThickness="1,0,0,0">
             <Grid x:Name="gg">
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
 
-                <mah:ToggleSwitch 
-                    x:Name="InsertNames"
-                    Focusable="False"
-                    IsOn="{Binding IsEnabled}"
-                    Grid.Row="0"        
-                    mah:ToggleButtonHelper.ContentDirection="RightToLeft"
-                    Content="Namensliste">
-                </mah:ToggleSwitch>
+                <TextBlock
+                    Text="Namensliste"
+                    VerticalAlignment="Center"
+                    Margin="0,6,0,0"
+                    Grid.Row="0"
+                    Grid.Column="0"/>
 
                 <DataGrid
-                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"
-                    Margin="0,10,0,15"
-                    VerticalAlignment="Top"
-                    MaxHeight="{Binding ActualHeight, ConverterParameter=90, Converter={StaticResource MathSubtractConverter}, Mode=OneWay, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type Grid}}}"
+                    Margin="0,6,8,8"
+                    VerticalAlignment="Stretch"
                     CanUserSortColumns="True"
                     CanUserAddRows="False"
                     AutoGenerateColumns="False"
                     Grid.Row="1"
+                    Grid.Column="0"
                     BorderThickness="1"
                     ItemsSource="{Binding PersonsView}"
                     Style="{StaticResource MahApps.Styles.DataGrid}"
@@ -49,6 +44,7 @@
                     GridLinesVisibility="All"
                     SelectionMode="Single"
                     HorizontalScrollBarVisibility="Disabled"
+                    VerticalScrollBarVisibility="Auto"
                     ColumnWidth="*">
 
                     <DataGrid.Columns>
@@ -57,13 +53,66 @@
                     </DataGrid.Columns>
                 </DataGrid>
 
-                <view:FontManager
-                    Grid.Row="2" Margin="0,20,0,0"
-                    SelectedFontSize="{Binding FontSizeSliderValue}"
-                    FontColor="{Binding FontColor, Converter={StaticResource ColorConverter}}"
-                    BackgroundColor="{Binding BackgroundColor, Converter={StaticResource ColorConverter}}"
-                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"                    
-                    />
+                <StackPanel
+                    Orientation="Horizontal"
+                    Grid.Row="1"
+                    Grid.Column="1"
+                    Margin="0,6,0,0"
+                    VerticalAlignment="Top">
+                    <ToggleButton
+                        Width="28"
+                        Height="28"
+                        ToolTip="Sichtbarkeit"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Padding="0"
+                        FocusVisualStyle="{x:Null}"
+                        IsChecked="{Binding IsEnabled, Mode=TwoWay}">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Content">
+                                    <Setter.Value>
+                                        <iconPacks:PackIconMaterial Width="16" Height="16" Kind="EyeOffOutline"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <iconPacks:PackIconMaterial Width="16" Height="16" Kind="EyeOutline"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
+
+                    <Button
+                        Width="28"
+                        Height="28"
+                        Margin="6,0,0,0"
+                        ToolTip="Formatierung"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Padding="0"
+                        FocusVisualStyle="{x:Null}"
+                        Command="{x:Static local:MainWindow.OpenFormatDialogCommand}"
+                        CommandParameter="{Binding}">
+                        <iconPacks:PackIconMaterial Kind="CogOutline" Width="16" Height="16"/>
+                    </Button>
+                </StackPanel>
 
             </Grid>
         </Border>

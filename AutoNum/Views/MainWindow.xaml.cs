@@ -2,6 +2,7 @@
 using AutoNumber.ViewModels;
 using AutoNumber.Views;
 using System.Windows;
+using System.Windows.Input;
 using MahApps.Metro.Controls.Dialogs;
 
 namespace AutoNumber
@@ -11,7 +12,8 @@ namespace AutoNumber
     /// </summary>
     public partial class MainWindow : MetroWindow
     {
-      
+        public static RoutedUICommand OpenFormatDialogCommand { get; } = new(nameof(OpenFormatDialogCommand), nameof(OpenFormatDialogCommand), typeof(MainWindow));
+
         public MainWindow(MainVM mainVM)
         {
             InitializeComponent();
@@ -34,11 +36,37 @@ namespace AutoNumber
                 return;
             }
 
-            var settingsWindow = new SettingsWindow(mainVM.SettingsManager)
+            var settingsWindow = new SettingsWindow(mainVM.SettingsManager, mainVM)
             {
                 Owner = this
             };
             settingsWindow.ShowDialog();
+        }
+
+        private void OpenFormatDialog_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.Parameter is TitleManager or ImageInfoManager or ImageIdManager or NameManager;
+        }
+
+        private void OpenFormatDialog_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            TextFormatDialog? dialog = e.Parameter switch
+            {
+                LabelManager manager => new TextFormatDialog(manager, "Etiketten formatieren", nameof(LabelManager.FontColor), nameof(LabelManager.BackgroundColor), nameof(LabelManager.LabelScale)),
+                TitleManager manager => new TextFormatDialog(manager, "Überschrift formatieren", nameof(TitleManager.TitleFontColor), nameof(TitleManager.BackgroundColor), nameof(TitleManager.FontScale)),
+                ImageInfoManager manager => new TextFormatDialog(manager, "Bildinformation formatieren", nameof(ImageInfoManager.ImageInfoFontColor), nameof(ImageInfoManager.BackgroundColor), nameof(ImageInfoManager.FontScale)),
+                ImageIdManager manager => new TextFormatDialog(manager, "Bild-ID formatieren", nameof(ImageIdManager.FontColor), nameof(ImageIdManager.BackgroundColor), nameof(ImageIdManager.FontScale)),
+                NameManager manager => new TextFormatDialog(manager, "Namensliste formatieren", nameof(NameManager.FontColor), nameof(NameManager.BackgroundColor), nameof(NameManager.FontScale)),
+                _ => null
+            };
+
+            if (dialog is null)
+            {
+                return;
+            }
+
+            dialog.Owner = this;
+            dialog.ShowDialog();
         }
     }
 }

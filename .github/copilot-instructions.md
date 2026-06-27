@@ -6,6 +6,7 @@
 ## Project Guidelines
 - When asked to "review" code, provide findings as a report only — do not make changes unless explicitly asked.
 - **Never commit without explicit user request. Do not stage or commit changes autonomously.**
+- Prefer direct file-edit operations and avoid terminal-based file writing to prevent hanging or requiring manual input.
 
 ## Git & Terminal Rules
 - Always use `--no-pager` for git commands that produce output (`diff`, `log`, `show`, etc.)
@@ -35,5 +36,5 @@
 - **Release scratchpad:** `docs/release/NEXT_RELEASE.md` — items for the next unreleased version
 - **Changelog:** `docs/release/CHANGELOG.md` — user-facing changes per released version
 - **Release process:** `docs/release/RELEASE_PROCESS.md` — tagging and publishing steps
-- 
+
 Add notes to `NEXT_RELEASE.md` as features/fixes are developed. After tagging a release, copy items to `CHANGELOG.md` and reset `NEXT_RELEASE.md`.

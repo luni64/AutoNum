@@ -48,7 +48,7 @@ namespace AutoNumber.ViewModels
                     pvm.Bitmap = bitmap;
                     pvm.Init();
                     WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
-                    parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager);
+                    parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
                 }
                 else if (metadata is AutoNumMetaData_V2 v2)
                 {

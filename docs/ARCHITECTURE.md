@@ -71,11 +71,18 @@ AutoNum/
 ### Shared Style Objects
 `MarkerLabel.Style` (`LabelStyle`) and `TextLabel.Style` (`TextStyle`) hold shared visual settings and notify through weak subscriptions.
 
-### Relative Sizing Model
+### Scale-Factor Sizing Model
 - Label diameter baseline is computed once from detected face size (or an image-width fallback).
 - Label font 100% baseline is fitted to that baseline diameter.
 - Name and title font 100% baselines reuse the fitted label font baseline.
-- UI sliders now represent scale percentages (25%–200%) around those baselines.
+- **Scale factors** (0.25–4.0) are applied to these baselines to derive displayed sizes:
+  - `ResolveSize(baseSize, scale) = baseSize * scale`
+  - Unscaled (neutral) state is always `scale = 1.0`
+- UI sliders represent scale values via exponential mapping:
+  - `scale = 0.25 * 16^(slider_position)` (slider position is 0–1)
+  - Slider position 0.5 corresponds to `scale = 1.0` (unscaled)
+  - Slider position 0.0 corresponds to `scale = 0.25` (25% of base)
+  - Slider position 1.0 corresponds to `scale = 4.0` (400% of base)
 - V3 metadata stores both exact anchors and relative scales so reopen is deterministic while V1/V2 files migrate through legacy size ratios.
 
 ## Data Flow
@@ -83,8 +90,12 @@ AutoNum/
 ### Open fresh image (no AutoNum metadata)
 1. `FileManager` loads bitmap and applies EXIF orientation.
 2. Faces are detected via `FaceDetector`.
-3. `ImageVM` is initialized; `NewImageOpenedMessage` triggers label/name setup.
-4. `SettingsManager.ApplyFreshImageDefaults(...)` applies app default toggles/sliders.
+3. `ImageVM` is initialized; `NewImageOpenedMessage` triggers `LabelManager.SetLabels(...)`.
+4. `LabelManager.SetLabels(...)` initializes persons, computes baseline label diameter, and sets `LabelScale = 1.0` (unscaled).
+5. `SettingsManager.ApplyFreshImageDefaults(...)` ensures all managers start unscaled:
+   - All managers (`LabelManager`, `NameManager`, `TitleManager`, `ImageInfoManager`, `ImageIdManager`) have `FontScale = 1.0`
+   - Applies saved default toggles for names, title, and image-info visibility
+   - Slider positions are all at 0.5 (unscaled baseline)
 
 ### Open saved AutoNum image
 1. Metadata is read from EXIF UserComment.
@@ -103,9 +114,55 @@ AutoNum/
 3. Render with `ToNumberedBitmap(...)`, including optional stacked title, image-information, image-ID, and names blocks in order: Title, Information, Image, ID, Names.
 4. Save JPEG bytes, inject APP4 patches, embed metadata as `Version = "V3"` with exact sizing anchors plus relative scales.
 
+## Slider & Scale Control Architecture
+
+### Reusable FontManager Control
+- `FontManager.xaml/.cs` is a reusable UI control containing a slider and color pickers.
+- Exposes `SelectedScale` (double) as a dependency property (range 0.25–4.0, default 1.0).
+- Slider in XAML is bound two-way to `SelectedScale` through `SliderToScaleConverter`:
+  - Forward (VIEW → MODEL): slider position (0–1) → scale (0.25–4.0) via `SizingModel.SliderToScale(...)`
+  - Reverse (MODEL → VIEW): scale (0.25–4.0) → slider position (0–1) via `SizingModel.ScaleToSlider(...)`
+- Used in three contexts:
+  1. **Main window label wizard** (`LabelWiz.xaml`): binds `SelectedScale` to `LabelManager.LabelScale`
+  2. **Text-format dialogs** (`TextFormatDialog.xaml.cs`): dynamically binds `SelectedScale` to whichever manager is open (TitleManager, ImageInfoManager, ImageIdManager, NameManager)
+  3. **Settings window** (`SettingsWindow.xaml.cs`): binds to app-wide default scales
+
+### Scale Propagation
+Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfoManager, ImageIdManager) follows the same pattern:
+1. Holds a `FontScale` property (0.25–4.0).
+2. Stores a `BaseFontSize` or `BaseLabelDiameter` computed from the image or fitted text.
+3. Calls `ApplyScale()` when scale changes, which recomputes visible sizes:
+   - `visibleFontSize = ResolveSize(baseFontSize, scale)` = `baseFontSize * scale`
+   - Updates the corresponding UI style (e.g., `MarkerLabel.Style.FontSize`)
+
+### Fresh-Image & Settings Initialization
+- When a fresh image opens, `LabelManager.SetLabels()` sets `LabelScale = 1.0` (always unscaled).
+- `SettingsManager.ApplyFreshImageDefaults()` applies saved default scale factors to other managers:
+  - `LabelManager.LabelScale = 1.0` (labels always unscaled)
+  - `NameManager.FontScale = DefaultNamesFontScale`
+  - `TitleManager.FontScale = DefaultTitleFontScale`
+  - `ImageInfoManager.FontScale = DefaultImageInfoFontScale`
+  - `ImageIdManager.FontScale = DefaultImageIdFontScale`
+- Users can adjust these defaults in two ways:
+  - **Per-element capture**: Open a formatting dialog (from the right-column UI), adjust the scale with the slider, click "Als Standard übernehmen" (Use as default) to save that element's current scale
+  - **Batch apply**: Open Settings → Schriften tab, adjust default sliders, click "Anwenden" (Apply) to restore all saved defaults to the current image
+- Scale values are displayed as percentages (e.g., "100%", "150%", "75%") next to sliders in both the Settings dialog and formatting dialogs
+- Defaults are persisted in `%AppData%/AutoNum/settings.json`
+- Visibility toggles for names, title, and image-info are set from saved defaults.
+- When a saved AutoNum image is loaded, metadata restores per-image scale overrides and visibility settings instead.
+
 ## Settings Architecture
 - App-wide defaults are persisted in `%AppData%/AutoNum/settings.json`.
 - `SettingsManager` exposes bindable settings in `SettingsWindow` (modal dialog opened from a title-bar gear command).
+- **Schriften (Fonts) tab** allows users to configure:
+  - Explanatory text describing how the app determines base font size from image resolution, and that slider values are factors relative to this base
+  - Scale factor sliders for title, description (image info), image-ID, and names fonts (0.25–4.0 range via exponential mapping)
+  - Percentage display next to each slider showing the current scale factor (100% = base size)
+  - "Anwenden" (Apply) button to restore all saved defaults to the current image
+  - Per-element "Use as default" buttons in formatting dialogs to save individual element scales
+- Other tabs:
+  - **Erkennung** (Detection): Face detection sensitivity and neighborhood settings
+  - **Speichern** (Save): Save-file naming convention toggle
 - Scope:
   - affects **new fresh-image sessions** and detector/save defaults
   - does **not** override per-image values restored from metadata

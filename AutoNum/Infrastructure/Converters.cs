@@ -292,4 +292,37 @@ namespace AutoNumber.Infrastructure
         #endregion
     }
 
+    /// <summary>
+    /// Converts between slider position (0–1) and scale factor (0.25–4.0).
+    /// 
+    /// This is a VIEW-ONLY converter. Model layer should work exclusively with scales.
+    /// Slider position is purely a UI concern; the conversion happens here to keep
+    /// the model clean.
+    /// </summary>
+    public class SliderToScaleConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double scale && double.IsFinite(scale) && scale > 0)
+            {
+                // Model → View: Convert scale to slider position
+                var sliderPos = AutoNumber.Model.SizingModel.ScaleToSlider(scale);
+                return sliderPos;
+            }
+            return 0.5; // Default to center
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double sliderPosition && double.IsFinite(sliderPosition))
+            {
+                // View → Model: Convert slider position to scale
+                var scale = AutoNumber.Model.SizingModel.SliderToScale(sliderPosition);
+                return scale;
+            }
+            return 1.0; // Default to 1.0 scale
+        }
+    }
+
 }
+

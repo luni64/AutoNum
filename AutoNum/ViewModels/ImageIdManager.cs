@@ -13,6 +13,7 @@ public class ImageIdManager : BaseViewModel
         set
         {
             SetProperty(ref _isEnabled, value);
+            ApplyScale();
             OnPropertyChanged(nameof(ShowImageIdLine));
         }
     }
@@ -23,6 +24,7 @@ public class ImageIdManager : BaseViewModel
         set
         {
             SetProperty(ref _imageId, value);
+            ApplyScale();
             OnPropertyChanged(nameof(ShowImageIdLine));
         }
     }
@@ -49,17 +51,19 @@ public class ImageIdManager : BaseViewModel
         private set => SetProperty(ref _fontSize, value);
     }
 
-    public double FontSizeSliderValue
+    /// <summary>
+    /// Font scale factor (0.25–4.0). Model property that drives actual font size.
+    /// </summary>
+    public double FontScale
     {
-        get => _fontSizeSliderValue;
+        get => _fontScale;
         set
         {
-            var clamped = Math.Clamp(value, SizingModel.SliderPercentMin, SizingModel.SliderPercentMax);
-            var changed = _fontSizeSliderValue != clamped;
-            _fontSizeSliderValue = clamped;
-            ApplyScaleFromSlider();
-            if (changed)
+            var clamped = Math.Clamp(value, 0.25, 4.0);
+            if (_fontScale != clamped)
             {
+                _fontScale = clamped;
+                ApplyScale();
                 OnPropertyChanged();
             }
         }
@@ -74,11 +78,11 @@ public class ImageIdManager : BaseViewModel
     public ImageIdManager(LabelManager labelManager)
     {
         _labelManager = labelManager;
-        FontSizeSliderValue = SizingModel.SliderPercentDefault;
+        FontScale = 1.0;
 
         WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
         {
-            ApplyScaleFromSlider();
+            ApplyScale();
         });
 
         WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
@@ -93,11 +97,11 @@ public class ImageIdManager : BaseViewModel
                 ? v3.ImageIdScale
                 : ResolveLegacyScale(md.ImageIdFont.Size > 0 ? md.ImageIdFont.Size : md.NamesFont.Size, md.LabelsFont.Size);
 
-            FontSizeSliderValue = SizingModel.ScaleToSliderPercent(scale);
+            FontScale = scale;
         });
     }
 
-    private void ApplyScaleFromSlider()
+    private void ApplyScale()
     {
         var baseLabelFontSize = _labelManager.BaseLabelFontSize;
         if (baseLabelFontSize <= 0)
@@ -105,7 +109,7 @@ public class ImageIdManager : BaseViewModel
             return;
         }
 
-        FontSize = SizingModel.ResolveSize(baseLabelFontSize, SizingModel.SliderPercentToScale(FontSizeSliderValue));
+        FontSize = SizingModel.ResolveSize(baseLabelFontSize, FontScale);
         LineHeight = ShowImageIdLine
             ? Analyzer.GetTextBlockHeight(ImageId, FontFamily, FontSize) + 10
             : 0;
@@ -120,6 +124,6 @@ public class ImageIdManager : BaseViewModel
     private Color _fontColor = Color.Black;
     private Color _backgroundColor = Color.White;
     private double _fontSize = 1;
-    private double _fontSizeSliderValue = SizingModel.SliderPercentDefault;
+    private double _fontScale = 1.0;
     private double _lineHeight;
 }

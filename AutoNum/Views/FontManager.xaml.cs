@@ -1,11 +1,16 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Media;
 
 namespace AutoNumber.Views
 {
     /// <summary>
     /// Interaction logic for FontManager.xaml
+    /// 
+    /// This control encapsulates slider-based font size control. It accepts a scale property
+    /// (0.25–4.0) from the DataContext and handles conversion to/from slider position (0–1)
+    /// via the SliderToScaleConverter.
     /// </summary>
     public partial class FontManager : UserControl
     {
@@ -33,13 +38,21 @@ namespace AutoNumber.Views
         }
 
 
-        public static readonly DependencyProperty SelectedFontSizeProperty = DependencyProperty.Register(nameof(SelectedFontSize), typeof(double), typeof(FontManager), 
-            new FrameworkPropertyMetadata(100.0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+        public static readonly DependencyProperty SelectedScaleProperty = DependencyProperty.Register(nameof(SelectedScale), typeof(double), typeof(FontManager), 
+            new FrameworkPropertyMetadata(1.0, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault, SelectedScale_Changed));
 
-        public double SelectedFontSize
+        private static void SelectedScale_Changed(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            get { return (double)GetValue(SelectedFontSizeProperty); }
-            set { SetValue(SelectedFontSizeProperty, value); }
+        }
+
+        /// <summary>
+        /// Scale factor (0.25–4.0). The scale applied to the base font size.
+        /// When bound to the Slider, a converter translates between slider position (0–1) and scale.
+        /// </summary>
+        public double SelectedScale
+        {
+            get { return (double)GetValue(SelectedScaleProperty); }
+            set { SetValue(SelectedScaleProperty, value); }
         }
 
 

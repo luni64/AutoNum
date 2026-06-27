@@ -1,54 +1,92 @@
 ﻿<ResourceDictionary 
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    xmlns:view="clr-namespace:AutoNumber.Views"
     xmlns:vm="clr-namespace:AutoNumber.ViewModels"
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
     xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"         
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:is="clr-namespace:AutoNumber.Infrastructure"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:AutoNumber"
     mc:Ignorable="d"    
     >
-        
-    <is:DrawingColToMediaBrush x:Key="ColorConverter"/>
-    <is:BoolToVisibilityConverter x:Key="boo2Vis"/>
-
 
     <DataTemplate DataType="{x:Type vm:TitleManager}">
-        <Border  BorderBrush="DarkGray" BorderThickness="1,0,0,0"   Padding="10,0,10,0">
+        <Border BorderBrush="DarkGray" BorderThickness="1,0,0,0" Padding="10,0,10,0">
             <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                    <RowDefinition Height="auto"/>
-                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="auto"/>
+                </Grid.ColumnDefinitions>
 
+                <TextBox
+                    Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}"
+                    Grid.Column="0"
+                    Height="40"
+                    Margin="0,0,8,10"
+                    mah:TextBoxHelper.Watermark="Überschrift"
+                    mah:TextBoxHelper.UseFloatingWatermark="True"
+                    VerticalContentAlignment="Center"/>
 
-                <mah:ToggleSwitch                    
-                    Content="Überschrift"
-                    IsOn="{Binding IsEnabled}"
-                    Grid.Row="0"             
-                    />
+                <StackPanel
+                    Orientation="Horizontal"
+                    Grid.Column="1"
+                    Margin="0,0,0,0"
+                    VerticalAlignment="Top">
+                    <ToggleButton
+                        Width="28"
+                        Height="28"
+                        ToolTip="Sichtbarkeit"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Padding="0"
+                        FocusVisualStyle="{x:Null}"
+                        IsChecked="{Binding IsEnabled, Mode=TwoWay}">
+                        <ToggleButton.Style>
+                            <Style TargetType="ToggleButton">
+                                <Setter Property="Template">
+                                    <Setter.Value>
+                                        <ControlTemplate TargetType="ToggleButton">
+                                            <Border Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Border>
+                                        </ControlTemplate>
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Content">
+                                    <Setter.Value>
+                                        <iconPacks:PackIconMaterial Width="16" Height="16" Kind="EyeOffOutline"/>
+                                    </Setter.Value>
+                                </Setter>
+                                <Style.Triggers>
+                                    <Trigger Property="IsChecked" Value="True">
+                                        <Setter Property="Content">
+                                            <Setter.Value>
+                                                <iconPacks:PackIconMaterial Width="16" Height="16" Kind="EyeOutline"/>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ToggleButton.Style>
+                    </ToggleButton>
 
-                <TextBox 
-                    Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" TextWrapping="Wrap" AcceptsReturn="True"                    
-                    Grid.Row="1" MinHeight="48" Height="48" Margin="0,5,0,0"                    
-                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"                                    
-                    mah:TextBoxHelper.Watermark="Überschrift" 
-                    VerticalScrollBarVisibility="Auto"
-                    />
-
-                <view:FontManager 
-                    Grid.Row="2" Margin="0,10,0,40"
-                    Visibility="{Binding IsEnabled, Converter={StaticResource boo2Vis}}"
-                    FontColor="{Binding TitleFontColor, Converter={StaticResource ColorConverter}}"
-                    BackgroundColor="{Binding BackgroundColor, Converter={StaticResource ColorConverter}}"
-                    SelectedFontSize="{Binding FontSizeSliderValue}"
-                    
-                    />
-
-
+                    <Button
+                        Width="28"
+                        Height="28"
+                        Margin="3,0,0,0"
+                        ToolTip="Formatierung"
+                        Background="Transparent"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Padding="0"
+                        FocusVisualStyle="{x:Null}"
+                        Command="{x:Static local:MainWindow.OpenFormatDialogCommand}"
+                        CommandParameter="{Binding}">
+                        <iconPacks:PackIconMaterial Kind="FormatFont" Width="16" Height="16"/>
+                    </Button>
+                </StackPanel>
             </Grid>
         </Border>
     </DataTemplate>

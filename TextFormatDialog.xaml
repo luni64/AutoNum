@@ -1,0 +1,39 @@
+<mah:MetroWindow x:Class="AutoNumber.Views.TextFormatDialog"
+                 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+                 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+                 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:view="clr-namespace:AutoNumber.Views"
+                 mc:Ignorable="d"
+                 Title="Formatierung"
+                 Width="420"
+                 Height="180"
+                 ShowInTaskbar="False"
+                 WindowStartupLocation="CenterOwner"
+                 ResizeMode="NoResize">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+
+        <view:FontManager x:Name="FontManagerControl"
+                          Grid.Row="0"/>
+
+        <StackPanel Grid.Row="1"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="0,16,0,0">
+            <Button x:Name="UseAsDefaultButton"
+                    Content="Als Standard übernehmen"
+                    Width="140"
+                    Margin="0,0,8,0"
+                    Click="UseAsDefault_Click"
+                    Visibility="Collapsed"/>
+            <Button Content="Schließen"
+                    Width="110"
+                    Click="Close_Click"/>
+        </StackPanel>
+    </Grid>
+</mah:MetroWindow>

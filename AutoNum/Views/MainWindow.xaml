@@ -16,6 +16,12 @@
         d:DataContext="{d:DesignInstance Type=vm:MainVM}"
         Height="600" Width="1100">
 
+    <Window.CommandBindings>
+        <CommandBinding Command="{x:Static local:MainWindow.OpenFormatDialogCommand}"
+                        Executed="OpenFormatDialog_Executed"
+                        CanExecute="OpenFormatDialog_CanExecute"/>
+    </Window.CommandBindings>
+
     <mah:MetroWindow.RightWindowCommands>
         <mah:WindowCommands>
             <Button Click="OpenSettings_Click" ToolTip="Einstellungen" Style="{StaticResource MahApps.Styles.Button.WindowCommands}">
@@ -73,7 +79,7 @@
             <ContentControl DockPanel.Dock="Top" Content="{Binding TitleManager}"/>
             <ContentControl DockPanel.Dock="Top" Content="{Binding ImageInfoManager}"/>
             <ContentControl DockPanel.Dock="Top" Content="{Binding ImageIdManager}"/>
-            <ContentControl DockPanel.Dock="Top" Content="{Binding NameManager}"/>
+            <ContentControl Content="{Binding NameManager}"/>
         </DockPanel>
 
     </Grid>

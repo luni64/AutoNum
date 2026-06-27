@@ -4,6 +4,7 @@
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:Infrastructure="clr-namespace:AutoNumber.Infrastructure"
                  mc:Ignorable="d"
                  Title="Einstellungen"
                  Width="560"
@@ -11,6 +12,9 @@
                  ShowInTaskbar="False"
                  WindowStartupLocation="CenterOwner"
                  ResizeMode="CanResizeWithGrip">
+    <mah:MetroWindow.Resources>
+        <Infrastructure:SliderToScaleConverter x:Key="SliderToScaleConverter"/>
+    </mah:MetroWindow.Resources>
     <Grid Margin="16">
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -18,24 +22,66 @@
         </Grid.RowDefinitions>
 
         <TabControl Grid.Row="0">
-            <TabItem Header="Standards">
-                <StackPanel Margin="12">
-                    <mah:ToggleSwitch Margin="0,0,0,10"
-                                      IsOn="{Binding DefaultNamesEnabled}"
-                                      Content="Namensliste standardmäßig aktiv"/>
-                    <mah:ToggleSwitch Margin="0,0,0,14"
-                                      IsOn="{Binding DefaultTitleEnabled}"
-                                      Content="Überschrift standardmäßig aktiv"/>
+            <TabItem Header="Schriften">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="Standardwerte für neue Bilder" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
-                    <TextBlock Text="Standard Labelgröße (100% = empfohlene Basis)" Margin="0,0,0,4"/>
-                    <Slider Minimum="25" Maximum="200" TickFrequency="25" Value="{Binding DefaultLabelDiameterSlider, Mode=TwoWay}" Margin="0,0,0,14"/>
+                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="#666666" FontSize="12">
+                            Die App bestimmt beim Laden eines neuen Bildes automatisch eine Basis-Schriftgröße basierend auf der Auflösung des Bildes. Die folgenden Werte sind Faktoren relativ zu dieser Basis-Schriftgröße (100% = Basis-Schriftgröße).
+                        </TextBlock>
 
-                    <TextBlock Text="Standard Namensschrift (100% = Label-Basis)" Margin="0,0,0,4"/>
-                    <Slider Minimum="25" Maximum="200" TickFrequency="25" Value="{Binding DefaultNamesFontSlider, Mode=TwoWay}" Margin="0,0,0,14"/>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="70"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Titel" Margin="0,0,0,4"/>
+                                <Slider Minimum="0" Maximum="1" Value="{Binding DefaultTitleFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="8,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultTitleFontScale, StringFormat={}{0:P0}}"/>
+                        </Grid>
 
-                    <TextBlock Text="Standard Titelschrift (100% = Label-Basis)" Margin="0,0,0,4"/>
-                    <Slider Minimum="25" Maximum="200" TickFrequency="25" Value="{Binding DefaultTitleFontSlider, Mode=TwoWay}"/>
-                </StackPanel>
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="70"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Beschreibung" Margin="0,0,0,4"/>
+                                <Slider Minimum="0" Maximum="1" Value="{Binding DefaultImageInfoFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="8,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultImageInfoFontScale, StringFormat={}{0:P0}}"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="70"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Bild-ID" Margin="0,0,0,4"/>
+                                <Slider Minimum="0" Maximum="1" Value="{Binding DefaultImageIdFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="8,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultImageIdFontScale, StringFormat={}{0:P0}}"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="70"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Namensliste" Margin="0,0,0,4"/>
+                                <Slider Minimum="0" Maximum="1" Value="{Binding DefaultNamesFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
+                            </StackPanel>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="8,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultNamesFontScale, StringFormat={}{0:P0}}"/>
+                        </Grid>
+
+                        <Button Content="Anwenden" Padding="8,4" Margin="0,8,0,0" Click="Apply_Click"/>
+                    </StackPanel>
+                </ScrollViewer>
             </TabItem>
 
             <TabItem Header="Erkennung">
@@ -61,5 +107,3 @@
         </StackPanel>
     </Grid>
 </mah:MetroWindow>
-
-    

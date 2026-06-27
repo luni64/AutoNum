@@ -20,7 +20,7 @@
 
             <view:FontManager
                 Grid.Column="0"
-                SelectedFontSize="{Binding Diameter}"
+                SelectedScale="{Binding LabelScale}"
                 FontColor="{Binding FontColor, Mode=TwoWay,  Converter={StaticResource ColorConverter} }"
                 BackgroundColor="{Binding BackgroundColor, Mode=TwoWay,  Converter={StaticResource ColorConverter} }"
                 />

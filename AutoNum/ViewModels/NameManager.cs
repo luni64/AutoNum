@@ -66,19 +66,22 @@ namespace AutoNumber.ViewModels
             set => SetProperty(ref _backgroundColor, value);
         }
 
-        double _fontSizeSliderValue = SizingModel.SliderPercentDefault;
-        public double FontSizeSliderValue
+        /// <summary>
+        /// Font scale factor (0.25–4.0). Model property that drives actual font size.
+        /// This is what the UI should bind to, with slider-position conversion happening in XAML.
+        /// </summary>
+        double _fontScale = 1.0;
+        public double FontScale
         {
-            get => _fontSizeSliderValue;
+            get => _fontScale;
             set
             {
-                var clamped = Math.Clamp(value, SizingModel.SliderPercentMin, SizingModel.SliderPercentMax);
-                var changed = _fontSizeSliderValue != clamped;
-                _fontSizeSliderValue = clamped;
-                ApplyScaleFromSlider();
-                ShowNames();
-                if (changed)
+                var clamped = Math.Clamp(value, 0.25, 4.0);
+                if (_fontScale != clamped)
                 {
+                    _fontScale = clamped;
+                    ApplyScale();
+                    ShowNames();
                     OnPropertyChanged();
                 }
             }
@@ -107,12 +110,12 @@ namespace AutoNumber.ViewModels
             PersonsView.SortDescriptions.Add(new SortDescription("Label.Number", ListSortDirection.Ascending));
             PersonsView.CollectionChanged += PersonsView_CollectionChanged;
 
-            FontSizeSliderValue = SizingModel.SliderPercentDefault;
+            FontScale = 1.0; // Initialize to default scale
 
             WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
             {
                 Refresh();
-                ApplyScaleFromSlider();
+                ApplyScale();
                 ShowNames();
             });
 
@@ -127,7 +130,7 @@ namespace AutoNumber.ViewModels
                     ? v3.NameScale
                     : ResolveLegacyScale(md.NamesFont.Size, md.LabelsFont.Size);
 
-                FontSizeSliderValue = SizingModel.ScaleToSliderPercent(scale);
+                FontScale = scale;
                 IsEnabled = _imageVM.Persons.Count > 0 && (md.NamesEnabled ?? true);
                 ShowNames();
             });
@@ -175,7 +178,7 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        private void ApplyScaleFromSlider()
+        private void ApplyScale()
         {
             var baseLabelFontSize = _labelManager.BaseLabelFontSize;
             if (baseLabelFontSize <= 0)
@@ -183,7 +186,7 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            TextLabel.Style.FontSize = SizingModel.ResolveSize(baseLabelFontSize, SizingModel.SliderPercentToScale(FontSizeSliderValue));
+            TextLabel.Style.FontSize = SizingModel.ResolveSize(baseLabelFontSize, FontScale);
         }
 
         private static double ResolveLegacyScale(double actualNameFontSize, double legacyLabelFontSize)

@@ -19,17 +19,19 @@ public class ImageInfoManager : BaseViewModel
         set => SetProperty(ref _isEnabled, value);
     }
 
-    public double FontSizeSliderValue
+    /// <summary>
+    /// Font scale factor (0.25–4.0). Model property that drives actual font size.
+    /// </summary>
+    public double FontScale
     {
-        get => _fontSizeSliderValue;
+        get => _fontScale;
         set
         {
-            var clamped = Math.Clamp(value, SizingModel.SliderPercentMin, SizingModel.SliderPercentMax);
-            var changed = _fontSizeSliderValue != clamped;
-            _fontSizeSliderValue = clamped;
-            ApplyScaleFromSlider();
-            if (changed)
+            var clamped = Math.Clamp(value, 0.25, 4.0);
+            if (_fontScale != clamped)
             {
+                _fontScale = clamped;
+                ApplyScale();
                 OnPropertyChanged();
             }
         }
@@ -58,11 +60,11 @@ public class ImageInfoManager : BaseViewModel
     public ImageInfoManager(LabelManager labelManager)
     {
         _labelManager = labelManager;
-        FontSizeSliderValue = SizingModel.SliderPercentDefault;
+        FontScale = 1.0;
 
         WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
         {
-            ApplyScaleFromSlider();
+            ApplyScale();
         });
 
         WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
@@ -75,13 +77,13 @@ public class ImageInfoManager : BaseViewModel
                 ? v3.ImageInfoScale
                 : ResolveLegacyScale(md.ImageInfoFont.Size, md.LabelsFont.Size);
 
-            FontSizeSliderValue = SizingModel.ScaleToSliderPercent(scale);
+            FontScale = scale;
             ImageInfo = md.ImageInfo;
             IsEnabled = md.ImageInfoEnabled ?? !string.IsNullOrEmpty(md.ImageInfo);
         });
     }
 
-    private void ApplyScaleFromSlider()
+    private void ApplyScale()
     {
         var baseLabelFontSize = _labelManager.BaseLabelFontSize;
         if (baseLabelFontSize <= 0)
@@ -89,7 +91,7 @@ public class ImageInfoManager : BaseViewModel
             return;
         }
 
-        ImageInfoFontSize = SizingModel.ResolveSize(baseLabelFontSize, SizingModel.SliderPercentToScale(FontSizeSliderValue));
+        ImageInfoFontSize = SizingModel.ResolveSize(baseLabelFontSize, FontScale);
     }
 
     private static double ResolveLegacyScale(double actualInfoFontSize, double legacyLabelFontSize)
@@ -99,7 +101,7 @@ public class ImageInfoManager : BaseViewModel
 
     private readonly LabelManager _labelManager;
     private bool _isEnabled;
-    private double _fontSizeSliderValue = SizingModel.SliderPercentDefault;
+    private double _fontScale = 1.0;
     private string _imageInfo = string.Empty;
     private Color _fontColor = Color.Black;
     private double _fontSize = 1;
