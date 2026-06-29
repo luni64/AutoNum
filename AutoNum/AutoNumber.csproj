@@ -21,6 +21,7 @@
     <PackageReference Include="MahApps.Metro.IconPacks.BoxIcons" Version="5.1.0" />
     <PackageReference Include="MahApps.Metro.IconPacks.JamIcons" Version="5.1.0" />
     <PackageReference Include="MahApps.Metro.IconPacks.Material" Version="5.1.0" />
+    <PackageReference Include="QuestPDF" Version="2026.6.1" />
   </ItemGroup>
 
   <ItemGroup>

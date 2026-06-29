@@ -128,6 +128,19 @@ namespace AutoNumber.Model
             return new PatchData(rect.X, rect.Y, rect.Width, rect.Height, ms.ToArray());
         }
 
+        internal static Bitmap? ToPhotoWithLabelsBitmap(this ImageVM model)
+        {
+            if (model?.Bitmap is null)
+            {
+                return null;
+            }
+
+            var labels = model.Persons.Select(p => p.Label).ToList();
+            var bitmap = new Bitmap(model.Bitmap);
+            drawLabels(labels, bitmap, 0);
+            return bitmap;
+        }
+
         internal static NumberedBitmapResult? ToNumberedBitmap(this ImageVM model, LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
         {
             if (model?.Bitmap is null) return null;

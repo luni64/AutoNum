@@ -5,8 +5,16 @@ using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
+using DrawingImageFormat = System.Drawing.Imaging.ImageFormat;
+using System.Globalization;
 using System.IO;
+using System.Linq;
+using System.Text;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
+using System.Text.Encodings.Web;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace AutoNumber.ViewModels
 {
@@ -27,6 +35,24 @@ namespace AutoNumber.ViewModels
 
     public class FileManager(MainVM parent) : BaseViewModel
     {
+        public bool ExportCsvMetadata
+        {
+            get => _exportCsvMetadata;
+            set => SetProperty(ref _exportCsvMetadata, value);
+        }
+
+        public bool ExportJsonMetadata
+        {
+            get => _exportJsonMetadata;
+            set => SetProperty(ref _exportJsonMetadata, value);
+        }
+
+        public bool ExportPdfMetadata
+        {
+            get => _exportPdfMetadata;
+            set => SetProperty(ref _exportPdfMetadata, value);
+        }
+
         public RelayCommand OpenImageCommand => _openImageCommand ??= new(ExecuteOpenImage);
         async void ExecuteOpenImage(object? o)
         {
@@ -129,15 +155,213 @@ namespace AutoNumber.ViewModels
 
                 // Encode bitmap to JPEG in memory, then inject APP4 patch segments
                 using var jpegStream = new MemoryStream();
-                result.Bitmap.Save(jpegStream, ImageFormat.Jpeg);
+                result.Bitmap.Save(jpegStream, DrawingImageFormat.Jpeg);
                 var jpegBytes = jpegStream.ToArray();
 
                 var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
                 File.WriteAllBytes(filename, finalBytes);
                 parent.PictureVM.CurrentImageFilename = filename;
+
+                var exportData = BuildExportData();
+                exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
+                WriteMetadataSidecars(filename, exportData);
             }
         }
 
+
+        private SidecarExportData BuildExportData()
+        {
+            var persons = parent.PictureVM.Persons
+                .OrderBy(p => p.Label.Number)
+                .Select(p => new SidecarPerson
+                {
+                    Number = p.Label.Number,
+                    Name = string.IsNullOrWhiteSpace(p.Name.Text) ? "unbekannt" : p.Name.Text
+                })
+                .ToList();
+
+            return new SidecarExportData
+            {
+                Title = parent.TitleManager.Title ?? string.Empty,
+                Description = parent.ImageInfoManager.ImageInfo ?? string.Empty,
+                Id = parent.ImageIdManager.ImageId ?? string.Empty,
+                Persons = persons
+            };
+        }
+
+        private void WriteMetadataSidecars(string imageFilename, SidecarExportData exportData)
+        {
+            if (ExportCsvMetadata)
+            {
+                try
+                {
+                    var csvPath = Path.ChangeExtension(imageFilename, ".csv");
+                    WriteCsv(csvPath, exportData);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Error writing CSV sidecar: {ex}");
+                }
+            }
+
+            if (ExportJsonMetadata)
+            {
+                try
+                {
+                    var jsonPath = Path.ChangeExtension(imageFilename, ".json");
+                    WriteJson(jsonPath, exportData);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Error writing JSON sidecar: {ex}");
+                }
+            }
+
+            if (ExportPdfMetadata)
+            {
+                try
+                {
+                    var pdfPath = Path.ChangeExtension(imageFilename, ".pdf");
+                    WritePdf(pdfPath, exportData);
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"Error writing PDF sidecar: {ex}");
+                    parent.DialogService.ShowDialog($"PDF-Export fehlgeschlagen: {ex.Message}");
+                }
+            }
+        }
+
+        private static void WriteCsv(string filename, SidecarExportData exportData)
+        {
+            var builder = new StringBuilder();
+            builder.AppendLine($"GeneratedAt;{EscapeCsv(exportData.GeneratedAt)}");
+            builder.AppendLine($"Title;{EscapeCsv(exportData.Title)}");
+            builder.AppendLine($"Description;{EscapeCsv(exportData.Description)}");
+            builder.AppendLine($"ID;{EscapeCsv(exportData.Id)}");
+            builder.AppendLine();
+            builder.AppendLine("Number;Name");
+
+            foreach (var person in exportData.Persons)
+            {
+                builder.AppendLine($"{person.Number};{EscapeCsv(person.Name)}");
+            }
+
+            File.WriteAllText(filename, builder.ToString(), new UTF8Encoding(true));
+        }
+
+        private static void WriteJson(string filename, SidecarExportData exportData)
+        {
+            var options = new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            };
+
+            var json = JsonSerializer.Serialize(exportData, options);
+            File.WriteAllText(filename, json, new UTF8Encoding(true));
+        }
+
+        private static string EscapeCsv(string value)
+        {
+            var text = value ?? string.Empty;
+            var mustQuote = text.Contains(';') || text.Contains('"') || text.Contains('\n') || text.Contains('\r');
+            if (!mustQuote)
+            {
+                return text;
+            }
+
+            return $"\"{text.Replace("\"", "\"\"")}\"";
+        }
+
+        private void WritePdf(string filename, SidecarExportData exportData)
+        {
+            byte[]? photoBytes = null;
+            using (var photoWithLabels = parent.PictureVM.ToPhotoWithLabelsBitmap())
+            {
+                if (photoWithLabels is not null)
+                {
+                    using var imageStream = new MemoryStream();
+                    photoWithLabels.Save(imageStream, DrawingImageFormat.Jpeg);
+                    photoBytes = imageStream.ToArray();
+                }
+            }
+
+            var heading = string.IsNullOrWhiteSpace(exportData.Title) ? "Ohne Titel" : exportData.Title;
+            var hasId = !string.IsNullOrWhiteSpace(exportData.Id);
+            var hasDescription = !string.IsNullOrWhiteSpace(exportData.Description);
+
+            var createdDate = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
+                ? generatedAt.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"))
+                : DateTime.Now.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"));
+
+            Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    page.Size(PageSizes.A4);
+                    page.Margin(30);
+                    page.DefaultTextStyle(x => x.FontFamily("Helvetica").FontSize(10));
+
+                    page.Content().Column(column =>
+                    {
+                        column.Spacing(10);
+
+                        column.Item().AlignRight().Text(createdDate);
+
+                        column.Item().Text(heading).FontSize(20).SemiBold();
+
+                        if (hasId)
+                        {
+                            column.Item().PaddingTop(12).Text($"Bild-ID: {exportData.Id}").FontSize(11);
+                        }
+
+                        if (hasDescription)
+                        {
+                            column.Item().PaddingTop(8).Text("Beschreibung").FontSize(13).SemiBold();
+                            column.Item().Text(exportData.Description);
+                        }
+
+                        if (photoBytes is not null)
+                        {
+                            const float maxImageWidth = 428f;
+                            const float maxImageHeight = 320f;
+
+                            column.Item()
+                                .PaddingTop(8)
+                                .AlignCenter()
+                                .MaxWidth(maxImageWidth)
+                                .MaxHeight(maxImageHeight)
+                                .Image(photoBytes)
+                                .FitArea();
+                        }
+
+                        column.Item().PaddingTop(8).Text("Namensliste").FontSize(14).SemiBold();
+
+                        column.Item().Table(table =>
+                        {
+                            table.ColumnsDefinition(cols =>
+                            {
+                                cols.ConstantColumn(80);
+                                cols.RelativeColumn();
+                            });
+
+                            table.Header(header =>
+                            {
+                                header.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text("Nummer").SemiBold();
+                                header.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text("Name").SemiBold();
+                            });
+
+                            foreach (var person in exportData.Persons)
+                            {
+                                table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(person.Number.ToString());
+                                table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(person.Name);
+                            }
+                        });
+                    });
+                });
+            }).GeneratePdf(filename);
+        }
 
         private async Task openFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm, string currentFilename)
         {
@@ -213,5 +437,35 @@ namespace AutoNumber.ViewModels
         private MainVM parent { get; set; } = parent;
         private RelayCommand? _openImageCommand;
         private RelayCommand? _saveImageCommand;
+        private bool _exportCsvMetadata;
+        private bool _exportJsonMetadata;
+        private bool _exportPdfMetadata;
+
+        private sealed class SidecarExportData
+        {
+            [JsonPropertyName("generatedAt")]
+            public string GeneratedAt { get; set; } = string.Empty;
+
+            [JsonPropertyName("title")]
+            public string Title { get; set; } = string.Empty;
+
+            [JsonPropertyName("description")]
+            public string Description { get; set; } = string.Empty;
+
+            [JsonPropertyName("id")]
+            public string Id { get; set; } = string.Empty;
+
+            [JsonPropertyName("persons")]
+            public List<SidecarPerson> Persons { get; set; } = [];
+        }
+
+        private sealed class SidecarPerson
+        {
+            [JsonPropertyName("number")]
+            public int Number { get; set; }
+
+            [JsonPropertyName("name")]
+            public string Name { get; set; } = string.Empty;
+        }
     }
 }

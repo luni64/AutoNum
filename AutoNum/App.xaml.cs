@@ -15,6 +15,8 @@ namespace AutoNumber
         {
             try
             {
+                global::QuestPDF.Settings.License = global::QuestPDF.Infrastructure.LicenseType.Community;
+
                 var mainVM = new MainVM(dialogService);
                 var mainWin = new MainWindow(mainVM);
                 mainWin.Show();

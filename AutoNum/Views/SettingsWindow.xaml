@@ -21,14 +21,14 @@
             <RowDefinition Height="auto"/>
         </Grid.RowDefinitions>
 
-        <TabControl Grid.Row="0">
-            <TabItem Header="Schriften">
+        <TabControl Grid.Row="0" TabStripPlacement="Left" mah:HeaderedControlHelper.HeaderFontSize="16">			
+            <TabItem Header="Formattierung">
                 <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="12">
+                    <StackPanel Margin="3">
                         <TextBlock Text="Standardwerte für neue Bilder" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
                         <TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="#666666" FontSize="12">
-                            Die App bestimmt beim Laden eines neuen Bildes automatisch eine Basis-Schriftgröße basierend auf der Auflösung des Bildes. Die folgenden Werte sind Faktoren relativ zu dieser Basis-Schriftgröße (100% = Basis-Schriftgröße).
+                            AutoNumber bestimmt beim Laden eines Bildes automatisch eine Basis-Schriftgröße basierend auf der Auflösung und Größe des Bildes. Mit dem Schieberegler können Sie Faktoren relativ zu dieser Basis-Schriftgröße einstellen (100% = Basis-Schriftgröße).
                         </TextBlock>
 
                         <Grid Margin="0,0,0,14">
@@ -79,7 +79,7 @@
                             <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="5,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultNamesFontScale, StringFormat={}{0:P0}}"/>
                         </Grid>
 
-                        <Button Content="Anwenden" Padding="8,4" Margin="0,8,0,0" Click="Apply_Click"/>
+                        <Button Content="Anwenden" Padding="8,4" Margin="0,8,0,0" Click="Apply_Click" ToolTip="Übernimmt die Standardwerte für das aktuelle Bild"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
@@ -98,7 +98,7 @@
                         <mah:ToggleSwitch IsOn="{Binding DefaultImageIdEnabled}" Content="Bild-ID anzeigen" Margin="0,0,0,10"/>
                         <mah:ToggleSwitch IsOn="{Binding DefaultNamesEnabled}" Content="Namensliste anzeigen"/>
 
-                        <Button Content="Anwenden" Padding="8,4" Margin="0,12,0,0" Click="ApplyVisibility_Click"/>
+                        <Button Content="Anwenden" Padding="8,4" Margin="0,12,0,0" Click="ApplyVisibility_Click" />
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
