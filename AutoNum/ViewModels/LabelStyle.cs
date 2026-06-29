@@ -38,11 +38,16 @@ public class LabelStyle : BaseViewModel
         set => SetProperty(ref _backgroundColor, value);
     }
 
-    public FontFamily FontFamily { get; } = new FontFamily("Calibri");
+    public FontFamily FontFamily
+    {
+        get => _fontFamily;
+        set => SetProperty(ref _fontFamily, value);
+    }
 
     private float _diameter;
     private double _fontSize = 12;
     private Color _fontColor = Color.Black;
     private Color _edgeColor = Color.White;
     private Color _backgroundColor = Color.Green;
+    private FontFamily _fontFamily = new("Calibri");
 }

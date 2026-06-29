@@ -58,15 +58,30 @@ namespace AutoNumber.ViewModels
         {
             try
             {
-                if (!GetFilename(out string filename)) return;
+                if (!GetFilename(out string filename))
+                {
+                    return;
+                }
 
+                Trace.WriteLine($"OpenImage: start '{filename}'");
                 var pvm = parent.PictureVM;
+
+                if (string.Equals(Path.GetExtension(filename), ".pdf", StringComparison.OrdinalIgnoreCase))
+                {
+                    Trace.WriteLine("OpenImage: detected PDF input");
+                    OpenFromPdfFile(filename, pvm);
+                    Trace.WriteLine("OpenImage: PDF import completed");
+                    return;
+                }
+
                 var bitmap = BitmapExtensions.LoadBitmapFromFile(filename);
                 bitmap.ApplyExifOrientation();
                 var metadata = bitmap.GetMetadata();
+                Trace.WriteLine($"OpenImage: metadata version = '{metadata?.Version ?? "none"}'");
 
                 if (metadata is null)  // not written by AutoNumber => use as original image
                 {
+                    Trace.WriteLine("OpenImage: no AutoNum metadata, running face detection");
                     var faces = FaceDetector.Detect(bitmap);
                     pvm.OriginalImageFilename = filename;
                     pvm.CurrentImageFilename = filename;
@@ -75,6 +90,7 @@ namespace AutoNumber.ViewModels
                     pvm.Init();
                     WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
                     parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+                    Trace.WriteLine($"OpenImage: fresh image initialized with {faces.Count} detected face(s)");
                 }
                 else if (metadata is AutoNumMetaData_V2 v2)
                 {
@@ -84,6 +100,7 @@ namespace AutoNumber.ViewModels
 
                     if (patches is not null && patches.Count > 0)
                     {
+                        Trace.WriteLine($"OpenImage: metadata restore from JPEG APP4 patches ({patches.Count} patch(es))");
                         var restored = bitmap.RestoreFromPatches(v2, patches);
                         bitmap.Dispose();
 
@@ -92,6 +109,8 @@ namespace AutoNumber.ViewModels
                         pvm.OriginalImageFilename = string.IsNullOrWhiteSpace(v2.OriginalImage) ? filename : v2.OriginalImage;
                         pvm.CurrentImageFilename = filename;
                         pvm.InitFromMetadata(v2);
+                        RefreshPreviewAfterMetadataLoad("OpenImage/JPEG");
+                        Trace.WriteLine("OpenImage: metadata restore from JPEG completed");
                     }
                     else
                     {
@@ -111,7 +130,7 @@ namespace AutoNumber.ViewModels
                 Trace.WriteLine($"Error opening image: {ex}");
                 try
                 {
-                    await parent.DialogCoordinator!.ShowMessageAsync(parent, "Fehler", "Fehler beim Öffnen des Bildes");
+                    await parent.DialogCoordinator!.ShowMessageAsync(parent, "Fehler", $"Fehler beim Öffnen des Bildes: {ex.Message}");
                 }
                 catch (Exception dlgEx)
                 {
@@ -164,7 +183,7 @@ namespace AutoNumber.ViewModels
 
                 var exportData = BuildExportData();
                 exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
-                WriteMetadataSidecars(filename, exportData);
+                WriteMetadataSidecars(filename, exportData, result);
             }
         }
 
@@ -189,7 +208,7 @@ namespace AutoNumber.ViewModels
             };
         }
 
-        private void WriteMetadataSidecars(string imageFilename, SidecarExportData exportData)
+        private void WriteMetadataSidecars(string imageFilename, SidecarExportData exportData, NumberedBitmapResult numberedBitmapResult)
         {
             if (ExportCsvMetadata)
             {
@@ -222,7 +241,7 @@ namespace AutoNumber.ViewModels
                 try
                 {
                     var pdfPath = Path.ChangeExtension(imageFilename, ".pdf");
-                    WritePdf(pdfPath, exportData);
+                    WritePdf(pdfPath, exportData, numberedBitmapResult);
                 }
                 catch (Exception ex)
                 {
@@ -274,7 +293,7 @@ namespace AutoNumber.ViewModels
             return $"\"{text.Replace("\"", "\"\"")}\"";
         }
 
-        private void WritePdf(string filename, SidecarExportData exportData)
+        private void WritePdf(string filename, SidecarExportData exportData, NumberedBitmapResult numberedBitmapResult)
         {
             byte[]? photoBytes = null;
             using (var photoWithLabels = parent.PictureVM.ToPhotoWithLabelsBitmap())
@@ -294,6 +313,8 @@ namespace AutoNumber.ViewModels
             var createdDate = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
                 ? generatedAt.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"))
                 : DateTime.Now.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"));
+
+            using var pdfStream = new MemoryStream();
 
             Document.Create(container =>
             {
@@ -342,29 +363,95 @@ namespace AutoNumber.ViewModels
                         {
                             table.ColumnsDefinition(cols =>
                             {
-                                cols.ConstantColumn(80);
+                                cols.ConstantColumn(NamesTableLayout.PdfNumberColumnWidth);
                                 cols.RelativeColumn();
                             });
 
                             table.Header(header =>
                             {
-                                header.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text("Nummer").SemiBold();
-                                header.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text("Name").SemiBold();
+                                header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Nummer").SemiBold();
+                                header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Name").SemiBold();
                             });
 
                             foreach (var person in exportData.Persons)
                             {
-                                table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(person.Number.ToString());
-                                table.Cell().Border(0.5f).BorderColor(Colors.Grey.Lighten2).Padding(4).Text(person.Name);
+                                table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Number.ToString());
+                                table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Name);
                             }
                         });
                     });
                 });
-            }).GeneratePdf(filename);
+            }).GeneratePdf(pdfStream);
+
+            var metadata = new AutoNumMetaData_V3(parent.PictureVM, parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+            using var compositeStream = new MemoryStream();
+            numberedBitmapResult.Bitmap.Save(compositeStream, DrawingImageFormat.Jpeg);
+
+            var payloadZip = PdfPayloadStore.CreatePayloadZip(new PdfPayloadData
+            {
+                Metadata = metadata,
+                CompositeImageBytes = compositeStream.ToArray(),
+                Patches = [.. numberedBitmapResult.Patches]
+            });
+
+            if (!PdfPayloadStore.TryReadPayloadZip(payloadZip, out var payloadCheck)
+                || payloadCheck is null
+                || payloadCheck.Metadata is null
+                || payloadCheck.Patches.Count != numberedBitmapResult.Patches.Count)
+            {
+                throw new InvalidDataException("Die PDF-Nutzdaten konnten nicht verifiziert werden.");
+            }
+
+            var finalPdfBytes = PdfPayloadStore.EmbedPayload(pdfStream.ToArray(), payloadZip);
+            File.WriteAllBytes(filename, finalPdfBytes);
+        }
+
+        private void OpenFromPdfFile(string pdfFilename, ImageVM pvm)
+        {
+            Trace.WriteLine($"OpenFromPdfFile: reading '{pdfFilename}'");
+            var pdfBytes = File.ReadAllBytes(pdfFilename);
+            if (!PdfPayloadStore.TryExtractPayload(pdfBytes, out var payloadZipBytes) || payloadZipBytes is null)
+            {
+                throw new InvalidDataException("Die PDF enthält keine editierbaren AutoNum-Daten.");
+            }
+
+            Trace.WriteLine($"OpenFromPdfFile: extracted payload zip ({payloadZipBytes.Length} bytes)");
+            if (!PdfPayloadStore.TryReadPayloadZip(payloadZipBytes, out var payload) || payload is null)
+            {
+                throw new InvalidDataException("Die eingebetteten AutoNum-Daten in der PDF sind ungültig.");
+            }
+
+            Trace.WriteLine($"OpenFromPdfFile: payload metadata version '{payload.Metadata.Version}', patches={payload.Patches.Count}");
+
+            using var compositeStream = new MemoryStream(payload.CompositeImageBytes);
+            using var compositeSource = new Bitmap(compositeStream);
+            using var compositeBitmap = new Bitmap(compositeSource);
+
+            Bitmap restoredBitmap;
+            if (payload.Metadata is AutoNumMetaData_V2 v2)
+            {
+                restoredBitmap = compositeBitmap.RestoreFromPatches(v2, payload.Patches);
+            }
+            else
+            {
+                restoredBitmap = new Bitmap(compositeBitmap);
+            }
+
+            pvm.OriginalPropertyItems = restoredBitmap.PropertyItems;
+            pvm.Bitmap = restoredBitmap;
+            pvm.OriginalImageFilename = string.IsNullOrWhiteSpace(payload.Metadata.OriginalImage)
+                ? pdfFilename
+                : payload.Metadata.OriginalImage;
+            pvm.CurrentImageFilename = pdfFilename;
+            pvm.InitFromMetadata(payload.Metadata);
+            RefreshPreviewAfterMetadataLoad("OpenFromPdfFile");
+            Trace.WriteLine("OpenFromPdfFile: metadata initialization completed");
         }
 
         private async Task openFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm, string currentFilename)
         {
+            Trace.WriteLine($"openFromOriginalFile: requested original '{metadata.OriginalImage}'");
+
             if (!File.Exists(metadata.OriginalImage))
             {
                 string imagePath = await AskForOriginalFilename(metadata.OriginalImage);
@@ -380,6 +467,8 @@ namespace AutoNumber.ViewModels
             pvm.OriginalImageFilename = metadata.OriginalImage;
             pvm.CurrentImageFilename = currentFilename;
             pvm.InitFromMetadata(metadata);
+            RefreshPreviewAfterMetadataLoad("openFromOriginalFile");
+            Trace.WriteLine("openFromOriginalFile: metadata initialization completed");
         }
 
         private async Task<string> AskForOriginalFilename(string orignalFilename)
@@ -414,12 +503,19 @@ namespace AutoNumber.ViewModels
         {
             var info = new OpenFileInfo
             {
-                Filter = "All Image Files (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|All Files (*.*)|*.*",
-                FilterIndex = 1, // Sets "All Image Files" as the default filter                
+                Filter = "AutoNum Dateien (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif;*.pdf)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif;*.pdf|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|PDF Files (*.pdf)|*.pdf|All Files (*.*)|*.*",
+                FilterIndex = 1, // Sets AutoNum-compatible files as the default filter                
             };
 
             filename = parent.DialogService.ShowDialog(info) as string ?? string.Empty;            
             return  !string.IsNullOrEmpty(filename);
+        }
+
+        private void RefreshPreviewAfterMetadataLoad(string source)
+        {
+            Trace.WriteLine($"RefreshPreviewAfterMetadataLoad: source={source}");
+            parent.NameManager.Refresh();
+            parent.NameManager.ShowNames();
         }
 
         private static bool IsProtectedOriginalPath(string selectedPath, string protectedOriginalPath)

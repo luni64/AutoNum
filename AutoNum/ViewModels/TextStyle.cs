@@ -20,8 +20,13 @@ public class TextStyle : BaseViewModel
         set => SetProperty(ref _fontColor, value);
     }
 
-    public FontFamily FontFamily { get; } = new FontFamily("Calibri");
+    public FontFamily FontFamily
+    {
+        get => _fontFamily;
+        set => SetProperty(ref _fontFamily, value);
+    }
 
-    private double _fontSize;
+    private double _fontSize = 12;
     private Color _fontColor = Color.Black;
+    private FontFamily _fontFamily = new("Calibri");
 }

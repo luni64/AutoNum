@@ -1,6 +1,7 @@
 using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace AutoNumber.ViewModels;
@@ -49,7 +50,11 @@ public class ImageInfoManager : BaseViewModel
         set => SetProperty(ref _fontColor, value);
     }
 
-    public FontFamily ImageInfoFontFamily { get; } = new("Calibri");
+    public FontFamily ImageInfoFontFamily
+    {
+        get => _imageInfoFontFamily;
+        set => SetProperty(ref _imageInfoFontFamily, value);
+    }
 
     public Color BackgroundColor
     {
@@ -69,17 +74,30 @@ public class ImageInfoManager : BaseViewModel
 
         WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
         {
-            var md = msg.Metadata;
-            BackgroundColor = Color.FromArgb(md.ImageInfoFont.Background);
-            ImageInfoFontColor = Color.FromArgb(md.ImageInfoFont.Foreground);
+            try
+            {
+                var md = msg.Metadata;
+                Trace.WriteLine($"MetadataLoaded[ImageInfoManager]: start version={md.Version}, infoLength={md.ImageInfo?.Length ?? 0}");
 
-            var scale = md is AutoNumMetaData_V3 v3
-                ? v3.ImageInfoScale
-                : ResolveLegacyScale(md.ImageInfoFont.Size, md.LabelsFont.Size);
+                BackgroundColor = Color.FromArgb(md.ImageInfoFont.Background);
+                ImageInfoFontColor = Color.FromArgb(md.ImageInfoFont.Foreground);
+                ImageInfoFontFamily = FontFamilyResolver.Resolve(md.ImageInfoFont.Family, ImageInfoFontFamily);
 
-            FontScale = scale;
-            ImageInfo = md.ImageInfo;
-            IsEnabled = md.ImageInfoEnabled ?? !string.IsNullOrEmpty(md.ImageInfo);
+                var scale = md is AutoNumMetaData_V3 v3
+                    ? v3.ImageInfoScale
+                    : ResolveLegacyScale(md.ImageInfoFont.Size, md.LabelsFont.Size);
+
+                FontScale = scale;
+                ImageInfo = md.ImageInfo;
+                IsEnabled = md.ImageInfoEnabled ?? !string.IsNullOrEmpty(md.ImageInfo);
+
+                Trace.WriteLine("MetadataLoaded[ImageInfoManager]: completed");
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"MetadataLoaded[ImageInfoManager]: failed - {ex}");
+                throw;
+            }
         });
     }
 
@@ -106,4 +124,5 @@ public class ImageInfoManager : BaseViewModel
     private Color _fontColor = Color.Black;
     private double _fontSize = 1;
     private Color _backgroundColor = Color.White;
+    private FontFamily _imageInfoFontFamily = new("Calibri");
 }

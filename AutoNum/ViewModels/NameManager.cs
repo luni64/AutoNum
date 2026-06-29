@@ -2,6 +2,7 @@
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Data;
@@ -87,7 +88,20 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public FontFamily FontFamily { get; set; } = new FontFamily("Calibri");
+        public FontFamily FontFamily
+        {
+            get => _fontFamily;
+            set
+            {
+                if (_fontFamily == value)
+                {
+                    return;
+                }
+
+                SetProperty(ref _fontFamily, value);
+                TextLabel.Style.FontFamily = value;
+            }
+        }
 
         public void Refresh()
         {
@@ -121,18 +135,30 @@ namespace AutoNumber.ViewModels
 
             WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
             {
-                var md = msg.Metadata;
-                BackgroundColor = Color.FromArgb(md.NamesFont.Background);
-                FontColor = Color.FromArgb(md.NamesFont.Foreground);
-                FontFamily = new FontFamily(md.NamesFont.Family);
+                try
+                {
+                    var md = msg.Metadata;
+                    Trace.WriteLine($"MetadataLoaded[NameManager]: start version={md.Version}, namesEnabled={md.NamesEnabled}");
 
-                var scale = md is AutoNumMetaData_V3 v3
-                    ? v3.NameScale
-                    : ResolveLegacyScale(md.NamesFont.Size, md.LabelsFont.Size);
+                    BackgroundColor = Color.FromArgb(md.NamesFont.Background);
+                    FontColor = Color.FromArgb(md.NamesFont.Foreground);
+                    FontFamily = FontFamilyResolver.Resolve(md.NamesFont.Family, FontFamily);
 
-                FontScale = scale;
-                IsEnabled = _imageVM.Persons.Count > 0 && (md.NamesEnabled ?? true);
-                ShowNames();
+                    var scale = md is AutoNumMetaData_V3 v3
+                        ? v3.NameScale
+                        : ResolveLegacyScale(md.NamesFont.Size, md.LabelsFont.Size);
+
+                    FontScale = scale;
+                    IsEnabled = _imageVM.Persons.Count > 0 && (md.NamesEnabled ?? true);
+                    ShowNames();
+
+                    Trace.WriteLine("MetadataLoaded[NameManager]: completed");
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"MetadataLoaded[NameManager]: failed - {ex}");
+                    throw;
+                }
             });
 
             _imageIdManager.PropertyChanged += ImageIdManager_PropertyChanged;
@@ -197,6 +223,7 @@ namespace AutoNumber.ViewModels
         private readonly ImageVM _imageVM;
         private readonly LabelManager _labelManager;
         private readonly ImageIdManager _imageIdManager;
+        private FontFamily _fontFamily = new("Calibri");
     }
 }
 

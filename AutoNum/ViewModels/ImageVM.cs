@@ -2,6 +2,7 @@ using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 
@@ -101,7 +102,9 @@ namespace AutoNumber.ViewModels
             var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95;
             LabelDiameter = labelSize;
 
+            Trace.WriteLine($"InitFromMetadata: sending MetadataLoadedMessage version={md.Version}, persons={md.Persons.Count}");
             WeakReferenceMessenger.Default.Send(new MetadataLoadedMessage(md));
+            Trace.WriteLine("InitFromMetadata: MetadataLoadedMessage completed");
         }
 
         public void Init()

@@ -2,6 +2,7 @@
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
+using System.Drawing.Text;
 using System.IO;
 
 namespace AutoNumber.Model
@@ -24,24 +25,51 @@ namespace AutoNumber.Model
 
         public static void drawLabels(List<MarkerLabel> labels, Bitmap bmp, int offset)
         {
-            using var gFinal = Graphics.FromImage(bmp);
-
-            float fontSize = MarkerLabel.Style.FontSize.toGdiFontSize(gFinal);
-            using Brush fillBrush = new SolidBrush(MarkerLabel.Style.BackgroundColor);
-            using Brush textBrush = new SolidBrush(MarkerLabel.Style.FontColor);
-            using Pen edgePen = new Pen(MarkerLabel.Style.EdgeColor, Math.Max(2f, MarkerLabel.Style.Diameter / 25f));
-
-            foreach (var label in labels)
+            if (labels.Count == 0)
             {
-                PointF circlePos = new PointF((float)label.X, (float)label.Y + offset);
-                SizeF circleSize = new SizeF(MarkerLabel.Style.Diameter, MarkerLabel.Style.Diameter);
-                RectangleF BB = new RectangleF(circlePos, circleSize);
-                gFinal.FillEllipse(fillBrush, BB);
-                gFinal.DrawEllipse(edgePen, BB.X, BB.Y, BB.Width, BB.Height);
-
-                drawCenteredGlyph(gFinal, label.Number.ToString(), MarkerLabel.Style.FontFamily, fontSize, textBrush, BB);
+                return;
             }
+
+            const int supersampleFactor = 3;
+            using var overlay = new Bitmap(bmp.Width * supersampleFactor, bmp.Height * supersampleFactor, PixelFormat.Format32bppArgb);
+            using (var gOverlay = Graphics.FromImage(overlay))
+            {
+                applyHighQualityRenderMode(gOverlay);
+
+                float fontSize = MarkerLabel.Style.FontSize.toGdiFontSize(gOverlay) * supersampleFactor;
+                using Brush fillBrush = new SolidBrush(MarkerLabel.Style.BackgroundColor);
+                using Brush textBrush = new SolidBrush(MarkerLabel.Style.FontColor);
+                using Pen edgePen = new Pen(MarkerLabel.Style.EdgeColor, Math.Max(2f, MarkerLabel.Style.Diameter / 25f) * supersampleFactor);
+
+                foreach (var label in labels)
+                {
+                    PointF circlePos = new((float)label.X * supersampleFactor, ((float)label.Y + offset) * supersampleFactor);
+                    var scaledDiameter = MarkerLabel.Style.Diameter * supersampleFactor;
+                    SizeF circleSize = new(scaledDiameter, scaledDiameter);
+                    RectangleF bb = new(circlePos, circleSize);
+                    gOverlay.FillEllipse(fillBrush, bb);
+                    gOverlay.DrawEllipse(edgePen, bb.X, bb.Y, bb.Width, bb.Height);
+
+                    drawCenteredGlyph(gOverlay, label.Number.ToString(), MarkerLabel.Style.FontFamily, fontSize, textBrush, bb);
+                }
+            }
+
+            using var gFinal = Graphics.FromImage(bmp);
+            applyHighQualityRenderMode(gFinal);
+            gFinal.DrawImage(overlay,
+                new Rectangle(0, 0, bmp.Width, bmp.Height),
+                new Rectangle(0, 0, overlay.Width, overlay.Height),
+                GraphicsUnit.Pixel);
         }
+        private static void applyHighQualityRenderMode(Graphics graphics)
+        {
+            graphics.CompositingQuality = CompositingQuality.HighQuality;
+            graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+            graphics.PixelOffsetMode = PixelOffsetMode.HighQuality;
+            graphics.SmoothingMode = SmoothingMode.AntiAlias;
+            graphics.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+        }
+
         private static void drawCenteredGlyph(Graphics graphics, string text, FontFamily fontFamily, float fontSize, Brush brush, RectangleF bounds)
         {
             using var path = new GraphicsPath();
@@ -75,14 +103,41 @@ namespace AutoNumber.Model
         public static void drawNames(List<TextLabel> names, Bitmap bmp, Font font, int offset)
         {
             using var g = Graphics.FromImage(bmp);
+            applyHighQualityRenderMode(g);
 
             using Brush textBrush = new SolidBrush(TextLabel.Style.FontColor);
-            StringFormat format = new StringFormat(StringFormat.GenericDefault);
+            using Pen borderPen = new Pen(Color.FromArgb(180, 120, 120, 120), NamesTableLayout.BitmapBorderWidth);
+
+            using var numberFormat = new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+
+            using var nameFormat = new StringFormat
+            {
+                Alignment = StringAlignment.Near,
+                LineAlignment = StringAlignment.Center
+            };
 
             foreach (var name in names)
             {
-                PointF pos = new PointF((float)name.X, offset + (float)name.Y);
-                g.DrawString(name.Person.FullName, font, textBrush, pos, format);
+                var rowRect = new RectangleF((float)name.X, offset + (float)name.Y, (float)name.W, (float)name.H);
+                var numberColumnWidth = NamesTableLayout.ResolveBitmapNumberColumnWidth(rowRect.Width);
+                var numberRect = new RectangleF(rowRect.X, rowRect.Y, numberColumnWidth, rowRect.Height);
+                var nameRect = new RectangleF(rowRect.X + numberColumnWidth, rowRect.Y, rowRect.Width - numberColumnWidth, rowRect.Height);
+
+                g.DrawRectangle(borderPen, rowRect.X, rowRect.Y, rowRect.Width, rowRect.Height);
+                g.DrawLine(borderPen, numberRect.Right, rowRect.Top, numberRect.Right, rowRect.Bottom);
+
+                g.DrawString(name.Person.Label.Number.ToString(), font, textBrush, numberRect, numberFormat);
+
+                var paddedNameRect = new RectangleF(
+                    nameRect.X + NamesTableLayout.BitmapCellPaddingX,
+                    nameRect.Y,
+                    Math.Max(1, nameRect.Width - 2 * NamesTableLayout.BitmapCellPaddingX),
+                    nameRect.Height);
+                g.DrawString(name.Person.Name.Text ?? string.Empty, font, textBrush, paddedNameRect, nameFormat);
             }
         }
 
@@ -144,6 +199,8 @@ namespace AutoNumber.Model
         internal static NumberedBitmapResult? ToNumberedBitmap(this ImageVM model, LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
         {
             if (model?.Bitmap is null) return null;
+
+            nm.ShowNames();
 
             var names = model.Persons.Select(p => p.Name).ToList();
             var labels = model.Persons.Select(p => p.Label).ToList();
@@ -213,13 +270,18 @@ namespace AutoNumber.Model
             // Capture patches BEFORE drawing labels (Approach B — pre-JPEG pixels)
             g.Flush(); // ensure all drawing above is committed
             var patches = new List<PatchData>(labels.Count);
+            const float patchScaleFactor = 1.2f;
+            var labelDiameter = MarkerLabel.Style.Diameter;
+            var patchDiameter = labelDiameter * patchScaleFactor;
+            var patchPadding = (patchDiameter - labelDiameter) / 2f;
+
             foreach (var label in labels)
             {
                 var region = new RectangleF(
-                    (float)label.X,
-                    (float)label.Y + titleHeight,
-                    MarkerLabel.Style.Diameter,
-                    MarkerLabel.Style.Diameter);
+                    (float)label.X - patchPadding,
+                    (float)label.Y + titleHeight - patchPadding,
+                    patchDiameter,
+                    patchDiameter);
                 patches.Add(capturePatch(bmpFinal, region));
             }
 

@@ -60,17 +60,39 @@
 
         <!--FontSize="{Binding FontSize}" FontWeight="Normal"   LineStackingStrategy="BlockLineHeight"-->
         <DataTemplate DataType="{x:Type vm:TextLabel}">
-            <Grid 
+            <Grid
+                Width="{Binding W}"
+                Height="{Binding H}"
                 Visibility="{Binding Visible, Converter={StaticResource bool2Vis}}">
+                <Border BorderBrush="#AA787878" BorderThickness="1" Background="Transparent">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="0.22*"/>
+                            <ColumnDefinition Width="0.78*"/>
+                        </Grid.ColumnDefinitions>
 
-                <TextBlock                        
-                    Text="{Binding Person.FullName}" FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
-                    Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"  
-                    Background="Transparent"                      
-                    FontSize="{Binding FontSize}"             
-                 >
-                </TextBlock>
+                        <Border Grid.Column="0" BorderBrush="#AA787878" BorderThickness="0,0,1,0" Background="Transparent">
+                            <TextBlock
+                                Text="{Binding Person.Label.Number}"
+                                FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                                Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"
+                                FontSize="{Binding FontSize}"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                TextAlignment="Center"/>
+                        </Border>
 
+                        <TextBlock
+                            Grid.Column="1"
+                            Text="{Binding Person.Name.Text}"
+                            FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                            Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"
+                            FontSize="{Binding FontSize}"
+                            VerticalAlignment="Center"
+                            TextAlignment="Left"
+                            Margin="8,0,8,0"/>
+                    </Grid>
+                </Border>
             </Grid>
 
         </DataTemplate>      

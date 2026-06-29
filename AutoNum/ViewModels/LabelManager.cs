@@ -128,27 +128,40 @@ namespace AutoNumber.ViewModels
 
             WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
             {
-                var md = msg.Metadata;
-                BackgroundColor = Color.FromArgb(md.LabelsFont.Background);
-                FontColor = Color.FromArgb(md.LabelsFont.Foreground);
+                try
+                {
+                    var md = msg.Metadata;
+                    Trace.WriteLine($"MetadataLoaded[LabelManager]: start version={md.Version}, labels={md.Persons.Count}");
 
-                if (md is AutoNumMetaData_V3 v3 && double.IsFinite(v3.BaseLabelDiameter) && v3.BaseLabelDiameter > 0)
-                {
-                    BaseLabelDiameter = v3.BaseLabelDiameter;
-                    BaseLabelFontSize = double.IsFinite(v3.BaseLabelFontSize) && v3.BaseLabelFontSize > 0
-                        ? v3.BaseLabelFontSize
-                        : md.LabelsFont.Size;
-                    LabelScale = v3.LabelScale;
+                    BackgroundColor = Color.FromArgb(md.LabelsFont.Background);
+                    FontColor = Color.FromArgb(md.LabelsFont.Foreground);
+                    MarkerLabel.Style.FontFamily = FontFamilyResolver.Resolve(md.LabelsFont.Family, MarkerLabel.Style.FontFamily);
+
+                    if (md is AutoNumMetaData_V3 v3 && double.IsFinite(v3.BaseLabelDiameter) && v3.BaseLabelDiameter > 0)
+                    {
+                        BaseLabelDiameter = v3.BaseLabelDiameter;
+                        BaseLabelFontSize = double.IsFinite(v3.BaseLabelFontSize) && v3.BaseLabelFontSize > 0
+                            ? v3.BaseLabelFontSize
+                            : md.LabelsFont.Size;
+                        LabelScale = v3.LabelScale;
+                    }
+                    else
+                    {
+                        BaseLabelDiameter = double.IsFinite(md.LabelsSize) && md.LabelsSize > 0
+                            ? md.LabelsSize
+                            : Math.Max(1, md.LabelsFont.Size * 0.95);
+                        BaseLabelFontSize = double.IsFinite(md.LabelsFont.Size) && md.LabelsFont.Size > 0
+                            ? SizingModel.LegacyStoredFontSizeToVisibleSize(md.LabelsFont.Size)
+                            : SizingModel.ComputeFittedLabelFontSize(BaseLabelDiameter, _imageVM.Persons);
+                        LabelScale = 1.0;
+                    }
+
+                    Trace.WriteLine("MetadataLoaded[LabelManager]: completed");
                 }
-                else
+                catch (Exception ex)
                 {
-                    BaseLabelDiameter = double.IsFinite(md.LabelsSize) && md.LabelsSize > 0
-                        ? md.LabelsSize
-                        : Math.Max(1, md.LabelsFont.Size * 0.95);
-                    BaseLabelFontSize = double.IsFinite(md.LabelsFont.Size) && md.LabelsFont.Size > 0
-                        ? SizingModel.LegacyStoredFontSizeToVisibleSize(md.LabelsFont.Size)
-                        : SizingModel.ComputeFittedLabelFontSize(BaseLabelDiameter, _imageVM.Persons);
-                    LabelScale = 1.0; // Default scale
+                    Trace.WriteLine($"MetadataLoaded[LabelManager]: failed - {ex}");
+                    throw;
                 }
             });
         }

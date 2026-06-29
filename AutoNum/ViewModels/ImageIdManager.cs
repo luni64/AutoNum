@@ -1,6 +1,7 @@
 using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace AutoNumber.ViewModels;
@@ -43,7 +44,20 @@ public class ImageIdManager : BaseViewModel
         set => SetProperty(ref _backgroundColor, value);
     }
 
-    public FontFamily FontFamily { get; } = new("Calibri");
+    public FontFamily FontFamily
+    {
+        get => _fontFamily;
+        set
+        {
+            if (_fontFamily == value)
+            {
+                return;
+            }
+
+            SetProperty(ref _fontFamily, value);
+            ApplyScale();
+        }
+    }
 
     public double FontSize
     {
@@ -87,17 +101,30 @@ public class ImageIdManager : BaseViewModel
 
         WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
         {
-            var md = msg.Metadata;
-            ImageId = md.ImageId;
-            IsEnabled = md.ImageIdEnabled ?? !string.IsNullOrWhiteSpace(md.ImageId);
-            BackgroundColor = Color.FromArgb(md.ImageIdFont.Background);
-            FontColor = Color.FromArgb(md.ImageIdFont.Foreground);
+            try
+            {
+                var md = msg.Metadata;
+                Trace.WriteLine($"MetadataLoaded[ImageIdManager]: start version={md.Version}, hasImageId={!string.IsNullOrWhiteSpace(md.ImageId)}");
 
-            var scale = md is AutoNumMetaData_V3 v3
-                ? v3.ImageIdScale
-                : ResolveLegacyScale(md.ImageIdFont.Size > 0 ? md.ImageIdFont.Size : md.NamesFont.Size, md.LabelsFont.Size);
+                ImageId = md.ImageId;
+                IsEnabled = md.ImageIdEnabled ?? !string.IsNullOrWhiteSpace(md.ImageId);
+                BackgroundColor = Color.FromArgb(md.ImageIdFont.Background);
+                FontColor = Color.FromArgb(md.ImageIdFont.Foreground);
+                FontFamily = FontFamilyResolver.Resolve(md.ImageIdFont.Family, FontFamily);
 
-            FontScale = scale;
+                var scale = md is AutoNumMetaData_V3 v3
+                    ? v3.ImageIdScale
+                    : ResolveLegacyScale(md.ImageIdFont.Size > 0 ? md.ImageIdFont.Size : md.NamesFont.Size, md.LabelsFont.Size);
+
+                FontScale = scale;
+
+                Trace.WriteLine("MetadataLoaded[ImageIdManager]: completed");
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"MetadataLoaded[ImageIdManager]: failed - {ex}");
+                throw;
+            }
         });
     }
 
@@ -123,6 +150,7 @@ public class ImageIdManager : BaseViewModel
     private string _imageId = string.Empty;
     private Color _fontColor = Color.Black;
     private Color _backgroundColor = Color.White;
+    private FontFamily _fontFamily = new("Calibri");
     private double _fontSize = 1;
     private double _fontScale = 1.0;
     private double _lineHeight;

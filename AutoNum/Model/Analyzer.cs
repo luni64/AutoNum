@@ -75,28 +75,28 @@ namespace AutoNumber.Model
 
         public static double PlacePersonNames(ICollectionView persons, double width, double startY)
         {
-            using Font font = new Font(TextLabel.Style.FontFamily, (float)TextLabel.Style.FontSize);
+            var fontSize = double.IsFinite(TextLabel.Style.FontSize) && TextLabel.Style.FontSize > 0
+                ? TextLabel.Style.FontSize
+                : 1.0;
 
-            var bb = GetLargestBoundingBox<Person>(persons.OfType<Person>(), p => !string.IsNullOrEmpty(p.Name.Text) ? p.FullName : "______________", font);
-            var nrOfColumns = (int)Math.Floor(width / bb.Width);
+            using Font font = new Font(TextLabel.Style.FontFamily, (float)fontSize);
 
-            int colNr = 0;
+            var bb = GetLargestBoundingBox<Person>(persons.OfType<Person>(), p => !string.IsNullOrEmpty(p.Name.Text) ? p.Name.Text : "______________", font);
+            var rowHeight = Math.Max(NamesTableLayout.BitmapMinRowHeight, bb.Height + 2 * NamesTableLayout.BitmapCellPaddingY);
+            var tableWidth = Math.Max(1.0, width);
+
             int rowNr = 0;
             foreach (Person person in persons)
             {
-                person.Name.X = colNr * bb.Width;
-                person.Name.Y = startY + rowNr * bb.Height + bb.Height / 8;
-                person.Name.W = bb.Width;
-                person.Name.H = bb.Height;
-                colNr++;
-                if (colNr == nrOfColumns)
-                {
-                    rowNr++;
-                    colNr = 0;
-                }
+                person.Name.X = 0;
+                person.Name.Y = startY + rowNr * rowHeight;
+                person.Name.W = tableWidth;
+                person.Name.H = rowHeight;
+                rowNr++;
                 person.Name.Visible = true;
             }
-            return (Math.Max(1, rowNr + 1) * bb.Height);
+
+            return Math.Max(1, rowNr) * rowHeight;
         }
     }
 }

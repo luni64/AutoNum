@@ -1,6 +1,7 @@
 ﻿using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
+using System.Diagnostics;
 using System.Drawing;
 
 
@@ -51,7 +52,11 @@ namespace AutoNumber.ViewModels
             get => _fontColor;
             set => SetProperty(ref _fontColor, value);
         }
-        public FontFamily TitleFontFamily { get; } = new FontFamily("Calibri");
+        public FontFamily TitleFontFamily
+        {
+            get => _titleFontFamily;
+            set => SetProperty(ref _titleFontFamily, value);
+        }
 
         public Color BackgroundColor
         {
@@ -71,17 +76,30 @@ namespace AutoNumber.ViewModels
 
             WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
             {
-                var md = msg.Metadata;
-                BackgroundColor = Color.FromArgb(md.TitleFont.Background);
-                TitleFontColor = Color.FromArgb(md.TitleFont.Foreground);
+                try
+                {
+                    var md = msg.Metadata;
+                    Trace.WriteLine($"MetadataLoaded[TitleManager]: start version={md.Version}, titleLength={md.Title?.Length ?? 0}");
 
-                var scale = md is AutoNumMetaData_V3 v3
-                    ? v3.TitleScale
-                    : ResolveLegacyScale(md.TitleFont.Size, md.LabelsFont.Size);
+                    BackgroundColor = Color.FromArgb(md.TitleFont.Background);
+                    TitleFontColor = Color.FromArgb(md.TitleFont.Foreground);
+                    TitleFontFamily = FontFamilyResolver.Resolve(md.TitleFont.Family, TitleFontFamily);
 
-                FontScale = scale;
-                Title = md.Title;
-                IsEnabled = md.TitleEnabled ?? !string.IsNullOrEmpty(md.Title);
+                    var scale = md is AutoNumMetaData_V3 v3
+                        ? v3.TitleScale
+                        : ResolveLegacyScale(md.TitleFont.Size, md.LabelsFont.Size);
+
+                    FontScale = scale;
+                    Title = md.Title;
+                    IsEnabled = md.TitleEnabled ?? !string.IsNullOrEmpty(md.Title);
+
+                    Trace.WriteLine("MetadataLoaded[TitleManager]: completed");
+                }
+                catch (Exception ex)
+                {
+                    Trace.WriteLine($"MetadataLoaded[TitleManager]: failed - {ex}");
+                    throw;
+                }
             });
         }
 
@@ -109,5 +127,6 @@ namespace AutoNumber.ViewModels
         Color _fontColor = Color.Black;
         double _fontSize = 1;
         Color _backgroundColor = Color.White;
+        FontFamily _titleFontFamily = new("Calibri");
     }
 }

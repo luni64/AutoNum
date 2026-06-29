@@ -22,7 +22,11 @@ AutoNum/
 │   ├── ExtensionMethods.cs     # Render/export pipeline
 │   ├── AppSegmentIO.cs         # JPEG APP4 segment read/write for patches
 │   ├── SizingModel.cs          # Shared label/name/title baseline + scale math
-│   └── PatchData.cs            # Patch payload model
+│   ├── PatchData.cs            # Patch payload model
+│   ├── PdfPayloadContract.cs   # PDF-embedded payload schema (manifest + entries)
+│   ├── PdfPayloadStore.cs      # PDF payload zip create/read + embed/extract
+│   ├── NamesTableLayout.cs     # Shared names-table sizing constants (preview/JPG/PDF)
+│   └── FontFamilyResolver.cs   # Safe metadata font-family restore with fallback logging
 ├── ViewModels/                 # MVVM view models (INotifyPropertyChanged)
 │   ├── MainVM.cs               # Composition root for managers/view models
 │   ├── ImageVM.cs              # Loaded bitmap, persons, zoom/pan, file paths
@@ -98,13 +102,15 @@ AutoNum/
    - Slider positions are all at 0.5 (unscaled baseline)
 
 ### Open saved AutoNum image
-1. Metadata is read from EXIF UserComment.
-2. V2/V3 path restores a clean base image from embedded APP4 patches (`AppSegmentIO` + `RestoreFromPatches`).
+1. Metadata is loaded from either:
+   - JPEG EXIF UserComment (`_num.jpg`), or
+   - embedded PDF payload zip (`_num.pdf`) via `PdfPayloadStore`.
+2. For JPEG V2/V3 and editable PDF payloads, the clean base image is reconstructed from embedded patches (`AppSegmentIO`/`RestoreFromPatches` for JPEG, payload patches for PDF).
 3. `ImageVM.InitFromMetadata(...)` rebuilds persons and publishes `MetadataLoadedMessage`.
-4. Managers restore styling/toggles/font sizes from metadata:
+4. Managers restore styling/toggles/scales/font families from metadata:
    - V3 restores exact sizing anchors/scales
    - V1/V2 migrate legacy absolute sizes via stored ratios for visually equivalent results
-   - `TitleManager`, `ImageInfoManager`, and `ImageIdManager` independently restore text, visibility, and style settings for their stacked blocks
+   - Label, names, title, image-info, and image-ID font families are restored with safe fallback (`FontFamilyResolver`) when unavailable on the current system.
 
 ### Save image
 1. `FileManager` proposes output name:
@@ -113,6 +119,7 @@ AutoNum/
 2. Prevent overwrite only for the protected original file path.
 3. Render with `ToNumberedBitmap(...)`, including optional stacked title, image-information, image-ID, and names blocks in order: Title, Information, Image, ID, Names.
 4. Save JPEG bytes, inject APP4 patches, embed metadata as `Version = "V3"` with exact sizing anchors plus relative scales.
+5. Optional PDF export path renders the PDF document and appends a versioned embedded AutoNum payload zip (metadata + composite + patches) for round-trip editing from `_num.pdf`.
 
 ## Slider & Scale Control Architecture
 
@@ -167,10 +174,17 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
   - affects **new fresh-image sessions** and detector/save defaults
   - does **not** override per-image values restored from metadata
 
+## Rendering Notes
+- **Live preview renderer (WPF/XAML):** marker templates in `Marker.xaml` render label circles and names-table rows.
+- **JPG export renderer (GDI+):** `ExtensionMethods` draws final bitmap; label drawing uses supersampled anti-aliased overlay/downsampling for improved small-label quality.
+- **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output; editable payload is embedded separately and is not page-visible.
+- To minimize drift between renderers, names-table metrics are centralized in `NamesTableLayout` and consumed by bitmap and PDF paths.
+
 ## External Dependencies
 - **Emgu.CV** — face detection
 - **MahApps.Metro** — WPF shell + dialogs
 - **CommunityToolkit.Mvvm** — messenger only
+- **QuestPDF** — PDF rendering
 
 ## Conventions
 - C# 12 / .NET 8
