@@ -23,6 +23,11 @@ namespace AutoNumber.Model
             return 0.711f * (float)sz * 96 / gFinal.DpiX;
         }
 
+        private static float toGdiGlyphSize(this double sz, Graphics g)
+        {
+            return (float)sz * 96 / g.DpiX;
+        }
+
         public static void drawLabels(List<MarkerLabel> labels, Bitmap bmp, int offset)
         {
             if (labels.Count == 0)
@@ -36,7 +41,7 @@ namespace AutoNumber.Model
             {
                 applyHighQualityRenderMode(gOverlay);
 
-                float fontSize = MarkerLabel.Style.FontSize.toGdiFontSize(gOverlay) * supersampleFactor;
+                float fontSize = MarkerLabel.Style.FontSize.toGdiGlyphSize(gOverlay) * supersampleFactor;
                 using Brush fillBrush = new SolidBrush(MarkerLabel.Style.BackgroundColor);
                 using Brush textBrush = new SolidBrush(MarkerLabel.Style.FontColor);
                 using Pen edgePen = new Pen(MarkerLabel.Style.EdgeColor, Math.Max(2f, MarkerLabel.Style.Diameter / 25f) * supersampleFactor);
@@ -117,13 +122,14 @@ namespace AutoNumber.Model
             using var nameFormat = new StringFormat
             {
                 Alignment = StringAlignment.Near,
-                LineAlignment = StringAlignment.Center
+                LineAlignment = StringAlignment.Center,
+                Trimming = StringTrimming.Word
             };
 
             foreach (var name in names)
             {
                 var rowRect = new RectangleF((float)name.X, offset + (float)name.Y, (float)name.W, (float)name.H);
-                var numberColumnWidth = NamesTableLayout.ResolveBitmapNumberColumnWidth(rowRect.Width);
+                var numberColumnWidth = NamesTableLayout.ResolveNumberColumnWidth(rowRect.Width);
                 var numberRect = new RectangleF(rowRect.X, rowRect.Y, numberColumnWidth, rowRect.Height);
                 var nameRect = new RectangleF(rowRect.X + numberColumnWidth, rowRect.Y, rowRect.Width - numberColumnWidth, rowRect.Height);
 
@@ -261,8 +267,8 @@ namespace AutoNumber.Model
                     using Brush bg = new SolidBrush(nm.BackgroundColor);
                     g.FillRectangle(bg, new Rectangle(0, titleHeight + oldHeight + imageIdHeight, bmpFinal.Width, namesHeight));
 
-                    var fontSize = TextLabel.Style.FontSize.toGdiFontSize(g);
-                    using var font = new Font(nm.FontFamily, fontSize);
+                    var fontSize = (float)Math.Max(1d, TextLabel.Style.FontSize);
+                    using var font = new Font(nm.FontFamily, fontSize, FontStyle.Regular, GraphicsUnit.Pixel);
                     drawNames(names, bmpFinal, font, titleHeight);
                 }
             }

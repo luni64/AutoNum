@@ -25,7 +25,8 @@ AutoNum/
 │   ├── PatchData.cs            # Patch payload model
 │   ├── PdfPayloadContract.cs   # PDF-embedded payload schema (manifest + entries)
 │   ├── PdfPayloadStore.cs      # PDF payload zip create/read + embed/extract
-│   ├── NamesTableLayout.cs     # Shared names-table sizing constants (preview/JPG/PDF)
+│   ├── NamesTableLayout.cs     # Shared names-table contracts/options and sizing constants
+│   ├── NameTableLayoutEngine.cs# Shared names-table layout computation (wrap-aware row geometry)
 │   └── FontFamilyResolver.cs   # Safe metadata font-family restore with fallback logging
 ├── ViewModels/                 # MVVM view models (INotifyPropertyChanged)
 │   ├── MainVM.cs               # Composition root for managers/view models
@@ -178,7 +179,9 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 - **Live preview renderer (WPF/XAML):** marker templates in `Marker.xaml` render label circles and names-table rows.
 - **JPG export renderer (GDI+):** `ExtensionMethods` draws final bitmap; label drawing uses supersampled anti-aliased overlay/downsampling for improved small-label quality.
 - **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output; editable payload is embedded separately and is not page-visible.
-- To minimize drift between renderers, names-table metrics are centralized in `NamesTableLayout` and consumed by bitmap and PDF paths.
+- Names-table row geometry is computed once via `NameTableLayoutEngine` and projected to `TextLabel` row bounds (`X/Y/W/H`) so preview and JPG share the same wrap-aware layout foundation.
+- To minimize drift between renderers, column-width and padding rules are centralized in `NamesTableLayout`; preview uses dedicated converters, JPG uses GDI drawing helpers, and PDF uses the same width resolver.
+- Names-table measurement/rendering paths use pixel-based GDI font units to avoid WPF/GDI point-vs-pixel mismatch.
 
 ## External Dependencies
 - **Emgu.CV** — face detection

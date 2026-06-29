@@ -1,4 +1,5 @@
-﻿using System;
+﻿using AutoNumber.Model;
+using System;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
@@ -290,6 +291,43 @@ namespace AutoNumber.Infrastructure
             return Enum.Parse(targetType, parameterString);
         }
         #endregion
+    }
+
+    public class NameTableNumberColumnWidthConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double rowWidth && double.IsFinite(rowWidth) && rowWidth > 0)
+            {
+                return (double)NamesTableLayout.ResolveNumberColumnWidth(rowWidth);
+            }
+
+            return 0d;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
+    }
+
+    public class NameTableNameColumnWidthConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double rowWidth && double.IsFinite(rowWidth) && rowWidth > 0)
+            {
+                var numberColumnWidth = NamesTableLayout.ResolveNumberColumnWidth(rowWidth);
+                return Math.Max(1d, rowWidth - numberColumnWidth);
+            }
+
+            return 1d;
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            throw new NotSupportedException();
+        }
     }
 
     internal static class SliderScaleMapping

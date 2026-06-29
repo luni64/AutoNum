@@ -195,7 +195,7 @@ namespace AutoNumber.ViewModels
                 .Select(p => new SidecarPerson
                 {
                     Number = p.Label.Number,
-                    Name = string.IsNullOrWhiteSpace(p.Name.Text) ? "unbekannt" : p.Name.Text
+                    Name = string.IsNullOrWhiteSpace(p.Name.Text) ? string.Empty : p.Name.Text
                 })
                 .ToList();
 
@@ -309,6 +309,7 @@ namespace AutoNumber.ViewModels
             var heading = string.IsNullOrWhiteSpace(exportData.Title) ? "Ohne Titel" : exportData.Title;
             var hasId = !string.IsNullOrWhiteSpace(exportData.Id);
             var hasDescription = !string.IsNullOrWhiteSpace(exportData.Description);
+            var pdfNumberColumnWidth = NamesTableLayout.ResolveNumberColumnWidth(360);
 
             var createdDate = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
                 ? generatedAt.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"))
@@ -363,7 +364,7 @@ namespace AutoNumber.ViewModels
                         {
                             table.ColumnsDefinition(cols =>
                             {
-                                cols.ConstantColumn(NamesTableLayout.PdfNumberColumnWidth);
+                                cols.ConstantColumn(pdfNumberColumnWidth);
                                 cols.RelativeColumn();
                             });
 

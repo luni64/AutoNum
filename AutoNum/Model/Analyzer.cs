@@ -75,28 +75,54 @@ namespace AutoNumber.Model
 
         public static double PlacePersonNames(ICollectionView persons, double width, double startY)
         {
+            var items = persons.OfType<Person>().ToList();
+            if (items.Count == 0)
+            {
+                return 0;
+            }
+
             var fontSize = double.IsFinite(TextLabel.Style.FontSize) && TextLabel.Style.FontSize > 0
                 ? TextLabel.Style.FontSize
                 : 1.0;
 
-            using Font font = new Font(TextLabel.Style.FontFamily, (float)fontSize);
+            using Font font = new Font(TextLabel.Style.FontFamily, (float)fontSize, FontStyle.Regular, GraphicsUnit.Pixel);
 
-            var bb = GetLargestBoundingBox<Person>(persons.OfType<Person>(), p => !string.IsNullOrEmpty(p.Name.Text) ? p.Name.Text : "______________", font);
-            var rowHeight = Math.Max(NamesTableLayout.BitmapMinRowHeight, bb.Height + 2 * NamesTableLayout.BitmapCellPaddingY);
-            var tableWidth = Math.Max(1.0, width);
+            var options = NameTableLayoutOptions.Default(width, startY, fontSize);
+            var columnWidth = Math.Max(1, options.TotalWidth / Math.Max(1, options.ColumnCount));
+            var numberColumnWidth = Math.Min(columnWidth, NamesTableLayout.ResolveNumberColumnWidth(columnWidth));
+            var contentWidth = Math.Max(1, columnWidth - numberColumnWidth - 2 * options.CellPaddingX);
 
-            int rowNr = 0;
-            foreach (Person person in persons)
+            var entries = items
+                .Select(person => new NameTableLayoutEntry(
+                    NameText: person.Name.Text ?? string.Empty,
+                    DesiredContentHeight: MeasureWrappedTextHeight(person.Name.Text ?? string.Empty, font, (float)contentWidth)))
+                .ToList();
+
+            var layout = NameTableLayoutEngine.BuildLayout(entries, options);
+
+            for (var index = 0; index < items.Count; index++)
             {
-                person.Name.X = 0;
-                person.Name.Y = startY + rowNr * rowHeight;
-                person.Name.W = tableWidth;
-                person.Name.H = rowHeight;
-                rowNr++;
+                var person = items[index];
+                var cell = layout.Cells[index];
+                person.Name.X = cell.X;
+                person.Name.Y = cell.Y;
+                person.Name.W = cell.Width;
+                person.Name.H = cell.Height;
                 person.Name.Visible = true;
             }
 
-            return Math.Max(1, rowNr) * rowHeight;
+            return layout.TotalHeight;
+        }
+
+        private static double MeasureWrappedTextHeight(string text, Font font, float maxWidth)
+        {
+            using var bmp = new Bitmap(1, 1);
+            using var g = Graphics.FromImage(bmp);
+            g.PageUnit = GraphicsUnit.Pixel;
+
+            var value = string.IsNullOrWhiteSpace(text) ? "______________" : text;
+            var measured = g.MeasureString(value, font, new SizeF(maxWidth, float.MaxValue));
+            return Math.Max(1, measured.Height);
         }
     }
 }
