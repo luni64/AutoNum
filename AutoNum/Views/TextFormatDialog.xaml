@@ -10,7 +10,7 @@
 				 mc:Ignorable="d"
 				 Title="Formatierung"
 				 Width="600"
-				 Height="220"
+				 Height="200"
 				 ShowInTaskbar="False"
 				 WindowStartupLocation="CenterOwner"
 				 ResizeMode="NoResize">
@@ -19,12 +19,13 @@
 	</mah:MetroWindow.Resources>
 	<Grid Margin="16">
 		<Grid.RowDefinitions>
-			<RowDefinition Height="auto"/>
+			<RowDefinition Height="*"/>
 			<RowDefinition Height="Auto"/>
 			<RowDefinition Height="*"/>
 		</Grid.RowDefinitions>
 
 		<view:FontManager x:Name="FontManagerControl"
+						  VerticalAlignment="Center"
 						  Grid.Row="0"/>
 
 		<Grid x:Name="NameTableOptionsPanel"

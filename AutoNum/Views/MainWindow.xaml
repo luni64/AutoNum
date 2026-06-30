@@ -14,7 +14,7 @@
         Title="{Binding Title}"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance Type=vm:MainVM}"
-        Height="600" Width="1100">
+        Height="850" Width="1400">
 
     <Window.CommandBindings>
         <CommandBinding Command="{x:Static local:MainWindow.OpenFormatDialogCommand}"
@@ -34,8 +34,8 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="WizardViews/FilesView.xaml"/>
-                <ResourceDictionary Source="WizardViews/AnalyzeImageWiz.xaml"/>
-                <ResourceDictionary Source="WizardViews/LabelWiz.xaml"/>                
+                <!--<ResourceDictionary Source="WizardViews/AnalyzeImageWiz.xaml"/>-->
+                <!--<ResourceDictionary Source="WizardViews/LabelWiz.xaml"/>-->                
                 <ResourceDictionary Source="WizardViews/NamesView.xaml"/>
                 <ResourceDictionary Source="WizardViews/TiltleView.xaml"/>
                 <ResourceDictionary Source="WizardViews/ImageInfoView.xaml"/>
@@ -47,11 +47,11 @@
     
     <Grid Margin="15,30,15,10">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="220"/>
+            <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="5"/>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="5"/>
-            <ColumnDefinition Width="275"/>
+            <ColumnDefinition Width="375"/>
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="*"/>
@@ -62,8 +62,9 @@
         <ContentControl Grid.Column ="0" Grid.RowSpan="2" Content="{Binding FileManager}" Margin="0,0,10,0"/>
         <GridSplitter ResizeBehavior="PreviousAndNext" Grid.Column="1" Grid.RowSpan="2" HorizontalAlignment="Stretch"  Background="White" Focusable="False"/>
 
-        <view:PictureDisplay            
-            Grid.Column="2"  Grid.Row="0"                
+        <view:PictureDisplay
+            x:Name="PictureDisplayControl"
+            Grid.Column="2"  Grid.Row="0"
             Page="{Binding PictureVM}">
             <view:PictureDisplay.Resources>
                 <Style TargetType="view:PictureDisplay">
@@ -72,21 +73,68 @@
             </view:PictureDisplay.Resources>
         </view:PictureDisplay>
 
-        <StackPanel Grid.Column="2" Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-            <TextBlock Text="Numbers" Margin="0,0,8,0" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
-            <Button Width="28"
-                    Height="28"
-                    ToolTip="Formatierung"
-                    Background="Transparent"
-                    BorderBrush="Transparent"
-                    BorderThickness="0"
-                    Padding="0"
-                    FocusVisualStyle="{x:Null}"
-                    Command="{x:Static local:MainWindow.OpenFormatDialogCommand}" 
-                    CommandParameter="{Binding LabelManager}">
-                <iconPacks:PackIconMaterial Kind="CogOutline" Width="16" Height="16"/>
-            </Button>
-        </StackPanel>
+        <Grid Grid.Column="2" Grid.Row="1" Margin="0,10,0,5" VerticalAlignment="Center">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Orientation="Horizontal" HorizontalAlignment="Left" VerticalAlignment="Center">
+                <TextBlock Text="Bild:" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <Button Width="32"
+                        Height="32"
+                        ToolTip="Bild um 90° drehen"
+                        Margin="0,0,5,0"
+                        Style="{StaticResource MahApps.Styles.Button.Circle}"
+                        Command="{Binding LabelManager.RotateImageCommand}">
+                    <iconPacks:PackIconMaterial Kind="RotateRight" Width="16" Height="16"/>
+                </Button>
+                <Button Width="32"
+                        Height="32"
+                        ToolTip="Zoom auf Bild einpassen"
+                        Margin="0,0,5,0"
+                        Style="{StaticResource MahApps.Styles.Button.Circle}"
+                        Click="ZoomToFit_Click">
+                    <iconPacks:PackIconMaterial Kind="FitToPageOutline" Width="16" Height="16"/>
+                </Button>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <TextBlock Text="Nummerierung:" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <Button Width="32"
+                        Height="32"
+                        ToolTip="Personen neu nummerieren"
+                        Margin="0,0,5,0"
+                        Style="{StaticResource MahApps.Styles.Button.Circle}"
+                        Command="{Binding LabelManager.NumerateCommand}">
+                    <iconPacks:PackIconMaterial Kind="Refresh" Width="16" Height="16"/>
+                </Button>
+                <Button 
+                        ToolTip="Alle Personen löschen"
+                        Width="32" Height="32" Margin="0,0,5,0"
+                        Style="{StaticResource MahApps.Styles.Button.Circle}"
+                        Command="{Binding LabelManager.DeleteAllLabelsCommand}">
+                    <iconPacks:PackIconMaterial Kind="DeleteForever" Width="16" Height="16"/>
+                </Button>
+                <Button Width="32"
+                        Height="32"
+                        ToolTip="Gesichter neu erkennen"
+                        Margin="0,0,5,0"
+                        Style="{StaticResource MahApps.Styles.Button.Circle}"
+                        Command="{Binding LabelManager.RedetectFacesCommand}">
+                    <iconPacks:PackIconMaterial Kind="FaceRecognition" Width="16" Height="16"/>
+                </Button>
+                <Button Width="32"
+                        Height="32"
+                        ToolTip="Nummern  formatieren (Größe, Schriftart, Farbe)"
+                        Margin="0,0,5,0"
+                        Style="{StaticResource MahApps.Styles.Button.Circle}"
+                        Command="{x:Static local:MainWindow.OpenFormatDialogCommand}" 
+                        CommandParameter="{Binding LabelManager}">
+                    <iconPacks:PackIconMaterial Kind="CogOutline" Width="16" Height="16"/>
+                </Button>
+            </StackPanel>
+        </Grid>
 
         <GridSplitter ResizeBehavior="PreviousAndNext" Grid.Column="3" Grid.RowSpan="2" Background="White" Focusable="False"/>
 

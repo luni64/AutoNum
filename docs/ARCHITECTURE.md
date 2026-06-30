@@ -113,6 +113,14 @@ AutoNum/
    - V1/V2 migrate legacy absolute sizes via stored ratios for visually equivalent results
    - Label, names, title, image-info, and image-ID font families are restored with safe fallback (`FontFamilyResolver`) when unavailable on the current system.
    - Names-table column count is restored per image (`NamesColumnCount`, clamped 1..4; missing legacy value falls back to 1).
+5. After label baseline restore, `LabelManager` emits `LabelsChangedMessage` so dependent managers (`NameManager`, `ImageIdManager`) reapply scale against the restored base and avoid transient under-scaled preview.
+
+### Rotate image (90° clockwise)
+1. User triggers rotate from the left **Bild** action group in `MainWindow`.
+2. `LabelManager.RotateImageCommand` checks whether names are present and, if needed, shows the same delete-names warning used by the delete-label flow.
+3. On confirmation, existing persons (labels/names) are cleared, bitmap pixels are rotated (`RotateFlipType.Rotate90FlipNone`), and `ImageVM.Init()` refreshes image dimensions/fit state.
+4. Face detection is re-run on the rotated bitmap, then `SetLabels(...)` recreates labels in the rotated coordinate space.
+5. `LabelsChangedMessage` refreshes dependent layout/scale consumers so preview and export stay consistent.
 
 ### Save image
 1. `FileManager` proposes output name:

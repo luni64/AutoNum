@@ -10,6 +10,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Page Remove="Views\WizardViews\AnalyzeImageWiz.xaml" />
+    <Page Remove="Views\WizardViews\LabelWiz.xaml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Content Include="autonumber_taskbar.ico" />
   </ItemGroup>
 

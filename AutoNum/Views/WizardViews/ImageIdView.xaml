@@ -10,6 +10,26 @@
     xmlns:local="clr-namespace:AutoNumber"
     mc:Ignorable="d">
 
+    <Style x:Key="VisibilityToggleButtonStyle" TargetType="ToggleButton" BasedOn="{StaticResource MahApps.Styles.ToggleButton.Circle}">
+        <Setter Property="Width" Value="32"/>
+        <Setter Property="Height" Value="32"/>
+        <Setter Property="Margin" Value="0,0,5,0"/>
+        <Setter Property="Content">
+            <Setter.Value>
+                <iconPacks:PackIconMaterial Width="16" Height="16" Kind="EyeOffOutline"/>
+            </Setter.Value>
+        </Setter>
+        <Style.Triggers>
+            <Trigger Property="IsChecked" Value="True">
+                <Setter Property="Content">
+                    <Setter.Value>
+                        <iconPacks:PackIconMaterial Width="16" Height="16" Kind="EyeOutline"/>
+                    </Setter.Value>
+                </Setter>
+            </Trigger>
+        </Style.Triggers>
+    </Style>
+
     <DataTemplate DataType="{x:Type vm:ImageIdManager}">
         <Border BorderBrush="DarkGray" BorderThickness="1,0,0,0" Padding="10,0,10,0">
             <Grid>
@@ -32,54 +52,16 @@
                     Grid.Column="1"
                     VerticalAlignment="Top">
                     <ToggleButton
-                        Width="28"
-                        Height="28"
-                        ToolTip="Sichtbarkeit"
-                        Background="Transparent"
-                        BorderBrush="Transparent"
-                        BorderThickness="0"
-                        Padding="0"
-                        FocusVisualStyle="{x:Null}"
+                        ToolTip="ID anzeigen/verbergen"
+                        Style="{StaticResource VisibilityToggleButtonStyle}"
                         IsChecked="{Binding IsEnabled, Mode=TwoWay}">
-                        <ToggleButton.Style>
-                            <Style TargetType="ToggleButton">
-                                <Setter Property="Template">
-                                    <Setter.Value>
-                                        <ControlTemplate TargetType="ToggleButton">
-                                            <Border Background="Transparent" BorderBrush="Transparent" BorderThickness="0">
-                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                            </Border>
-                                        </ControlTemplate>
-                                    </Setter.Value>
-                                </Setter>
-                                <Setter Property="Content">
-                                    <Setter.Value>
-                                        <iconPacks:PackIconMaterial Width="16" Height="16" Kind="EyeOffOutline"/>
-                                    </Setter.Value>
-                                </Setter>
-                                <Style.Triggers>
-                                    <Trigger Property="IsChecked" Value="True">
-                                        <Setter Property="Content">
-                                            <Setter.Value>
-                                                <iconPacks:PackIconMaterial Width="16" Height="16" Kind="EyeOutline"/>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </Style.Triggers>
-                            </Style>
-                        </ToggleButton.Style>
                     </ToggleButton>
 
                     <Button
-                        Width="28"
-                        Height="28"
-                        Margin="6,0,0,0"
+                        Width="32"
+                        Height="32"
                         ToolTip="Formatierung"
-                        Background="Transparent"
-                        BorderBrush="Transparent"
-                        BorderThickness="0"
-                        Padding="0"
-                        FocusVisualStyle="{x:Null}"
+                        Style="{StaticResource MahApps.Styles.Button.Circle}"
                         Command="{x:Static local:MainWindow.OpenFormatDialogCommand}"
                         CommandParameter="{Binding}">
                         <iconPacks:PackIconMaterial Kind="CogOutline" Width="16" Height="16"/>

@@ -74,7 +74,8 @@
                 Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
                 Source="{Binding Page.Bitmap, Converter={StaticResource Bitmap2BitmapSource}, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
                 />
-            <Border DataContext="{Binding ImageIdManager}"
+            <Border x:Name="imageIdBorder"
+                DataContext="{Binding ImageIdManager}"
                 Visibility="{Binding ShowImageIdLine, Converter={StaticResource Bool2Vis}}"
                 Canvas.Left="0"
                 Canvas.Top="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
@@ -94,6 +95,7 @@
                     Background="Transparent"/>
             </Border>
             <Border
+                x:Name="namesRegionBorder"
                 Canvas.Left="0"
                 Visibility="{Binding NameManager.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
                 Canvas.Top="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"

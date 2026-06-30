@@ -1,8 +1,10 @@
 ﻿using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
+using MahApps.Metro.Controls.Dialogs;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading.Tasks;
 
 namespace AutoNumber.ViewModels
 {
@@ -44,7 +46,132 @@ namespace AutoNumber.ViewModels
             catch (Exception ex) { Trace.WriteLine($"Numerate refresh failed: {ex}"); }
         }
 
+        RelayCommand? _deleteAllLabelsCommand;
+        public RelayCommand DeleteAllLabelsCommand => _deleteAllLabelsCommand ??= new RelayCommand(DeleteAllLabelsAsync);
+        public async void DeleteAllLabelsAsync(object? _ = null)
+        {
+            if (_imageVM.Persons.Count == 0) return;
 
+            if (!await ConfirmDeleteNamesIfNeededAsync())
+            {
+                return;
+            }
+
+            // Clear all persons (labels and names)
+            _imageVM.Persons.Clear();
+
+            try
+            {
+                WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
+            }
+            catch (Exception ex) { Trace.WriteLine($"DeleteAllLabels refresh failed: {ex}"); }
+        }
+
+        RelayCommand? _redetectFacesCommand;
+        public RelayCommand RedetectFacesCommand => _redetectFacesCommand ??= new RelayCommand(RedetectFacesAsync);
+        public async void RedetectFacesAsync(object? _ = null)
+        {
+            if (_imageVM.Bitmap is null) return;
+
+            // Check if there are any names in the list
+            bool hasNames = _imageVM.Persons.Any(p => !string.IsNullOrEmpty(p.Name.Text));
+
+            if (hasNames && _dialogCoordinator != null && _mainVM != null)
+            {
+                var settings = new MahApps.Metro.Controls.Dialogs.MetroDialogSettings
+                {
+                    AffirmativeButtonText = "Neu erkennen",
+                    NegativeButtonText = "Abbrechen",
+                    DefaultButtonFocus = MahApps.Metro.Controls.Dialogs.MessageDialogResult.Negative
+                };
+
+                var result = await _dialogCoordinator.ShowMessageAsync(
+                    _mainVM,
+                    "Gesichter neu erkennen?",
+                    "Es wurden Namen eingetragen. Wenn Sie Gesichter neu erkennen, werden alle bisherigen Labels und Namen gelöscht. Fortfahren?",
+                    MahApps.Metro.Controls.Dialogs.MessageDialogStyle.AffirmativeAndNegative,
+                    settings);
+
+                if (result != MahApps.Metro.Controls.Dialogs.MessageDialogResult.Affirmative)
+                    return;
+            }
+
+            // Clear all persons
+            _imageVM.Persons.Clear();
+
+            // Re-run face detection
+            var faces = FaceDetector.Detect(_imageVM.Bitmap);
+            Trace.WriteLine($"RedetectFaces: detected {faces.Count} face(s)");
+
+            // Set labels with newly detected faces (scale is preserved as it's not modified by SetLabels)
+            SetLabels(faces);
+
+            try
+            {
+                WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
+            }
+            catch (Exception ex) { Trace.WriteLine($"RedetectFaces refresh failed: {ex}"); }
+        }
+
+        RelayCommand? _rotateImageCommand;
+        public RelayCommand RotateImageCommand => _rotateImageCommand ??= new RelayCommand(RotateImageAsync);
+        public async void RotateImageAsync(object? _ = null)
+        {
+            if (_imageVM.Bitmap is null)
+            {
+                return;
+            }
+
+            if (!await ConfirmDeleteNamesIfNeededAsync())
+            {
+                return;
+            }
+
+            _imageVM.Persons.Clear();
+
+            var rotatedBitmap = (Bitmap)_imageVM.Bitmap.Clone();
+            rotatedBitmap.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            _imageVM.Bitmap = rotatedBitmap;
+            _imageVM.Init();
+
+            var faces = FaceDetector.Detect(_imageVM.Bitmap);
+            Trace.WriteLine($"RotateImage: detected {faces.Count} face(s) after rotation");
+            SetLabels(faces);
+
+            try
+            {
+                WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"RotateImage refresh failed: {ex}");
+            }
+        }
+
+        private async Task<bool> ConfirmDeleteNamesIfNeededAsync()
+        {
+            var hasNames = _imageVM.Persons.Any(p => !string.IsNullOrEmpty(p.Name.Text));
+            if (!hasNames || _dialogCoordinator is null || _mainVM is null)
+            {
+                return true;
+            }
+
+            var settings = new MetroDialogSettings
+            {
+                AffirmativeButtonText = "Löschen",
+                NegativeButtonText = "Abbrechen",
+                DefaultButtonFocus = MessageDialogResult.Negative
+            };
+
+            var result = await _dialogCoordinator.ShowMessageAsync(
+                _mainVM,
+                "Labels löschen?",
+                "Es wurden Namen eingetragen. Wenn Sie alle Labels löschen, werden auch die zugehörigen Namen gelöscht. Fortfahren?",
+                MessageDialogStyle.AffirmativeAndNegative,
+                settings);
+
+            return result == MessageDialogResult.Affirmative;
+        }
 
         #endregion
         #region Properties --------------------------------------------------
@@ -103,7 +230,6 @@ namespace AutoNumber.ViewModels
 
             RecalculateBaseLabelFontSize();
             Numerate();
-            LabelScale = 1.0; // Default scale
         }
 
         public LabelManager(ImageVM imageVM)
@@ -156,6 +282,7 @@ namespace AutoNumber.ViewModels
                         LabelScale = 1.0;
                     }
 
+                    WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
                     Trace.WriteLine("MetadataLoaded[LabelManager]: completed");
                 }
                 catch (Exception ex)
@@ -192,5 +319,9 @@ namespace AutoNumber.ViewModels
         private readonly ImageVM _imageVM;
         private Color _edgeColor, _fontColor, _backgroundColor;
         private double _labelScale = 1.0; // Default scale
+
+        // Set by MainVM after creation
+        internal IDialogCoordinator? _dialogCoordinator { get; set; }
+        internal MainVM? _mainVM { get; set; }
     }
 }

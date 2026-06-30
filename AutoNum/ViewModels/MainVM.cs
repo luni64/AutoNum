@@ -5,7 +5,19 @@ namespace AutoNumber.ViewModels
 {
     public class MainVM : BaseViewModel
     {
-        public IDialogCoordinator DialogCoordinator { get; set; } = null!;
+        public IDialogCoordinator DialogCoordinator 
+        { 
+            get => _dialogCoordinator;
+            set
+            {
+                _dialogCoordinator = value;
+                // Set dialog coordinator in LabelManager after it's available
+                LabelManager._dialogCoordinator = value;
+                LabelManager._mainVM = this;
+            }
+        }
+        private IDialogCoordinator _dialogCoordinator = null!;
+
         public FileManager FileManager { get; }
         public NameManager NameManager { get; }
         public TitleManager TitleManager { get; }
@@ -16,12 +28,19 @@ namespace AutoNumber.ViewModels
         public ImageVM PictureVM { get; }
 
         public IDialogService DialogService { get; }
-        public string Title => $"AutoNumber V{Environment.GetEnvironmentVariable("ClickOnce_CurrentVersion") ?? "x.x"}";
+        public string Title => string.IsNullOrEmpty(PictureVM.CurrentImageFilename)
+            ? "AutoNumber V2.0.0"
+            : $"AutoNumber V2.0.0  —  {System.IO.Path.GetFileName(PictureVM.CurrentImageFilename)}";
 
         public MainVM(IDialogService DialogService)
         {
             this.DialogService = DialogService;
             PictureVM = new ImageVM();
+            PictureVM.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(ImageVM.CurrentImageFilename))
+                    OnPropertyChanged(nameof(Title));
+            };
 
             LabelManager = new LabelManager(PictureVM);
             ImageIdManager = new ImageIdManager(LabelManager);
@@ -31,5 +50,5 @@ namespace AutoNumber.ViewModels
             SettingsManager = new SettingsManager();
             FileManager = new FileManager(this);
         }
-    }   
+    }
 }

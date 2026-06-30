@@ -1,4 +1,5 @@
 ﻿using AutoNumber.ViewModels;
+using System;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
@@ -116,6 +117,29 @@ namespace AutoNumber.Views
                 PanX = 0.0;
                 PanY = 0.0;
             }
+        }
+
+        public void ZoomToFit(Rect contentBounds)
+        {
+            if (child is null)
+            {
+                return;
+            }
+
+            if (ActualWidth <= 0 || ActualHeight <= 0 || contentBounds.Width <= 0 || contentBounds.Height <= 0)
+            {
+                return;
+            }
+
+            var fitZoom = 0.95 * Math.Min(ActualWidth / contentBounds.Width, ActualHeight / contentBounds.Height);
+            if (!double.IsFinite(fitZoom) || fitZoom <= 0)
+            {
+                return;
+            }
+
+            Zoom = fitZoom;
+            PanX = (ActualWidth - contentBounds.Width * fitZoom) / 2 - contentBounds.X * fitZoom;
+            PanY = (ActualHeight - contentBounds.Height * fitZoom) / 2 - contentBounds.Y * fitZoom;
         }
 
         #region DependencyProperties ------------------------------

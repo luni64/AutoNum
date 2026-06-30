@@ -5,6 +5,7 @@ using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Windows.Input;
 
 
 namespace AutoNumber.ViewModels
@@ -27,7 +28,12 @@ namespace AutoNumber.ViewModels
         public string OriginalImageFilename { get; set; } = string.Empty;
 
         // Path of the currently opened/edited image (used for save suggestions).
-        public string CurrentImageFilename { get; set; } = string.Empty;
+        public string CurrentImageFilename
+        {
+            get => _currentImageFilename;
+            set => SetProperty(ref _currentImageFilename, value);
+        }
+        private string _currentImageFilename = string.Empty;
 
         public PropertyItem[]? OriginalPropertyItems { get; set; }
         public ObservableCollection<Person> Persons { get; } = [];
@@ -82,15 +88,20 @@ namespace AutoNumber.ViewModels
             set => SetProperty(ref _zoom, value);
         }
 
+        public ICommand ZoomToFitCommand { get; }
+
         #endregion
+
+        public ImageVM()
+        {
+            ZoomToFitCommand = new RelayCommand(_ => FitToCanvas(), _ => CanFitToCanvas());
+        }
 
         public void InitFromMetadata(AutoNumMetaData_V1 md)
         {
             ImageWidth = Bitmap?.Width ?? 0;
             ImageHeight = Bitmap?.Height ?? 0;
-            Zoom = 0.95 * Math.Min((double)CanvasSize.Width / ImageWidth, (double)CanvasSize.Height / ImageHeight);
-            PanX = (int)((CanvasSize.Width - ImageWidth * Zoom) / 2);
-            PanY = (int)((CanvasSize.Height - ImageHeight * Zoom) / 2);
+            FitToCanvas();
 
             Persons.Clear();
 
@@ -114,10 +125,23 @@ namespace AutoNumber.ViewModels
             ImageWidth = Bitmap?.Width ?? 0;
             ImageHeight = Bitmap?.Height ?? 0;
 
+            FitToCanvas();
+        }
+
+        private bool CanFitToCanvas() => ImageWidth > 0 && ImageHeight > 0 && CanvasSize.Width > 0 && CanvasSize.Height > 0;
+
+        private void FitToCanvas()
+        {
+            if (!CanFitToCanvas())
+            {
+                return;
+            }
+
             Zoom = 0.95 * Math.Min((double)CanvasSize.Width / ImageWidth, (double)CanvasSize.Height / ImageHeight);
             PanX = (int)((CanvasSize.Width - ImageWidth * Zoom) / 2);
             PanY = (int)((CanvasSize.Height - ImageHeight * Zoom) / 2);
         }
+
         public void Dispose() => Bitmap?.Dispose();
 
         private Bitmap? _bitmap;

@@ -1,9 +1,11 @@
 ﻿using AutoNumber.ViewModels;
 using System.Collections.Specialized;
+using System.ComponentModel;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using System.Windows.Threading;
 
 namespace AutoNumber.Views
 {
@@ -29,18 +31,27 @@ namespace AutoNumber.Views
 
         static void OnPageChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
-            if (e.NewValue is ImageVM pageVM)
-            {
-                var that = ((PictureDisplay)d);
-                pageVM.Persons.CollectionChanged -= that.Marker_CollectionChanged; // remove old handler
-                pageVM.Persons.CollectionChanged += that.Marker_CollectionChanged;
+            var that = (PictureDisplay)d;
 
-                that.ClearMarkers();
-                foreach (var person in pageVM.Persons)
-                {
-                    that.AddMarker(person.Label);
-                    that.AddMarker(person.Name);
-                }
+            if (e.OldValue is ImageVM oldPageVM)
+            {
+                oldPageVM.Persons.CollectionChanged -= that.Marker_CollectionChanged;
+                oldPageVM.PropertyChanged -= that.PageVM_PropertyChanged;
+            }
+
+            if (e.NewValue is not ImageVM pageVM)
+            {
+                return;
+            }
+
+            pageVM.Persons.CollectionChanged += that.Marker_CollectionChanged;
+            pageVM.PropertyChanged += that.PageVM_PropertyChanged;
+
+            that.ClearMarkers();
+            foreach (var person in pageVM.Persons)
+            {
+                that.AddMarker(person.Label);
+                that.AddMarker(person.Name);
             }
         }
 
@@ -126,6 +137,90 @@ namespace AutoNumber.Views
             PageCanvas.Children[idx].Uid = markerVM.Id.ToString();
         }
 
+        private void PageVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (e.PropertyName is nameof(ImageVM.ImageWidth) or nameof(ImageVM.ImageHeight))
+            {
+                if (Page.ImageWidth > 0 && Page.ImageHeight > 0)
+                {
+                    _pendingInitialZoomToFit = true;
+                    _pendingFitAttempts = 0;
+                    Dispatcher.BeginInvoke(TryApplyPendingZoomToFit, DispatcherPriority.ContextIdle);
+                }
+
+                return;
+            }
+
+            if (_pendingInitialZoomToFit && e.PropertyName is nameof(ImageVM.NamesRegionHeight) or nameof(ImageVM.TitleRegionHeight))
+            {
+                Dispatcher.BeginInvoke(TryApplyPendingZoomToFit, DispatcherPriority.ContextIdle);
+            }
+        }
+
+        private void TryApplyPendingZoomToFit()
+        {
+            if (!_pendingInitialZoomToFit)
+            {
+                return;
+            }
+
+            if (!TryGetContentBounds(requireImage: true, out var bounds))
+            {
+                if (_pendingFitAttempts++ < 8)
+                {
+                    Dispatcher.BeginInvoke(TryApplyPendingZoomToFit, DispatcherPriority.ContextIdle);
+                }
+
+                return;
+            }
+
+            border.ZoomToFit(bounds);
+            _pendingInitialZoomToFit = false;
+        }
+
+        public void ZoomToFit()
+        {
+            if (border is null || PageCanvas is null)
+            {
+                return;
+            }
+
+            if (TryGetContentBounds(requireImage: true, out var bounds))
+            {
+                border.ZoomToFit(bounds);
+            }
+        }
+
+        private bool TryGetContentBounds(bool requireImage, out Rect bounds)
+        {
+            bounds = Rect.Empty;
+
+            if (requireImage && (!pageimg.IsVisible || pageimg.ActualWidth <= 0 || pageimg.ActualHeight <= 0))
+            {
+                return false;
+            }
+
+            Rect? contentBounds = null;
+            foreach (var element in new FrameworkElement[] { pageimg, topTextPanel, imageIdBorder, namesRegionBorder })
+            {
+                if (!element.IsVisible || element.ActualWidth <= 0 || element.ActualHeight <= 0)
+                {
+                    continue;
+                }
+
+                var rect = element.TransformToAncestor(PageCanvas).TransformBounds(new Rect(0, 0, element.ActualWidth, element.ActualHeight));
+                contentBounds = contentBounds is null ? rect : Rect.Union(contentBounds.Value, rect);
+            }
+
+            if (contentBounds is not Rect computed || computed.Width <= 0 || computed.Height <= 0)
+            {
+                return false;
+            }
+
+            bounds = computed;
+            return true;
+        }
+
         private void TopTextPanel_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (DataContext is MainVM mainVM)
@@ -133,5 +228,8 @@ namespace AutoNumber.Views
                 mainVM.PictureVM.TitleRegionHeight = e.NewSize.Height;
             }
         }
+
+        private bool _pendingInitialZoomToFit;
+        private int _pendingFitAttempts;
     }
 }
