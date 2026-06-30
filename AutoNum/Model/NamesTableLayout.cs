@@ -30,9 +30,9 @@ internal sealed record NameTableLayoutOptions(
     float CellPaddingX,
     float CellPaddingY)
 {
-    public static NameTableLayoutOptions Default(double totalWidth, double startY, double fontSize)
+    public static NameTableLayoutOptions Default(double totalWidth, double startY, double fontSize, int columnCount = 1)
         => new(
-            ColumnCount: 1,
+            ColumnCount: Math.Clamp(columnCount, 1, 4),
             TotalWidth: Math.Max(1, totalWidth),
             StartY: startY,
             FontSize: fontSize,

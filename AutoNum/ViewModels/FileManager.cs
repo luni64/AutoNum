@@ -35,23 +35,9 @@ namespace AutoNumber.ViewModels
 
     public class FileManager(MainVM parent) : BaseViewModel
     {
-        public bool ExportCsvMetadata
-        {
-            get => _exportCsvMetadata;
-            set => SetProperty(ref _exportCsvMetadata, value);
-        }
+        public bool ExportCsvMetadata => parent.SettingsManager.ExportCsvMetadata;
 
-        public bool ExportJsonMetadata
-        {
-            get => _exportJsonMetadata;
-            set => SetProperty(ref _exportJsonMetadata, value);
-        }
-
-        public bool ExportPdfMetadata
-        {
-            get => _exportPdfMetadata;
-            set => SetProperty(ref _exportPdfMetadata, value);
-        }
+        public bool ExportJsonMetadata => parent.SettingsManager.ExportJsonMetadata;
 
         public RelayCommand OpenImageCommand => _openImageCommand ??= new(ExecuteOpenImage);
         async void ExecuteOpenImage(object? o)
@@ -139,27 +125,14 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public RelayCommand SaveImageCommand => _saveImageCommand ??= new(ExecuteSaveImage);
-        void ExecuteSaveImage(object? o)
+        public RelayCommand SaveJpgCommand => _saveJpgCommand ??= new(ExecuteSaveJpg);
+        public RelayCommand SavePdfCommand => _savePdfCommand ??= new(ExecuteSavePdf);
+        public RelayCommand SaveImageCommand => SaveJpgCommand;
+
+        void ExecuteSaveJpg(object? o)
         {
-            var fullFilename = !string.IsNullOrWhiteSpace(parent.PictureVM.CurrentImageFilename)
-                ? parent.PictureVM.CurrentImageFilename
-                : parent.PictureVM.OriginalImageFilename;
-            var path = Path.GetDirectoryName(fullFilename)!;
-            var file = Path.GetFileNameWithoutExtension(fullFilename);
-            var extension = Path.GetExtension(fullFilename);
-            var isEditingProtectedOriginal = IsProtectedOriginalPath(fullFilename, parent.PictureVM.OriginalImageFilename);
-
-            var outputFile = (isEditingProtectedOriginal && parent.SettingsManager.AppendNumSuffixForOriginalSaves)
-                ? file + "_num" + extension
-                : Path.GetFileName(fullFilename);
-
-            var saveFileInfo = new SaveFileInfo
-            {
-                Filename = outputFile,
-                InitialDirectory = path,
-                Filter = "JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg",
-            };
+            var fullFilename = GetCurrentSaveFilename();
+            var saveFileInfo = CreateSaveFileInfo(fullFilename, ".jpg", "JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg");
 
             if (parent.DialogService.ShowDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
             {
@@ -184,6 +157,29 @@ namespace AutoNumber.ViewModels
                 var exportData = BuildExportData();
                 exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
                 WriteMetadataSidecars(filename, exportData, result);
+            }
+        }
+
+        void ExecuteSavePdf(object? o)
+        {
+            var fullFilename = GetCurrentSaveFilename();
+            var saveFileInfo = CreateSaveFileInfo(fullFilename, ".pdf", "PDF Files (*.pdf)|*.pdf");
+
+            if (parent.DialogService.ShowDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
+            {
+                if (IsProtectedOriginalPath(filename, parent.PictureVM.OriginalImageFilename))
+                {
+                    parent.DialogService.ShowDialog("Das Originalbild darf nicht überschrieben werden");
+                    return;
+                }
+
+                using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+                if (result is null) return;
+
+                var exportData = BuildExportData();
+                exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
+                WritePdf(filename, exportData, result);
+                parent.PictureVM.CurrentImageFilename = filename;
             }
         }
 
@@ -233,20 +229,6 @@ namespace AutoNumber.ViewModels
                 catch (Exception ex)
                 {
                     Trace.WriteLine($"Error writing JSON sidecar: {ex}");
-                }
-            }
-
-            if (ExportPdfMetadata)
-            {
-                try
-                {
-                    var pdfPath = Path.ChangeExtension(imageFilename, ".pdf");
-                    WritePdf(pdfPath, exportData, numberedBitmapResult);
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine($"Error writing PDF sidecar: {ex}");
-                    parent.DialogService.ShowDialog($"PDF-Export fehlgeschlagen: {ex.Message}");
                 }
             }
         }
@@ -309,7 +291,9 @@ namespace AutoNumber.ViewModels
             var heading = string.IsNullOrWhiteSpace(exportData.Title) ? "Ohne Titel" : exportData.Title;
             var hasId = !string.IsNullOrWhiteSpace(exportData.Id);
             var hasDescription = !string.IsNullOrWhiteSpace(exportData.Description);
-            var pdfNumberColumnWidth = NamesTableLayout.ResolveNumberColumnWidth(360);
+            var namesColumnCount = Math.Clamp(parent.NameManager.NameTableColumnCount, 1, 4);
+            var tableReferenceWidth = 360d / namesColumnCount;
+            var pdfNumberColumnWidth = NamesTableLayout.ResolveNumberColumnWidth(tableReferenceWidth);
 
             var createdDate = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
                 ? generatedAt.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"))
@@ -364,20 +348,39 @@ namespace AutoNumber.ViewModels
                         {
                             table.ColumnsDefinition(cols =>
                             {
-                                cols.ConstantColumn(pdfNumberColumnWidth);
-                                cols.RelativeColumn();
+                                for (var c = 0; c < namesColumnCount; c++)
+                                {
+                                    cols.ConstantColumn(pdfNumberColumnWidth);
+                                    cols.RelativeColumn();
+                                }
                             });
 
                             table.Header(header =>
                             {
-                                header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Nummer").SemiBold();
-                                header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Name").SemiBold();
+                                for (var c = 0; c < namesColumnCount; c++)
+                                {
+                                    header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Nummer").SemiBold();
+                                    header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Name").SemiBold();
+                                }
                             });
 
-                            foreach (var person in exportData.Persons)
+                            for (var index = 0; index < exportData.Persons.Count; index += namesColumnCount)
                             {
-                                table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Number.ToString());
-                                table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Name);
+                                for (var c = 0; c < namesColumnCount; c++)
+                                {
+                                    var personIndex = index + c;
+                                    if (personIndex < exportData.Persons.Count)
+                                    {
+                                        var person = exportData.Persons[personIndex];
+                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Number.ToString());
+                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Name);
+                                    }
+                                    else
+                                    {
+                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
+                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
+                                    }
+                                }
                             }
                         });
                     });
@@ -519,6 +522,31 @@ namespace AutoNumber.ViewModels
             parent.NameManager.ShowNames();
         }
 
+        private SaveFileInfo CreateSaveFileInfo(string fullFilename, string extension, string filter)
+        {
+            var path = Path.GetDirectoryName(fullFilename)!;
+            var file = Path.GetFileNameWithoutExtension(fullFilename);
+            var isEditingProtectedOriginal = IsProtectedOriginalPath(fullFilename, parent.PictureVM.OriginalImageFilename);
+
+            var outputFile = isEditingProtectedOriginal && !string.IsNullOrWhiteSpace(parent.SettingsManager.SaveFileSuffix)
+                ? file + parent.SettingsManager.SaveFileSuffix + extension
+                : file + extension;
+
+            return new SaveFileInfo
+            {
+                Filename = outputFile,
+                InitialDirectory = path,
+                Filter = filter,
+            };
+        }
+
+        private string GetCurrentSaveFilename()
+        {
+            return !string.IsNullOrWhiteSpace(parent.PictureVM.CurrentImageFilename)
+                ? parent.PictureVM.CurrentImageFilename
+                : parent.PictureVM.OriginalImageFilename;
+        }
+
         private static bool IsProtectedOriginalPath(string selectedPath, string protectedOriginalPath)
         {
             if (string.IsNullOrWhiteSpace(selectedPath) || string.IsNullOrWhiteSpace(protectedOriginalPath))
@@ -533,10 +561,8 @@ namespace AutoNumber.ViewModels
 
         private MainVM parent { get; set; } = parent;
         private RelayCommand? _openImageCommand;
-        private RelayCommand? _saveImageCommand;
-        private bool _exportCsvMetadata;
-        private bool _exportJsonMetadata;
-        private bool _exportPdfMetadata;
+        private RelayCommand? _saveJpgCommand;
+        private RelayCommand? _savePdfCommand;
 
         private sealed class SidecarExportData
         {

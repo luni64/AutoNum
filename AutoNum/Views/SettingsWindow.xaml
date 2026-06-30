@@ -4,125 +4,164 @@
                  xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
                  xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
                  xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+                 xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
                  xmlns:Infrastructure="clr-namespace:AutoNumber.Infrastructure"
+                 xmlns:view="clr-namespace:AutoNumber.Views"
                  mc:Ignorable="d"
                  Title="Einstellungen"
-                 Width="560"
-                 Height="520"
+                 Width="760"
+                 Height="640"
                  ShowInTaskbar="False"
                  WindowStartupLocation="CenterOwner"
                  ResizeMode="CanResizeWithGrip">
-    <mah:MetroWindow.Resources>
-        <Infrastructure:SliderToScaleConverter x:Key="SliderToScaleConverter"/>
-    </mah:MetroWindow.Resources>
-    <Grid Margin="16">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="auto"/>
-        </Grid.RowDefinitions>
+	<mah:MetroWindow.Resources>
+		<Infrastructure:ColorConverter x:Key="ColorConverter"/>
+	</mah:MetroWindow.Resources>
+	<Grid Margin="16" >
+		<Grid.RowDefinitions>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="auto"/>
+		</Grid.RowDefinitions>
 
-        <TabControl Grid.Row="0" TabStripPlacement="Left" mah:HeaderedControlHelper.HeaderFontSize="16">			
-            <TabItem Header="Formattierung">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="3">
-                        <TextBlock Text="Standardwerte für neue Bilder" FontWeight="SemiBold" Margin="0,0,0,10"/>
+		<TabControl Grid.Row="0" TabStripPlacement="Left" mah:HeaderedControlHelper.HeaderFontSize="16" Margin="0,0,0,0">
+			<TabItem Header="Formattierung">
+				<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+					<StackPanel Margin="12,0">
+						<TextBlock TextWrapping="Wrap" Margin="0,4,0,14" FontSize="14">
+							<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
+								Standardwerte für neue Bilder
+							</Run>
+							<LineBreak/>
+							<Run>
+								AutoNumber bestimmt beim Laden eines Bildes automatisch eine Basis-Schriftgröße basierend auf der Auflösung und Größe des Bildes. Mit den Schiebereglern können Sie Faktoren relativ zu dieser Basis-Schriftgröße einstellen (100% = Basis-Schriftgröße). Zusätzlich können Sie hier Standard-Schrift-, Rand- und Hintergrundfarben festlegen.
+							</Run>
+						</TextBlock>
 
-                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="#666666" FontSize="12">
-                            AutoNumber bestimmt beim Laden eines Bildes automatisch eine Basis-Schriftgröße basierend auf der Auflösung und Größe des Bildes. Mit dem Schieberegler können Sie Faktoren relativ zu dieser Basis-Schriftgröße einstellen (100% = Basis-Schriftgröße).
-                        </TextBlock>
+						<TextBlock Text="Nummern" Margin="0,0,0,4" FontWeight="SemiBold"/>
+						<view:FontManager
+							SelectedScale="{Binding DefaultLabelDiameterScale, Mode=TwoWay}"
+							FontColor="{Binding DefaultLabelFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding DefaultLabelBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							EdgeColor="{Binding DefaultLabelEdgeColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							ShowEdgeColor="True"
+							Margin="0,0,0,14"/>
 
-                        <Grid Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Titel" Margin="0,0,0,4"/>
-                                <Slider Minimum="0" Maximum="1" Value="{Binding DefaultTitleFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
-                            </StackPanel>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="5,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultTitleFontScale, StringFormat={}{0:P0}}"/>
-                        </Grid>
+						<TextBlock Text="Titel" Margin="0,0,0,4" FontWeight="SemiBold"/>
+						<view:FontManager
+							SelectedScale="{Binding DefaultTitleFontScale, Mode=TwoWay}"
+							FontColor="{Binding DefaultTitleFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding DefaultTitleBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							Margin="0,0,0,14"/>
 
-                        <Grid Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Beschreibung" Margin="0,0,0,4"/>
-                                <Slider Minimum="0" Maximum="1" Value="{Binding DefaultImageInfoFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
-                            </StackPanel>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="5,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultImageInfoFontScale, StringFormat={}{0:P0}}"/>
-                        </Grid>
+						<TextBlock Text="Beschreibung" Margin="0,0,0,4" FontWeight="SemiBold"/>
+						<view:FontManager
+							SelectedScale="{Binding DefaultImageInfoFontScale, Mode=TwoWay}"
+							FontColor="{Binding DefaultImageInfoFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding DefaultImageInfoBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							Margin="0,0,0,14"/>
 
-                        <Grid Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Bild-ID" Margin="0,0,0,4"/>
-                                <Slider Minimum="0" Maximum="1" Value="{Binding DefaultImageIdFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
-                            </StackPanel>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="5,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultImageIdFontScale, StringFormat={}{0:P0}}"/>
-                        </Grid>
+						<TextBlock Text="Bild-ID" Margin="0,0,0,4" FontWeight="SemiBold"/>
+						<view:FontManager
+							SelectedScale="{Binding DefaultImageIdFontScale, Mode=TwoWay}"
+							FontColor="{Binding DefaultImageIdFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding DefaultImageIdBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							Margin="0,0,0,14"/>
 
-                        <Grid Margin="0,0,0,14">
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="Auto"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Namensliste" Margin="0,0,0,4"/>
-                                <Slider Minimum="0" Maximum="1" Value="{Binding DefaultNamesFontScale, Converter={StaticResource SliderToScaleConverter}, Mode=TwoWay}"/>
-                            </StackPanel>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Bottom" TextAlignment="Right" Margin="5,0,0,6" FontSize="13" FontWeight="Bold" Text="{Binding DefaultNamesFontScale, StringFormat={}{0:P0}}"/>
-                        </Grid>
+						<TextBlock Text="Namensliste" Margin="0,0,0,4" FontWeight="SemiBold"/>
+						<view:FontManager
+							SelectedScale="{Binding DefaultNamesFontScale, Mode=TwoWay}"
+							FontColor="{Binding DefaultNamesFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding DefaultNamesBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							Margin="0,0,0,14"/>
 
-                        <Button Content="Anwenden" Padding="8,4" Margin="0,8,0,0" Click="Apply_Click" ToolTip="Übernimmt die Standardwerte für das aktuelle Bild"/>
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
+						<Button
+							Content="Auf das aktuelle Bild Anwenden"
+							ToolTip="Übernimmt die Standardwerte für das aktuelle Bild"
+							Click="Apply_Click"
+							Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
+							FontSize="13"
+							mah:ControlsHelper.ContentCharacterCasing="Upper"
+							Padding="10"
+							Margin="0,10,0,0"
+							HorizontalAlignment="Left"/>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+			
+			<TabItem Header="Export">
+				<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+					<StackPanel Margin="12,0">
+						<TextBlock TextWrapping="Wrap" Margin="0,4,0,10" FontSize="12">
+							<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
+								Export- und Speichereinstellungen
+							</Run>
+							<LineBreak/>
+							<Run>
+								Beim Speichern eines Bildes kann AutoNumber automatisch ein Suffix an den Dateinamen des exportieren Bildes anhängen.
+							</Run>
+							<LineBreak/><LineBreak/>
+							<Run FontWeight="SemiBold">
+								Suffix für gespeicherte Dateien
+							</Run>
+						</TextBlock>
 
-            <TabItem Header="Sichtbarkeit">
-                <ScrollViewer VerticalScrollBarVisibility="Auto">
-                    <StackPanel Margin="12">
-                        <TextBlock Text="Standard-Sichtbarkeit für neue Bilder" FontWeight="SemiBold" Margin="0,0,0,10"/>
+						<TextBox Text="{Binding SaveFileSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+								 Padding="6,4" Margin="0,0,0,14"
+								 ToolTip="z.B. '_num', 'revision_01' oder leer für kein Suffix"/>
 
-                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="#666666" FontSize="12">
-                            Lege fest, welche Elemente bei neu geladenen Bildern standardmäßig sichtbar sein sollen. Diese Einstellungen beeinflussen nur neue Bilder und können pro Bild weiterhin individuell angepasst werden.
-                        </TextBlock>
+						<TextBlock TextWrapping="Wrap" Margin="0,8,0,14" FontSize="12">
+							<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
+								Zusätzliche Exporte
+							</Run>
+							<LineBreak/>
+							<Run>
+								Optional können zusätzliche Dateien mit Metadaten (CSV und JSON) erzeugt werden. In den erzeugten Dateien werden allgemeine Daten wie Titel, Beschreibung und ID, sowie die Namensliste gespeichert. Diese Dateien können für die Weiterverarbeitung in anderen Programmen (Excel, Datenbanken,...) genutzt werden.
+							</Run>
+						</TextBlock>
 
-                        <mah:ToggleSwitch IsOn="{Binding DefaultTitleEnabled}" Content="Titel anzeigen" Margin="0,0,0,10"/>
-                        <mah:ToggleSwitch IsOn="{Binding DefaultImageInfoEnabled}" Content="Beschreibung anzeigen" Margin="0,0,0,10"/>
-                        <mah:ToggleSwitch IsOn="{Binding DefaultImageIdEnabled}" Content="Bild-ID anzeigen" Margin="0,0,0,10"/>
-                        <mah:ToggleSwitch IsOn="{Binding DefaultNamesEnabled}" Content="Namensliste anzeigen"/>
+						<mah:ToggleSwitch IsOn="{Binding ExportCsvMetadata}" Content="CSV (Excel) Daten" Margin="0,0,0,8"/>
+						<mah:ToggleSwitch IsOn="{Binding ExportJsonMetadata}" Content="JSON Daten" Margin="0,0,0,0"/>
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
+			
+			<TabItem Header="Sichtbarkeit">
+				<ScrollViewer VerticalScrollBarVisibility="Auto">
+					<StackPanel Margin="12">
+						<TextBlock Text="Standard-Sichtbarkeit für neue Bilder" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
-                        <Button Content="Anwenden" Padding="8,4" Margin="0,12,0,0" Click="ApplyVisibility_Click" />
-                    </StackPanel>
-                </ScrollViewer>
-            </TabItem>
+						<TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="#666666" FontSize="12">
+							Lege fest, welche Elemente bei neu geladenen Bildern standardmäßig sichtbar sein sollen. Diese Einstellungen beeinflussen nur neue Bilder und können pro Bild weiterhin individuell angepasst werden.
+						</TextBlock>
 
-            <TabItem Header="Erkennung">
-                <StackPanel Margin="12">
-                    <TextBlock Text="Empfindlichkeit (ScaleFactor)" Margin="0,0,0,4"/>
-                    <Slider Minimum="1.05" Maximum="2" Value="{Binding FaceScaleFactor, Mode=TwoWay}" Margin="0,0,0,14"/>
+						<mah:ToggleSwitch IsOn="{Binding DefaultTitleEnabled}" Content="Titel anzeigen" Margin="0,0,0,10"/>
+						<mah:ToggleSwitch IsOn="{Binding DefaultImageInfoEnabled}" Content="Beschreibung anzeigen" Margin="0,0,0,10"/>
+						<mah:ToggleSwitch IsOn="{Binding DefaultImageIdEnabled}" Content="Bild-ID anzeigen" Margin="0,0,0,10"/>
+						<mah:ToggleSwitch IsOn="{Binding DefaultNamesEnabled}" Content="Namensliste anzeigen"/>
 
-                    <TextBlock Text="Bestätigungen (MinNeighbors)" Margin="0,0,0,4"/>
-                    <Slider Minimum="1" Maximum="20" Value="{Binding FaceMinNeighbors, Mode=TwoWay}"/>
-                </StackPanel>
-            </TabItem>
+						<Button Content="Anwenden" Padding="8,4" Margin="0,12,0,0" Click="ApplyVisibility_Click" />
+					</StackPanel>
+				</ScrollViewer>
+			</TabItem>
 
-            <TabItem Header="Speichern">
-                <StackPanel Margin="12">
-                    <mah:ToggleSwitch IsOn="{Binding AppendNumSuffixForOriginalSaves}"
-                                      Content="Beim Speichern vom Original '_num' vorschlagen"/>
-                </StackPanel>
-            </TabItem>
-        </TabControl>
+			<TabItem Header="Erkennung">
+				<StackPanel Margin="12">
+					<TextBlock Text="Empfindlichkeit (ScaleFactor)" Margin="0,0,0,4"/>
+					<Slider Minimum="1.05" Maximum="2" Value="{Binding FaceScaleFactor, Mode=TwoWay}" Margin="0,0,0,14"/>
 
-        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-            <Button Content="Schließen" Width="110" Click="Close_Click"/>
-        </StackPanel>
-    </Grid>
+					<TextBlock Text="Bestätigungen (MinNeighbors)" Margin="0,0,0,4"/>
+					<Slider Minimum="1" Maximum="20" Value="{Binding FaceMinNeighbors, Mode=TwoWay}"/>
+				</StackPanel>
+			</TabItem>
+
+		</TabControl>
+		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+			<Button
+				Content="Schließen"
+				Click="Close_Click"
+				Style="{StaticResource MahApps.Styles.Button.Square.Accent}"  FontSize="13" mah:ControlsHelper.ContentCharacterCasing="Upper"
+				Padding="10" Width="110"
+				/>
+		</StackPanel>
+	</Grid>
 </mah:MetroWindow>

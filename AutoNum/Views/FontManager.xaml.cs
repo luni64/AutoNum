@@ -55,6 +55,22 @@ namespace AutoNumber.Views
             set { SetValue(SelectedScaleProperty, value); }
         }
 
+        public static readonly DependencyProperty EdgeColorProperty = DependencyProperty.Register(nameof(EdgeColor), typeof(Color), typeof(FontManager),
+            new FrameworkPropertyMetadata(Colors.Transparent, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
 
+        public Color EdgeColor
+        {
+            get { return (Color)GetValue(EdgeColorProperty); }
+            set { SetValue(EdgeColorProperty, value); }
+        }
+
+        public static readonly DependencyProperty ShowEdgeColorProperty = DependencyProperty.Register(nameof(ShowEdgeColor), typeof(bool), typeof(FontManager),
+            new FrameworkPropertyMetadata(false, FrameworkPropertyMetadataOptions.BindsTwoWayByDefault));
+
+        public bool ShowEdgeColor
+        {
+            get { return (bool)GetValue(ShowEdgeColorProperty); }
+            set { SetValue(ShowEdgeColorProperty, value); }
+        }
     }
 }

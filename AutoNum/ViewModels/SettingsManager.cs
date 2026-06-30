@@ -1,4 +1,5 @@
 using AutoNumber.Model;
+using System.Drawing;
 
 namespace AutoNumber.ViewModels;
 
@@ -21,9 +22,24 @@ public class SettingsManager : BaseViewModel
         _defaultImageInfoFontScale = ClampDouble(_settings.DefaultImageInfoFontScale, 0.25, 4.0);
         _defaultImageIdFontScale = ClampDouble(_settings.DefaultImageIdFontScale, 0.25, 4.0);
 
+        _defaultLabelFontColor = Color.FromArgb(_settings.DefaultLabelFontForeground);
+        _defaultLabelBackgroundColor = Color.FromArgb(_settings.DefaultLabelBackgroundColor);
+        _defaultLabelEdgeColor = Color.FromArgb(_settings.DefaultLabelEdgeColor);
+        _defaultNamesFontColor = Color.FromArgb(_settings.DefaultNamesFontForeground);
+        _defaultNamesBackgroundColor = Color.FromArgb(_settings.DefaultNamesFontBackground);
+        _defaultTitleFontColor = Color.FromArgb(_settings.DefaultTitleFontForeground);
+        _defaultTitleBackgroundColor = Color.FromArgb(_settings.DefaultTitleFontBackground);
+        _defaultImageInfoFontColor = Color.FromArgb(_settings.DefaultImageInfoFontForeground);
+        _defaultImageInfoBackgroundColor = Color.FromArgb(_settings.DefaultImageInfoFontBackground);
+        _defaultImageIdFontColor = Color.FromArgb(_settings.DefaultImageIdFontForeground);
+        _defaultImageIdBackgroundColor = Color.FromArgb(_settings.DefaultImageIdFontBackground);
+
         _faceScaleFactor = ClampDouble(_settings.FaceScaleFactor, 1.05, 2.0);
         _faceMinNeighbors = ClampInt(_settings.FaceMinNeighbors, 1, 20);
-        _appendNumSuffixForOriginalSaves = _settings.AppendNumSuffixForOriginalSaves;
+
+        _exportCsvMetadata = _settings.ExportCsvMetadata;
+        _exportJsonMetadata = _settings.ExportJsonMetadata;
+        _saveFileSuffix = _settings.SaveFileSuffix ?? "_num";
 
         ApplyDetectionDefaults();
     }
@@ -79,6 +95,36 @@ public class SettingsManager : BaseViewModel
         {
             var clamped = ClampDouble(value, 0.25, 4.0);
             SetProperty(ref _defaultLabelDiameterScale, clamped);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultLabelFontColor
+    {
+        get => _defaultLabelFontColor;
+        set
+        {
+            SetProperty(ref _defaultLabelFontColor, value);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultLabelBackgroundColor
+    {
+        get => _defaultLabelBackgroundColor;
+        set
+        {
+            SetProperty(ref _defaultLabelBackgroundColor, value);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultLabelEdgeColor
+    {
+        get => _defaultLabelEdgeColor;
+        set
+        {
+            SetProperty(ref _defaultLabelEdgeColor, value);
             SaveSettings();
         }
     }
@@ -139,6 +185,86 @@ public class SettingsManager : BaseViewModel
         }
     }
 
+    public Color DefaultNamesFontColor
+    {
+        get => _defaultNamesFontColor;
+        set
+        {
+            SetProperty(ref _defaultNamesFontColor, value);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultNamesBackgroundColor
+    {
+        get => _defaultNamesBackgroundColor;
+        set
+        {
+            SetProperty(ref _defaultNamesBackgroundColor, value);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultTitleFontColor
+    {
+        get => _defaultTitleFontColor;
+        set
+        {
+            SetProperty(ref _defaultTitleFontColor, value);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultTitleBackgroundColor
+    {
+        get => _defaultTitleBackgroundColor;
+        set
+        {
+            SetProperty(ref _defaultTitleBackgroundColor, value);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultImageInfoFontColor
+    {
+        get => _defaultImageInfoFontColor;
+        set
+        {
+            SetProperty(ref _defaultImageInfoFontColor, value);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultImageInfoBackgroundColor
+    {
+        get => _defaultImageInfoBackgroundColor;
+        set
+        {
+            SetProperty(ref _defaultImageInfoBackgroundColor, value);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultImageIdFontColor
+    {
+        get => _defaultImageIdFontColor;
+        set
+        {
+            SetProperty(ref _defaultImageIdFontColor, value);
+            SaveSettings();
+        }
+    }
+
+    public Color DefaultImageIdBackgroundColor
+    {
+        get => _defaultImageIdBackgroundColor;
+        set
+        {
+            SetProperty(ref _defaultImageIdBackgroundColor, value);
+            SaveSettings();
+        }
+    }
+
     public double FaceScaleFactor
     {
         get => _faceScaleFactor;
@@ -165,10 +291,46 @@ public class SettingsManager : BaseViewModel
 
     public bool AppendNumSuffixForOriginalSaves
     {
-        get => _appendNumSuffixForOriginalSaves;
+        get => !string.IsNullOrWhiteSpace(_saveFileSuffix);
         set
         {
-            SetProperty(ref _appendNumSuffixForOriginalSaves, value);
+            if (value && string.IsNullOrWhiteSpace(_saveFileSuffix))
+            {
+                SaveFileSuffix = "_num";
+            }
+            else if (!value)
+            {
+                SaveFileSuffix = string.Empty;
+            }
+        }
+    }
+
+    public string SaveFileSuffix
+    {
+        get => _saveFileSuffix;
+        set
+        {
+            SetProperty(ref _saveFileSuffix, value ?? string.Empty);
+            SaveSettings();
+        }
+    }
+
+    public bool ExportCsvMetadata
+    {
+        get => _exportCsvMetadata;
+        set
+        {
+            SetProperty(ref _exportCsvMetadata, value);
+            SaveSettings();
+        }
+    }
+
+    public bool ExportJsonMetadata
+    {
+        get => _exportJsonMetadata;
+        set
+        {
+            SetProperty(ref _exportJsonMetadata, value);
             SaveSettings();
         }
     }
@@ -183,11 +345,27 @@ public class SettingsManager : BaseViewModel
             return;
         }
 
-        // Read current scale values from managers
+        // Read current formatting values from managers
+        DefaultLabelDiameterScale = mainVM.LabelManager.LabelScale;
+        DefaultLabelFontColor = mainVM.LabelManager.FontColor;
+        DefaultLabelBackgroundColor = mainVM.LabelManager.BackgroundColor;
+        DefaultLabelEdgeColor = mainVM.LabelManager.EdgeColor;
+
         DefaultNamesFontScale = mainVM.NameManager.FontScale;
+        DefaultNamesFontColor = mainVM.NameManager.FontColor;
+        DefaultNamesBackgroundColor = mainVM.NameManager.BackgroundColor;
+
         DefaultTitleFontScale = mainVM.TitleManager.FontScale;
+        DefaultTitleFontColor = mainVM.TitleManager.TitleFontColor;
+        DefaultTitleBackgroundColor = mainVM.TitleManager.BackgroundColor;
+
         DefaultImageInfoFontScale = mainVM.ImageInfoManager.FontScale;
+        DefaultImageInfoFontColor = mainVM.ImageInfoManager.ImageInfoFontColor;
+        DefaultImageInfoBackgroundColor = mainVM.ImageInfoManager.BackgroundColor;
+
         DefaultImageIdFontScale = mainVM.ImageIdManager.FontScale;
+        DefaultImageIdFontColor = mainVM.ImageIdManager.FontColor;
+        DefaultImageIdBackgroundColor = mainVM.ImageIdManager.BackgroundColor;
 
         // Save the settings
         SaveSettings();
@@ -217,6 +395,38 @@ public class SettingsManager : BaseViewModel
         }
     }
 
+    /// <summary>
+    /// Update the full default formatting value for one element.
+    /// </summary>
+    public void UpdateDefaultFormatting(string managerType, double scale, Color fontColor, Color backgroundColor)
+    {
+        scale = ClampDouble(scale, 0.25, 4.0);
+
+        switch (managerType)
+        {
+            case nameof(TitleManager):
+                DefaultTitleFontScale = scale;
+                DefaultTitleFontColor = fontColor;
+                DefaultTitleBackgroundColor = backgroundColor;
+                break;
+            case nameof(ImageInfoManager):
+                DefaultImageInfoFontScale = scale;
+                DefaultImageInfoFontColor = fontColor;
+                DefaultImageInfoBackgroundColor = backgroundColor;
+                break;
+            case nameof(ImageIdManager):
+                DefaultImageIdFontScale = scale;
+                DefaultImageIdFontColor = fontColor;
+                DefaultImageIdBackgroundColor = backgroundColor;
+                break;
+            case nameof(NameManager):
+                DefaultNamesFontScale = scale;
+                DefaultNamesFontColor = fontColor;
+                DefaultNamesBackgroundColor = backgroundColor;
+                break;
+        }
+    }
+
     public void ApplyDetectionDefaults()
     {
         FaceDetector.ScaleFactor = FaceScaleFactor;
@@ -225,24 +435,55 @@ public class SettingsManager : BaseViewModel
 
     public void ApplyFreshImageDefaults(LabelManager labelManager, NameManager nameManager, TitleManager titleManager, ImageInfoManager imageInfoManager, ImageIdManager imageIdManager)
     {
-        // Fresh images start unscaled, except for names, title, image-info, image-ID which use saved defaults
-        labelManager.LabelScale = 1.0; // Labels always start unscaled
+        // Fresh images start with stored label defaults, and other elements use their saved defaults
+        labelManager.LabelScale = DefaultLabelDiameterScale;
+        labelManager.FontColor = DefaultLabelFontColor;
+        labelManager.BackgroundColor = DefaultLabelBackgroundColor;
+        labelManager.EdgeColor = DefaultLabelEdgeColor;
+
         nameManager.FontScale = DefaultNamesFontScale;
+        nameManager.FontColor = DefaultNamesFontColor;
+        nameManager.BackgroundColor = DefaultNamesBackgroundColor;
         nameManager.IsEnabled = DefaultNamesEnabled;
+
         titleManager.FontScale = DefaultTitleFontScale;
+        titleManager.TitleFontColor = DefaultTitleFontColor;
+        titleManager.BackgroundColor = DefaultTitleBackgroundColor;
         titleManager.IsEnabled = DefaultTitleEnabled;
+
         imageInfoManager.FontScale = DefaultImageInfoFontScale;
+        imageInfoManager.ImageInfoFontColor = DefaultImageInfoFontColor;
+        imageInfoManager.BackgroundColor = DefaultImageInfoBackgroundColor;
         imageInfoManager.IsEnabled = DefaultImageInfoEnabled;
+
         imageIdManager.FontScale = DefaultImageIdFontScale;
+        imageIdManager.FontColor = DefaultImageIdFontColor;
+        imageIdManager.BackgroundColor = DefaultImageIdBackgroundColor;
         imageIdManager.IsEnabled = DefaultImageIdEnabled;
     }
 
-    public void ApplyCurrentImageFontDefaults(NameManager nameManager, TitleManager titleManager, ImageInfoManager imageInfoManager, ImageIdManager imageIdManager)
+    public void ApplyCurrentImageFormattingDefaults(LabelManager labelManager, NameManager nameManager, TitleManager titleManager, ImageInfoManager imageInfoManager, ImageIdManager imageIdManager)
     {
+        labelManager.LabelScale = DefaultLabelDiameterScale;
+        labelManager.FontColor = DefaultLabelFontColor;
+        labelManager.BackgroundColor = DefaultLabelBackgroundColor;
+        labelManager.EdgeColor = DefaultLabelEdgeColor;
+
         nameManager.FontScale = DefaultNamesFontScale;
+        nameManager.FontColor = DefaultNamesFontColor;
+        nameManager.BackgroundColor = DefaultNamesBackgroundColor;
+
         titleManager.FontScale = DefaultTitleFontScale;
+        titleManager.TitleFontColor = DefaultTitleFontColor;
+        titleManager.BackgroundColor = DefaultTitleBackgroundColor;
+
         imageInfoManager.FontScale = DefaultImageInfoFontScale;
+        imageInfoManager.ImageInfoFontColor = DefaultImageInfoFontColor;
+        imageInfoManager.BackgroundColor = DefaultImageInfoBackgroundColor;
+
         imageIdManager.FontScale = DefaultImageIdFontScale;
+        imageIdManager.FontColor = DefaultImageIdFontColor;
+        imageIdManager.BackgroundColor = DefaultImageIdBackgroundColor;
     }
 
     public void ApplyCurrentImageVisibilityDefaults(NameManager nameManager, TitleManager titleManager, ImageInfoManager imageInfoManager, ImageIdManager imageIdManager)
@@ -264,9 +505,22 @@ public class SettingsManager : BaseViewModel
         _settings.DefaultTitleFontScale = DefaultTitleFontScale;
         _settings.DefaultImageInfoFontScale = DefaultImageInfoFontScale;
         _settings.DefaultImageIdFontScale = DefaultImageIdFontScale;
+        _settings.DefaultLabelFontForeground = DefaultLabelFontColor.ToArgb();
+        _settings.DefaultLabelBackgroundColor = DefaultLabelBackgroundColor.ToArgb();
+        _settings.DefaultLabelEdgeColor = DefaultLabelEdgeColor.ToArgb();
+        _settings.DefaultNamesFontForeground = DefaultNamesFontColor.ToArgb();
+        _settings.DefaultNamesFontBackground = DefaultNamesBackgroundColor.ToArgb();
+        _settings.DefaultTitleFontForeground = DefaultTitleFontColor.ToArgb();
+        _settings.DefaultTitleFontBackground = DefaultTitleBackgroundColor.ToArgb();
+        _settings.DefaultImageInfoFontForeground = DefaultImageInfoFontColor.ToArgb();
+        _settings.DefaultImageInfoFontBackground = DefaultImageInfoBackgroundColor.ToArgb();
+        _settings.DefaultImageIdFontForeground = DefaultImageIdFontColor.ToArgb();
+        _settings.DefaultImageIdFontBackground = DefaultImageIdBackgroundColor.ToArgb();
         _settings.FaceScaleFactor = FaceScaleFactor;
         _settings.FaceMinNeighbors = FaceMinNeighbors;
-        _settings.AppendNumSuffixForOriginalSaves = AppendNumSuffixForOriginalSaves;
+        _settings.SaveFileSuffix = SaveFileSuffix;
+        _settings.ExportCsvMetadata = ExportCsvMetadata;
+        _settings.ExportJsonMetadata = ExportJsonMetadata;
         AppSettingsStore.Save(_settings);
     }
 
@@ -291,7 +545,20 @@ public class SettingsManager : BaseViewModel
     private double _defaultTitleFontScale;
     private double _defaultImageInfoFontScale;
     private double _defaultImageIdFontScale;
+    private Color _defaultLabelFontColor;
+    private Color _defaultLabelBackgroundColor;
+    private Color _defaultLabelEdgeColor;
+    private Color _defaultNamesFontColor;
+    private Color _defaultNamesBackgroundColor;
+    private Color _defaultTitleFontColor;
+    private Color _defaultTitleBackgroundColor;
+    private Color _defaultImageInfoFontColor;
+    private Color _defaultImageInfoBackgroundColor;
+    private Color _defaultImageIdFontColor;
+    private Color _defaultImageIdBackgroundColor;
     private double _faceScaleFactor;
     private int _faceMinNeighbors;
-    private bool _appendNumSuffixForOriginalSaves;
+    private string _saveFileSuffix = "_num";
+    private bool _exportCsvMetadata;
+    private bool _exportJsonMetadata;
 }

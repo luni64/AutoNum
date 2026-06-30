@@ -12,44 +12,61 @@
     <UserControl.Resources>
         <Infrastructure:ColorConverter x:Key="ColorConverter"/>
         <Infrastructure:SliderToScaleConverter x:Key="SliderToScaleConverter"/>
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="auto"/>
+            <ColumnDefinition Width="40"/>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="100"/>
+            <ColumnDefinition Width="100"/>
         </Grid.ColumnDefinitions>
 
-        <iconPacks:PackIconBoxIcons Grid.Column="0" Kind="RegularFontSize" VerticalAlignment="Center" Height="18" Width="18" Margin="0,0,8,0" />
+        <iconPacks:PackIconBoxIcons Grid.Column="0" Kind="RegularFontSize" VerticalAlignment="Center" Height="18" Width="18" Margin="0,0,8,0" ToolTip="Schriftgröße"/>
         <Slider x:Name="FontSizeSlider" Grid.Column="1"
-            Margin="0,0,5,0"
+            Margin="5,0,5,0"
             Focusable="False"
             HorizontalAlignment="Stretch"
             Minimum="0"
             Maximum="1"
             IsSnapToTickEnabled="False"
             Value="{Binding SelectedScale, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay, Converter={StaticResource SliderToScaleConverter}}"
-            mah:SliderHelper.EnableMouseWheel="MouseHover" />
-        <TextBlock Grid.Column="2" VerticalAlignment="Center" TextAlignment="Right" FontSize="13" FontWeight="Bold" Text="{Binding SelectedScale, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat={}{0:P0}}"/>
+            mah:SliderHelper.EnableMouseWheel="MouseHover"
+            ToolTip="Schriftgröße" />
+        <TextBlock Grid.Column="2" VerticalAlignment="Center" TextAlignment="right" FontSize="13" FontWeight="Bold" Text="{Binding SelectedScale, RelativeSource={RelativeSource AncestorType=UserControl}, StringFormat={}{0:P0}}" ToolTip="Schriftgröße"/>
 
-        <StackPanel Orientation="Horizontal" Grid.Column="3" Margin="12,0,0,0">
-            <iconPacks:PackIconBoxIcons Kind="RegularFontColor" VerticalAlignment="Center" Height="18" Width="18" Margin="0,0,5,0"/>
+        <StackPanel Orientation="Horizontal" Grid.Column="3" Margin="24,0,0,0">
+            <iconPacks:PackIconBoxIcons Kind="RegularFontColor" VerticalAlignment="Center" Height="18" Width="18" Margin="0,0,0,0" ToolTip="Schriftfarbe"/>
             <mah:ColorPicker
                 Focusable="False"
                 SelectedColor="{Binding FontColor, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}" 
-                VerticalAlignment="Center" Width="30" 
-                SelectedColorTemplate="{DynamicResource MahApps.Templates.ColorPickerContent.ColorOnly}"    />
+                VerticalAlignment="Center" Width="Auto" 
+                Margin="6,0,0,0"
+                SelectedColorTemplate="{DynamicResource MahApps.Templates.ColorPickerContent.ColorOnly}"
+                ToolTip="Schriftfarbe" />
         </StackPanel>
 
-        <StackPanel Orientation="Horizontal" Grid.Column="4" Margin="8,0,0,0">
-            <iconPacks:PackIconJamIcons Kind="BackgroundColor" VerticalAlignment="Center" Height="20" Width="20" Margin="0,0,5,0"/>
+        <StackPanel Orientation="Horizontal" Grid.Column="4" Margin="20,0,0,0">
+            <iconPacks:PackIconJamIcons Kind="BackgroundColor" VerticalAlignment="Center" Height="20" Width="20" Margin="0,0,0,0" ToolTip="Hintergrundfarbe"/>
             <mah:ColorPicker      
                 Focusable="False"
                 SelectedColor="{Binding BackgroundColor, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}" 
-                VerticalAlignment="Center" Width="25" 
-                SelectedColorTemplate="{DynamicResource MahApps.Templates.ColorPickerContent.ColorOnly}"    />
+                VerticalAlignment="Center" Width="Auto" 
+                Margin="6,0,0,0"
+                SelectedColorTemplate="{DynamicResource MahApps.Templates.ColorPickerContent.ColorOnly}"
+                ToolTip="Hintergrundfarbe" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Grid.Column="5" Margin="14,0,0,0" Visibility="{Binding ShowEdgeColor, RelativeSource={RelativeSource AncestorType=UserControl}, Converter={StaticResource BoolToVisibilityConverter}}">
+            <iconPacks:PackIconMaterial Kind="CheckboxBlankCircleOutline" VerticalAlignment="Center" Height="18" Width="18" Margin="0,0,6,0" ToolTip="Randfarbe"/>
+            <mah:ColorPicker      
+                Focusable="False"
+                SelectedColor="{Binding EdgeColor, RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}" 
+                VerticalAlignment="Center" Width="Auto" 
+                SelectedColorTemplate="{DynamicResource MahApps.Templates.ColorPickerContent.ColorOnly}"
+                ToolTip="Randfarbe" />
         </StackPanel>
     </Grid>
 </UserControl>

@@ -35,7 +35,7 @@ namespace AutoNumber.ViewModels
             if (IsEnabled)
             {
                 var imageIdOffset = _imageIdManager.ShowImageIdLine ? _imageIdManager.LineHeight : 0;
-                var height = Analyzer.PlacePersonNames(PersonsView, _imageVM.ImageWidth, _imageVM.ImageHeight + imageIdOffset);
+                var height = Analyzer.PlacePersonNames(PersonsView, _imageVM.ImageWidth, _imageVM.ImageHeight + imageIdOffset, NameTableColumnCount);
                 _imageVM.NamesRegionHeight = height;
             }
             else
@@ -82,6 +82,21 @@ namespace AutoNumber.ViewModels
                 {
                     _fontScale = clamped;
                     ApplyScale();
+                    ShowNames();
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public int NameTableColumnCount
+        {
+            get => _nameTableColumnCount;
+            set
+            {
+                var clamped = Math.Clamp(value, 1, 4);
+                if (_nameTableColumnCount != clamped)
+                {
+                    _nameTableColumnCount = clamped;
                     ShowNames();
                     OnPropertyChanged();
                 }
@@ -149,6 +164,7 @@ namespace AutoNumber.ViewModels
                         : ResolveLegacyScale(md.NamesFont.Size, md.LabelsFont.Size);
 
                     FontScale = scale;
+                    NameTableColumnCount = Math.Clamp(md.NamesColumnCount ?? 1, 1, 4);
                     IsEnabled = _imageVM.Persons.Count > 0 && (md.NamesEnabled ?? true);
                     ShowNames();
 
@@ -224,6 +240,7 @@ namespace AutoNumber.ViewModels
         private readonly LabelManager _labelManager;
         private readonly ImageIdManager _imageIdManager;
         private FontFamily _fontFamily = new("Calibri");
+        private int _nameTableColumnCount = 1;
     }
 }
 

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Drawing;
 using System.IO;
 using System.Text.Json;
 
@@ -18,10 +19,24 @@ public class AppSettings
     public double DefaultImageInfoFontScale { get; set; } = SizingModel.DefaultScale;
     public double DefaultImageIdFontScale { get; set; } = SizingModel.DefaultScale;
 
+    public int DefaultLabelFontForeground { get; set; } = Color.Black.ToArgb();
+    public int DefaultLabelBackgroundColor { get; set; } = Color.White.ToArgb();
+    public int DefaultLabelEdgeColor { get; set; } = Color.Black.ToArgb();
+    public int DefaultNamesFontForeground { get; set; } = Color.Black.ToArgb();
+    public int DefaultNamesFontBackground { get; set; } = Color.White.ToArgb();
+    public int DefaultTitleFontForeground { get; set; } = Color.Black.ToArgb();
+    public int DefaultTitleFontBackground { get; set; } = Color.White.ToArgb();
+    public int DefaultImageInfoFontForeground { get; set; } = Color.Black.ToArgb();
+    public int DefaultImageInfoFontBackground { get; set; } = Color.White.ToArgb();
+    public int DefaultImageIdFontForeground { get; set; } = Color.Black.ToArgb();
+    public int DefaultImageIdFontBackground { get; set; } = Color.White.ToArgb();
+
     public double FaceScaleFactor { get; set; } = 1.2;
     public int FaceMinNeighbors { get; set; } = 7;
 
-    public bool AppendNumSuffixForOriginalSaves { get; set; } = true;
+    public bool ExportCsvMetadata { get; set; } = true;
+    public bool ExportJsonMetadata { get; set; } = true;
+    public string SaveFileSuffix { get; set; } = "_num";
 }
 
 public static class AppSettingsStore
@@ -67,7 +82,7 @@ public static class AppSettingsStore
     {
         try
         {
-            settings.SchemaVersion = 3;
+            settings.SchemaVersion = 5;
             Directory.CreateDirectory(SettingsDirectory);
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(SettingsPath, json);
@@ -80,16 +95,16 @@ public static class AppSettingsStore
 
     private static AppSettings CreateDefault() => new()
     {
-        SchemaVersion = 3
+        SchemaVersion = 5
     };
 
     private static void Migrate(AppSettings settings)
     {
-        if (settings.SchemaVersion >= 3)
+        if (settings.SchemaVersion >= 5)
         {
             return;
         }
 
-        settings.SchemaVersion = 3;
+        settings.SchemaVersion = 5;
     }
 }

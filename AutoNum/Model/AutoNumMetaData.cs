@@ -80,6 +80,7 @@ namespace AutoNumber.Model
         public double LabelsSize { get; set; } = double.NaN;
         public AutoNumFont NamesFont { get; set; } = new AutoNumFont();
         public bool? NamesEnabled { get; set; }
+        public int? NamesColumnCount { get; set; }
         public string ImageId { get; set; } = string.Empty;
         public AutoNumFont ImageIdFont { get; set; } = new AutoNumFont();
         public bool? ImageIdEnabled { get; set; }
@@ -103,6 +104,7 @@ namespace AutoNumber.Model
             LabelsSize = MarkerLabel.Style.Diameter;
             NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.Style.FontSize);
             NamesEnabled = nm.IsEnabled;
+            NamesColumnCount = nm.NameTableColumnCount;
             ImageId = idm.ImageId;
             ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
             ImageIdEnabled = idm.IsEnabled;

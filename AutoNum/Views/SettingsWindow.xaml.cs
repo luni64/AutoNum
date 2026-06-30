@@ -24,8 +24,9 @@ public partial class SettingsWindow : MetroWindow
     {
         if (DataContext is SettingsManager settingsManager)
         {
-            // Apply font defaults to the current image without changing visibility toggles.
-            settingsManager.ApplyCurrentImageFontDefaults(
+            // Apply formatting defaults to the current image without changing visibility toggles.
+            settingsManager.ApplyCurrentImageFormattingDefaults(
+                _mainVM.LabelManager,
                 _mainVM.NameManager,
                 _mainVM.TitleManager,
                 _mainVM.ImageInfoManager,

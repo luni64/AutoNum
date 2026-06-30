@@ -110,7 +110,7 @@
                         FocusVisualStyle="{x:Null}"
                         Command="{x:Static local:MainWindow.OpenFormatDialogCommand}"
                         CommandParameter="{Binding}">
-                        <iconPacks:PackIconMaterial Kind="FormatFont" Width="16" Height="16"/>
+                        <iconPacks:PackIconMaterial Kind="CogOutline" Width="16" Height="16"/>
                     </Button>
                 </StackPanel>
 

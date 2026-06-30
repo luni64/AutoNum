@@ -112,6 +112,7 @@ AutoNum/
    - V3 restores exact sizing anchors/scales
    - V1/V2 migrate legacy absolute sizes via stored ratios for visually equivalent results
    - Label, names, title, image-info, and image-ID font families are restored with safe fallback (`FontFamilyResolver`) when unavailable on the current system.
+   - Names-table column count is restored per image (`NamesColumnCount`, clamped 1..4; missing legacy value falls back to 1).
 
 ### Save image
 1. `FileManager` proposes output name:

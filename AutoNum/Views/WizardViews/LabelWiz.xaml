@@ -21,10 +21,21 @@
             <view:FontManager
                 Grid.Column="0"
                 SelectedScale="{Binding LabelScale}"
-                FontColor="{Binding FontColor, Mode=TwoWay,  Converter={StaticResource ColorConverter} }"
-                BackgroundColor="{Binding BackgroundColor, Mode=TwoWay,  Converter={StaticResource ColorConverter} }"
+                FontColor="{Binding FontColor, Mode=TwoWay, Converter={StaticResource ColorConverter} }"
+                BackgroundColor="{Binding BackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter} }"
                 />
-      
+
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center" Margin="12,0,0,0">
+                <iconPacks:PackIconMaterial Kind="CheckboxBlankCircleOutline" VerticalAlignment="Center" Height="18" Width="18" Margin="0,0,6,0" ToolTip="Randfarbe"/>
+                <mah:ColorPicker
+                    Focusable="False"
+                    SelectedColor="{Binding EdgeColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+                    VerticalAlignment="Center"
+                    Width="46"
+                    SelectedColorTemplate="{DynamicResource MahApps.Templates.ColorPickerContent.ColorOnly}"
+                    ToolTip="Randfarbe"/>
+            </StackPanel>
+
             <DockPanel Grid.Column="2" Margin="20,0,20,0">                
                 <TextBlock 
                     DockPanel.Dock="Top"

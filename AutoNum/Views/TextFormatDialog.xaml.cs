@@ -4,6 +4,7 @@ using MahApps.Metro.Controls;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using MahApps.Metro.IconPacks;
 
 namespace AutoNumber.Views;
 
@@ -30,6 +31,35 @@ public partial class TextFormatDialog : MetroWindow
             _managerTypeName == nameof(NameManager))
         {
             UseAsDefaultButton.Visibility = Visibility.Visible;
+        }
+
+        if (manager is NameManager)
+        {
+            NameTableOptionsPanel.Visibility = Visibility.Visible;
+            Height = 260;
+
+            BindingOperations.SetBinding(
+                NameTableColumnCountComboBox,
+                ComboBox.SelectedValueProperty,
+                new Binding(nameof(NameManager.NameTableColumnCount))
+                {
+                    Mode = BindingMode.TwoWay
+                });
+        }
+
+        if (manager is LabelManager labelManager)
+        {
+            FontManagerControl.ShowEdgeColor = true;
+            Height = 260;
+
+            BindingOperations.SetBinding(
+                FontManagerControl,
+                FontManager.EdgeColorProperty,
+                new Binding(nameof(LabelManager.EdgeColor))
+                {
+                    Mode = BindingMode.TwoWay,
+                    Converter = DrawingToMediaColorConverter
+                });
         }
 
         BindFontManager(fontColorPath, backgroundColorPath, fontSizePath);
@@ -77,21 +107,21 @@ public partial class TextFormatDialog : MetroWindow
             return;
         }
 
-        // Get the current scale from the manager
-        double currentScale = _manager switch
+        // Read the current formatting values from the manager
+        var (currentScale, fontColor, backgroundColor) = _manager switch
         {
-            TitleManager tm => tm.FontScale,
-            ImageInfoManager iim => iim.FontScale,
-            ImageIdManager idm => idm.FontScale,
-            NameManager nm => nm.FontScale,
-            _ => 1.0
+            TitleManager tm => (tm.FontScale, tm.TitleFontColor, tm.BackgroundColor),
+            ImageInfoManager iim => (iim.FontScale, iim.ImageInfoFontColor, iim.BackgroundColor),
+            ImageIdManager idm => (idm.FontScale, idm.FontColor, idm.BackgroundColor),
+            NameManager nm => (nm.FontScale, nm.FontColor, nm.BackgroundColor),
+            _ => (1.0, System.Drawing.Color.Black, System.Drawing.Color.White)
         };
 
         // Find the SettingsManager in the application's main view model
         // This is a bit of a hack, but we need access to SettingsManager
         if (Owner is MainWindow mainWindow && mainWindow.DataContext is MainVM mainVM)
         {
-            mainVM.SettingsManager.UpdateDefaultScale(_managerTypeName, currentScale);
+            mainVM.SettingsManager.UpdateDefaultFormatting(_managerTypeName, currentScale, fontColor, backgroundColor);
             MessageBox.Show("Die Einstellung wurde als Standardwert übernommen.", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }

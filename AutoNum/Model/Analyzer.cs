@@ -73,7 +73,7 @@ namespace AutoNumber.Model
                 + GetTextBlockHeight(iim.ImageInfo, iim.ImageInfoFontFamily, iim.ImageInfoFontSize);
         }
 
-        public static double PlacePersonNames(ICollectionView persons, double width, double startY)
+        public static double PlacePersonNames(ICollectionView persons, double width, double startY, int columnCount)
         {
             var items = persons.OfType<Person>().ToList();
             if (items.Count == 0)
@@ -87,7 +87,7 @@ namespace AutoNumber.Model
 
             using Font font = new Font(TextLabel.Style.FontFamily, (float)fontSize, FontStyle.Regular, GraphicsUnit.Pixel);
 
-            var options = NameTableLayoutOptions.Default(width, startY, fontSize);
+            var options = NameTableLayoutOptions.Default(width, startY, fontSize, Math.Clamp(columnCount, 1, 4));
             var columnWidth = Math.Max(1, options.TotalWidth / Math.Max(1, options.ColumnCount));
             var numberColumnWidth = Math.Min(columnWidth, NamesTableLayout.ResolveNumberColumnWidth(columnWidth));
             var contentWidth = Math.Max(1, columnWidth - numberColumnWidth - 2 * options.CellPaddingX);

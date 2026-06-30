@@ -45,7 +45,7 @@ namespace AutoNumber
 
         private void OpenFormatDialog_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
-            e.CanExecute = e.Parameter is TitleManager or ImageInfoManager or ImageIdManager or NameManager;
+            e.CanExecute = e.Parameter is LabelManager or TitleManager or ImageInfoManager or ImageIdManager or NameManager;
         }
 
         private void OpenFormatDialog_Executed(object sender, ExecutedRoutedEventArgs e)
