@@ -4,9 +4,6 @@
 
 ![AutoNumber main window](docs/Manual/Pictures/UI.jpg)
 
-[![Watch the demo](https://img.youtube.com/vi/0M2Fd7mJJLs/0.jpg)](https://youtu.be/0M2Fd7mJJLs)  
-Click the image above to watch a short demo of AutoNumber in action (German with English subtitles)
-
 ---
 
 ## Features
@@ -18,7 +15,7 @@ Click the image above to watch a short demo of AutoNumber in action (German with
 - **Title, description & image ID** — attach metadata (e.g. archive signature) that travels with the file.
 - **Save as JPG** — flat image with markers and text blocks, ready to share or print.
 - **Save as PDF** — editable PDF that can be reopened in AutoNumber for further editing.
-- **Optional CSV metadata** — saves a sidecar `.csv` file for use in Excel, databases, or archival systems.
+- **Optional CSV and/or JSON metadata** — saves a sidecar `.csv`/`.json`  file for use in Excel, databases, or archival systems.
 - **Customisable appearance** — per-element font, colour and size settings; elements can be hidden individually.
 - **Broad format support** — JPG, PNG, TIFF, BMP, GIF input; previously saved JPG and PDF files can be reopened and edited.
 
