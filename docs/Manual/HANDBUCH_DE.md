@@ -1,15 +1,12 @@
-# AutoNum – Benutzerhandbuch (Entwurf)
+# AutoNum V2.0 – Benutzerhandbuch 
 
-> Zielgruppe: Hobby-Genealog:innen, die Personen auf historischen Fotos nummerieren und mit Namenslisten dokumentieren möchten.
-
----
 
 ## 1. Was ist AutoNum?
 
 AutoNum hilft Ihnen dabei,
 
-- Gesichter auf Fotos automatisch zu erkennen,
-- Nummern direkt auf dem Bild zu platzieren,
+- Gesichter auf Fotos automatisch zu erkennen und mit Nummern zu versehen,
+- Nummern manuell direkt auf dem Bild zu platzieren,
 - eine passende Namensliste zu pflegen,
 - und das Ergebnis als **JPG** oder **bearbeitbares PDF** zu speichern.
 
