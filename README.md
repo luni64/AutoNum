@@ -1,32 +1,105 @@
 # AutoNumber
 
-## Overview
-AutoNumber is a specialized tool designed for genealogists, enabling easy identification of individuals in group photos. The software automatically adds numbered markers to people in images, making it easier to reference them in other documents. These markers can be adjusted manually, and their appearance can be customized to match personal preferences or the style of the indexed photos. AutoNumber supports all common image formats, including JPG, TIF, and PNG.
+**AutoNumber** helps genealogists identify people in group photos by automatically detecting faces, placing numbered markers on them, and pairing those numbers with a name list — all exportable as JPG or editable PDF.
 
-[![Watch the demo](https://img.youtube.com/vi/0M2Fd7mJJLs/0.jpg)](https://youtu.be/0M2Fd7mJJLs)   
+![AutoNumber main window](docs/Manual/Pictures/UI.jpg)
+
+[![Watch the demo](https://img.youtube.com/vi/0M2Fd7mJJLs/0.jpg)](https://youtu.be/0M2Fd7mJJLs)  
 Click the image above to watch a short demo of AutoNumber in action (German with English subtitles)
 
+---
 
 ## Features
-- **Automatic Numbering**: The software detects and labels individuals in a group photo with sequential numbers.
-- **Manual Adjustments**: Users can edit or reposition markers as needed.
-- **Customizable Appearance**: Change the color and style of markers to fit the aesthetic of the images.
-- **Broad Format Support**: Compatible with JPG, TIF, PNG, and other common image formats.
-- **User-Friendly Interface**: Simple and intuitive UI designed for efficiency.
+
+- **Automatic face detection** — opens an image and numbers detected faces immediately.
+- **Manual control** — right-click a blank area to add a number; right-click an existing number to remove it.
+- **Re-numbering** — reorders markers using a row-based algorithm while preserving name assignments.
+- **Name list** — type a name next to each number; the list is included in every export.
+- **Title, description & image ID** — attach metadata (e.g. archive signature) that travels with the file.
+- **Save as JPG** — flat image with markers and text blocks, ready to share or print.
+- **Save as PDF** — editable PDF that can be reopened in AutoNumber for further editing.
+- **Optional CSV metadata** — saves a sidecar `.csv` file for use in Excel, databases, or archival systems.
+- **Customisable appearance** — per-element font, colour and size settings; elements can be hidden individually.
+- **Broad format support** — JPG, PNG, TIFF, BMP, GIF input; previously saved JPG and PDF files can be reopened and edited.
+
+---
+
+## UI Overview
+
+The window is divided into three columns:
+
+| Column | Contents |
+|--------|----------|
+| **Left** | Open image · Save as JPG · Save as PDF · Quick-help notes |
+| **Centre** | Image preview with numbered markers · Action buttons (rotate, zoom, re-number, detect, format) |
+| **Right** | Title · Description · Image ID · Name list (number / name) |
+
+---
+
+## Quick Start
+
+1. Click **Open image** (left column) to load a photo.
+2. Rotate the image if needed — each click turns it **90° clockwise**.
+3. Faces are detected and numbered **automatically**.
+4. Fill in the **name list** on the right.
+5. Optionally add a **title**, **description**, and **image ID**.
+6. Save the result as **JPG** or **PDF**.
+
+---
+
+## Working with Markers
+
+| Action | How |
+|--------|-----|
+| Add a marker manually | Right-click on an empty area of the image |
+| Delete a marker | Right-click on the marker |
+| Move a marker | Drag it to the desired position |
+| Re-number all markers | Click **Re-number** (row-based order) |
+| Start over | Click **Delete all**, then place markers manually or click **Detect faces** |
+
+> **Note:** Re-numbering and face detection preserve name assignments where possible, but deleting all markers clears the name list. A confirmation dialog appears whenever existing names could be lost.
+
+---
+
+## Settings
+
+Open the **Settings** dialog (gear icon, top-right):
+
+- **Fonts tab** — set default font sizes (as a percentage), colours, and styles for new images. Useful for standardising a series of similar photos.
+- **Save tab** — configure filename suffixes (e.g. `_num`) so originals and processed files stay clearly separated.
+
+---
+
+## Tips for Genealogy
+
+- Sort out **rotation** before entering names.
+- Use the **image ID** field for archive signatures or album page references.
+- Keep name entries short and consistent (e.g. *Anna Müller, b. 1904*).
+- Save as PDF when some people are still unidentified — the file remains editable.
+- The **CSV sidecar** lets you search a database by name and retrieve the image ID and marker number to locate the person in the photo.
+
+---
 
 ## Dependencies
 
-The software requires the .NET 8.0 framework. If the automatic installation fails, you can download the framework manually from [Microsoft's official website](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
+The software requires the **.NET 8.0** framework. If the automatic installation fails, download it manually from [Microsoft's website](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
 
-AutoNumber uses the following third-party libraries:
-- **Emgu.CV.WPF** (OpenCV wrapper for .NET) - License: [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE)
-- **Emgu.CV.Windows** (Windows-specific OpenCV bindings) - License: [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE)
-- **Extended.WPF.Toolkit** (UI components for WPF) - License: [MS-PL (Microsoft Public License)](https://github.com/xceedsoftware/wpftoolkit/blob/master/license.md)
+Third-party libraries used:
 
-See the [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) file for details.
+| Library | Purpose | License |
+|---------|---------|---------|
+| **Emgu.CV.WPF** | OpenCV wrapper for .NET | [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE) |
+| **Emgu.CV.Windows** | Windows-specific OpenCV bindings | [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE) |
+| **Extended.WPF.Toolkit** | WPF UI components | [MS-PL](https://github.com/xceedsoftware/wpftoolkit/blob/master/license.md) |
+
+See [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) for full details.
+
+---
 
 ## License
+
 This project is licensed under the MIT License. See the [LICENSE](LICENSE.txt) file for details.
 
 ## Contact
-For support or inquiries, please reach out via the GitHub issue tracker.
+
+For support or questions, please open an issue on the GitHub issue tracker.
