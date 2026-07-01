@@ -11,7 +11,7 @@ AutoNum/
 │   ├── Messages.cs             # WeakReferenceMessenger message types
 │   ├── DialogService.cs        # Open/Save/error dialogs
 │   ├── IDialogService.cs
-│   └── Converters.cs           # WPF converters (bitmap/color/visibility/etc.)
+│   └── Converters.cs           # WPF  converters (bitmap/color/visibility/etc.)
 ├── Model/                      # Persistence and image-processing helpers
 │   ├── Analyzer.cs             # Text layout and measurement logic
 │   ├── AutoNumMetaData.cs      # Metadata schema + JSON (V1/V2/V3 router)
