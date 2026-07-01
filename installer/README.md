@@ -31,6 +31,26 @@ It provides the `Dependency_AddDotNet80Desktop` helper used in `InitializeSetup`
 
 3. The resulting installer is written to `installer\bin\AutoNum-<version>-Setup.exe`.
 
+## Code signing
+
+`setup.iss` is configured to sign both setup EXE and uninstaller using an Inno Setup **Sign Tool profile**:
+
+```pascal
+SignTool=signtool $f
+SignedUninstaller=yes
+```
+
+Requirements:
+
+1. In Inno Setup IDE, open **Tools -> Configure Sign Tools...**
+2. Add a sign tool named **`signtool`** (exact name) with your command, e.g.:
+
+```
+signtool.exe sign /a /fd SHA256 /td SHA256 /tr http://timestamp.digicert.com $f
+```
+
+3. Ensure your code-signing certificate is available (certificate store or `.pfx` in your command).
+
 ## Version
 
 Before building the installer, update the version number at the top of `setup.iss`:

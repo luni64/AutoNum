@@ -24,6 +24,11 @@
 #include "CodeDependencies.iss"
 
 [Setup]
+; Installer code signing using an Inno Setup Sign Tool profile named "signtool"
+; (configure it in Inno Setup IDE: Tools -> Configure Sign Tools)
+SignTool=certum $f
+SignedUninstaller=yes
+
 AppId={{6F3A2B1C-9D4E-4F7A-B1C2-3D4E5F6A7B8C}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
