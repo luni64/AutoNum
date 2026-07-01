@@ -430,7 +430,10 @@ namespace AutoNumber.ViewModels
                 });
             }).GeneratePdf(pdfStream);
 
-            var metadata = new AutoNumMetaData_V4(parent.PictureVM, parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+            // Update existing metadata with latest runtime values, then use it
+            parent.PictureVM.UpdateMetadataBeforeSave(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+            var metadata = parent.PictureVM.CurrentMetadata!;
+
             using var compositeStream = new MemoryStream();
             numberedBitmapResult.Bitmap.Save(compositeStream, DrawingImageFormat.Jpeg);
 

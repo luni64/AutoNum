@@ -72,6 +72,12 @@ namespace AutoNumber.Views
                     {
                         AddMarker(person.Label);
                         AddMarker(person.Name);
+
+                        // If row definition session is active, subscribe new label to position changes
+                        if (_rowDefinitionSession is not null)
+                        {
+                            person.Label.PropertyChanged += Label_PositionChanged;
+                        }
                     }
                     break;
                 case NotifyCollectionChangedAction.Remove:
@@ -79,10 +85,14 @@ namespace AutoNumber.Views
                     {
                         RemoveMarker(person.Label);
                         RemoveMarker(person.Name);
+
+                        // Unsubscribe from position changes
+                        person.Label.PropertyChanged -= Label_PositionChanged;
                     }
                     break;
                 case NotifyCollectionChangedAction.Reset:
                     ClearMarkers();
+                    UnsubscribeAllLabelsFromPositionChanges();
                     break;
             }
 
@@ -144,9 +154,22 @@ namespace AutoNumber.Views
             Canvas.SetLeft(marker, markerVM.X);
             Canvas.SetTop(marker, markerVM.Y);
 
-
             int idx = PageCanvas.Children.Add(marker);
             PageCanvas.Children[idx].Uid = markerVM.Id.ToString();
+        }
+
+        private void UpdatePersonRowAndColor(Person person)
+        {
+            if (_rowDefinitionSession is null || Page is null)
+            {
+                return;
+            }
+
+            var anchor = person.GetRowAnchorPoint();
+            var row = ResolvePreviewRow(anchor.X, anchor.Y);
+            person.Row = row;
+            person.RowPreviewActive = true;
+            person.RowPreviewColor = GetPreviewColor(row);
         }
 
         private void PageVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -190,6 +213,7 @@ namespace AutoNumber.Views
                 if (Page is not null)
                 {
                     _rowDefinitionSession.ClearPreview(Page.Persons);
+                    UnsubscribeAllLabelsFromPositionChanges();
                 }
 
                 foreach (var boundary in _rowDefinitionSession.Boundaries)
@@ -215,7 +239,46 @@ namespace AutoNumber.Views
                 SubscribeBoundary(boundary);
             }
 
+            // Subscribe all existing labels to position changes so they update row assignments while dragging
+            SubscribeAllLabelsToPositionChanges();
+
             RenderRowDefinitionOverlay();
+        }
+
+        private void SubscribeAllLabelsToPositionChanges()
+        {
+            if (Page is null)
+            {
+                return;
+            }
+
+            foreach (var person in Page.Persons)
+            {
+                person.Label.PropertyChanged += Label_PositionChanged;
+            }
+        }
+
+        private void UnsubscribeAllLabelsFromPositionChanges()
+        {
+            if (Page is null)
+            {
+                return;
+            }
+
+            foreach (var person in Page.Persons)
+            {
+                person.Label.PropertyChanged -= Label_PositionChanged;
+            }
+        }
+
+        private void Label_PositionChanged(object? sender, PropertyChangedEventArgs e)
+        {
+            if (sender is MarkerLabel markerLabel && 
+                (e.PropertyName == nameof(MarkerLabel.X) || e.PropertyName == nameof(MarkerLabel.Y) || 
+                 e.PropertyName == nameof(MarkerLabel.CenterX) || e.PropertyName == nameof(MarkerLabel.CenterY)))
+            {
+                UpdatePersonRowAndColor(markerLabel.Person);
+            }
         }
 
         private void RowDefinitionSession_PropertyChanged(object? sender, PropertyChangedEventArgs e)

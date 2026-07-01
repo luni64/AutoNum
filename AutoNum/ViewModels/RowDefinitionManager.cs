@@ -76,10 +76,10 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            // Try to restore from saved state first
-            _imageVM.RestoreRowDefinitionFromSavedState();
+            // Try to restore from metadata first
+            _imageVM.RestoreRowDefinitionFromMetadata();
 
-            // If no saved state, create a new session
+            // If no metadata state, create a new session
             if (_imageVM.RowDefinitionSession == null)
             {
                 _imageVM.BeginRowDefinition(RowCount);
@@ -92,9 +92,68 @@ namespace AutoNumber.ViewModels
                 OnPropertyChanged(nameof(RowCountText));
             }
 
+            // Apply preview coloring to all persons based on current row boundaries
+            ApplyRowPreviewColoring();
+
             OnPropertyChanged(nameof(HasPreview));
             CommandManager.InvalidateRequerySuggested();
         }
+
+        private void ApplyRowPreviewColoring()
+        {
+            if (_imageVM?.RowDefinitionSession is null || _imageVM?.Persons is null)
+            {
+                return;
+            }
+
+            foreach (var person in _imageVM.Persons)
+            {
+                var anchor = person.GetRowAnchorPoint();
+                var row = ResolvePreviewRow(anchor.X, anchor.Y);
+                person.RowPreviewActive = true;
+                person.RowPreviewColor = GetPreviewColor(row);
+            }
+        }
+
+        private int ResolvePreviewRow(double x, double y)
+        {
+            if (_imageVM?.RowDefinitionSession is null)
+            {
+                return 1;
+            }
+
+            var row = 1;
+            foreach (var boundary in _imageVM.RowDefinitionSession.Boundaries)
+            {
+                if (y > GetBoundaryY(boundary, x, _imageVM.ImageWidth))
+                {
+                    row++;
+                }
+            }
+
+            return row;
+        }
+
+        private static double GetBoundaryY(RowBoundary boundary, double x, double imageWidth)
+        {
+            var width = Math.Max(1, imageWidth);
+            var t = Math.Clamp(x / width, 0.0, 1.0);
+            return boundary.LeftY + (boundary.RightY - boundary.LeftY) * t;
+        }
+
+        private static System.Drawing.Color GetPreviewColor(int row)
+        {
+            var palette = new[]
+            {
+                System.Drawing.Color.FromArgb(255, 224, 242, 254),
+                System.Drawing.Color.FromArgb(255, 255, 244, 214),
+                System.Drawing.Color.FromArgb(255, 243, 229, 245),
+                System.Drawing.Color.FromArgb(255, 232, 245, 233)
+            };
+
+            return palette[Math.Max(0, row - 1) % palette.Length];
+        }
+
 
         public void Apply()
         {
@@ -103,13 +162,14 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            _imageVM.SaveRowDefinitionToMetadata();
+            _imageVM.SyncRowDefinitionToMetadata();
             _imageVM.ApplyRowDefinition();
             _labelManager.Numerate();
             // Don't clear the session - keep the lines visible
             OnPropertyChanged(nameof(HasPreview));
             CommandManager.InvalidateRequerySuggested();
         }
+
         public void CloseDialog()
         {
             if (!CanCancel)
@@ -117,8 +177,8 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            // Save the current state before closing so it can be restored next time dialog opens
-            _imageVM.SaveRowDefinitionToMetadata();
+            // Sync current state to metadata before closing
+            _imageVM.SyncRowDefinitionToMetadata();
             _imageVM.ClearRowDefinition();
             OnPropertyChanged(nameof(HasPreview));
             CommandManager.InvalidateRequerySuggested();

@@ -76,6 +76,12 @@ namespace AutoNumber.ViewModels
             private set => SetProperty(ref _rowDefinitionSession, value);
         }
 
+        public AutoNumMetaData_V4? CurrentMetadata
+        {
+            get => _currentMetadata;
+            private set => SetProperty(ref _currentMetadata, value);
+        }
+
         // position and size of the image on the canvas
         public int PanX
         {
@@ -121,26 +127,44 @@ namespace AutoNumber.ViewModels
             var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95;
             LabelDiameter = labelSize;
 
+            // Upgrade older versions to V4 and store as current metadata
             if (md is AutoNumMetaData_V4 v4)
             {
-                if (v4.RowBoundaries.Count > 0)
-                {
-                    BeginRowDefinition(Math.Max(1, v4.RowCount));
-                    RowDefinitionSession?.Restore(
-                        Math.Max(1, v4.RowCount),
-                        ImageWidth,
-                        ImageHeight,
-                        v4.RowBoundaries);
-                }
-                else
-                {
-                    ClearRowDefinition();
-                }
+                CurrentMetadata = v4;
             }
             else
             {
-                ClearRowDefinition();
+                // Upgrade to V4 - copy all V1/V2/V3 properties into a new V4 instance
+                CurrentMetadata = new AutoNumMetaData_V4
+                {
+                    Version = "V4",
+                    Created = md.Created,
+                    Creator = md.Creator,
+                    OriginalImage = md.OriginalImage,
+                    AutoNumImage = md.AutoNumImage,
+                    LabelsFont = md.LabelsFont,
+                    LabelsSize = md.LabelsSize,
+                    NamesFont = md.NamesFont,
+                    NamesEnabled = md.NamesEnabled,
+                    NamesColumnCount = md.NamesColumnCount,
+                    ImageId = md.ImageId,
+                    ImageIdFont = md.ImageIdFont,
+                    ImageIdEnabled = md.ImageIdEnabled,
+                    TitleFont = md.TitleFont,
+                    TitleEnabled = md.TitleEnabled,
+                    Title = md.Title,
+                    ImageInfoFont = md.ImageInfoFont,
+                    ImageInfoEnabled = md.ImageInfoEnabled,
+                    ImageInfo = md.ImageInfo,
+                    Persons = md.Persons,
+                    RowCount = 1,
+                    RowBoundaries = []
+                };
             }
+
+            // Don't automatically show row boundaries - they'll be restored when user opens the dialog
+            // The metadata is preserved in CurrentMetadata for later use
+            ClearRowDefinition();
 
             Trace.WriteLine($"InitFromMetadata: sending MetadataLoadedMessage version={md.Version}, persons={md.Persons.Count}");
             WeakReferenceMessenger.Default.Send(new MetadataLoadedMessage(md));
@@ -159,35 +183,80 @@ namespace AutoNumber.ViewModels
             RowDefinitionSession = null;
         }
 
-        public void SaveRowDefinitionToMetadata()
+        public void SyncRowDefinitionToMetadata()
         {
-            if (RowDefinitionSession is null)
+            if (CurrentMetadata == null || RowDefinitionSession == null)
             {
                 return;
             }
 
-            // Store the current row boundaries in memory for later restoration
-            _savedRowCount = RowDefinitionSession.RowCount;
-            _savedRowBoundaries = RowDefinitionSession.Boundaries
+            // Directly update metadata with current session boundaries
+            CurrentMetadata.RowCount = RowDefinitionSession.RowCount;
+            CurrentMetadata.RowBoundaries = RowDefinitionSession.Boundaries
                 .Select(b => new RowBoundary(b.LeftY, b.RightY))
                 .ToList();
         }
 
-        public void RestoreRowDefinitionFromSavedState()
+        public void RestoreRowDefinitionFromMetadata()
         {
-            if (_savedRowBoundaries.Count == 0)
+            if (CurrentMetadata == null || CurrentMetadata.RowBoundaries.Count == 0)
             {
                 return;
             }
 
             var session = new RowDefinitionSession();
-            session.Restore(_savedRowCount, ImageWidth, ImageHeight, _savedRowBoundaries);
+            session.Restore(CurrentMetadata.RowCount, ImageWidth, ImageHeight, CurrentMetadata.RowBoundaries);
             RowDefinitionSession = session;
         }
 
-        public (int rowCount, List<RowBoundary> boundaries) GetSavedRowDefinitionState()
+        public void UpdateMetadataBeforeSave(LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
         {
-            return (_savedRowCount, _savedRowBoundaries);
+            if (CurrentMetadata == null)
+            {
+                // Create fresh metadata if none exists (e.g., new image)
+                CurrentMetadata = new AutoNumMetaData_V4
+                {
+                    Version = "V4",
+                    Created = DateTime.Now,
+                    RowCount = 1,
+                    RowBoundaries = []
+                };
+            }
+
+            // Update all runtime values
+            CurrentMetadata.OriginalImage = OriginalImageFilename;
+            CurrentMetadata.AutoNumImage = string.Empty;
+            CurrentMetadata.Title = tm.Title;
+            CurrentMetadata.ImageInfo = iim.ImageInfo;
+
+            CurrentMetadata.LabelsFont = new AutoNumFont(MarkerLabel.Style.FontColor, lm.BackgroundColor, MarkerLabel.Style.FontFamily.Name, MarkerLabel.Style.FontSize);
+            CurrentMetadata.LabelsSize = MarkerLabel.Style.Diameter;
+            CurrentMetadata.NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.Style.FontSize);
+            CurrentMetadata.NamesEnabled = nm.IsEnabled;
+            CurrentMetadata.NamesColumnCount = nm.NameTableColumnCount;
+            CurrentMetadata.ImageId = idm.ImageId;
+            CurrentMetadata.ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
+            CurrentMetadata.ImageIdEnabled = idm.IsEnabled;
+            CurrentMetadata.TitleFont = new AutoNumFont(tm.TitleFontColor, tm.BackgroundColor, tm.TitleFontFamily.Name, tm.TitleFontSize);
+            CurrentMetadata.TitleEnabled = tm.IsEnabled;
+            CurrentMetadata.ImageInfoFont = new AutoNumFont(iim.ImageInfoFontColor, iim.BackgroundColor, iim.ImageInfoFontFamily.Name, iim.ImageInfoFontSize);
+            CurrentMetadata.ImageInfoEnabled = iim.IsEnabled;
+
+            // Update persons
+            CurrentMetadata.Persons.Clear();
+            foreach (var person in Persons)
+            {
+                CurrentMetadata.Persons.Add(new AutoNumPerson(person));
+            }
+
+            // Row boundaries are synced directly from session if active
+            if (RowDefinitionSession != null)
+            {
+                CurrentMetadata.RowCount = RowDefinitionSession.RowCount;
+                CurrentMetadata.RowBoundaries = RowDefinitionSession.Boundaries
+                    .Select(b => new RowBoundary(b.LeftY, b.RightY))
+                    .ToList();
+            }
         }
 
         public void ApplyRowDefinition()
@@ -201,6 +270,17 @@ namespace AutoNumber.ViewModels
 
             ImageWidth = Bitmap?.Width ?? 0;
             ImageHeight = Bitmap?.Height ?? 0;
+
+            // Reset metadata for a fresh image with no embedded metadata
+            CurrentMetadata = new AutoNumMetaData_V4
+            {
+                Version = "V4",
+                RowCount = 1,
+                RowBoundaries = []
+            };
+
+            // Clear any active row definition session
+            ClearRowDefinition();
 
             FitToCanvas();
         }
@@ -229,7 +309,6 @@ namespace AutoNumber.ViewModels
         private double _namesRegionHeight;
         private double _titleRegionHeight = 300;
         private RowDefinitionSession? _rowDefinitionSession;
-        private int _savedRowCount = 0;
-        private List<RowBoundary> _savedRowBoundaries = [];
+        private AutoNumMetaData_V4? _currentMetadata;
     }
 }

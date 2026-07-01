@@ -1,4 +1,5 @@
-﻿using AutoNumber.ViewModels;
+﻿using AutoNumber.Model;
+using AutoNumber.ViewModels;
 using System;
 using System.Linq;
 using System.Windows;
@@ -86,10 +87,58 @@ namespace AutoNumber.Views
                     }
 
                     var center = new System.Drawing.PointF((float)(np.X - MarkerLabel.Style.Diameter / 2), (float)(np.Y - MarkerLabel.Style.Diameter / 2));
-                    mainVM.PictureVM.Persons.Add(new Person(lastIdx + 1, "", center));
+                    var newPerson = new Person(lastIdx + 1, "", center);
+
+                    // If row definition session is active, assign the correct row and preview color
+                    if (mainVM.PictureVM.RowDefinitionSession is not null)
+                    {
+                        var row = ResolveRowForPosition(center.Y, mainVM.PictureVM.RowDefinitionSession, mainVM.PictureVM.ImageWidth);
+                        newPerson.Row = row;
+                        newPerson.RowPreviewActive = true;
+                        newPerson.RowPreviewColor = GetPreviewColorForRow(row);
+                    }
+
+                    mainVM.PictureVM.Persons.Add(newPerson);
                 }
             }
         }
+
+        private static int ResolveRowForPosition(double y, RowDefinitionSession session, double imageWidth)
+        {
+            var row = 1;
+            foreach (var boundary in session.Boundaries)
+            {
+                // Assuming we're at the center of the label (approximate x position)
+                var centerX = imageWidth / 2;
+                var boundaryY = GetBoundaryYAtX(boundary, centerX, imageWidth);
+                if (y > boundaryY)
+                {
+                    row++;
+                }
+            }
+            return row;
+        }
+
+        private static double GetBoundaryYAtX(RowBoundary boundary, double x, double imageWidth)
+        {
+            var width = Math.Max(1, imageWidth);
+            var t = Math.Clamp(x / width, 0.0, 1.0);
+            return boundary.LeftY + (boundary.RightY - boundary.LeftY) * t;
+        }
+
+        private static System.Drawing.Color GetPreviewColorForRow(int row)
+        {
+            var palette = new[]
+            {
+                System.Drawing.Color.FromArgb(255, 224, 242, 254),
+                System.Drawing.Color.FromArgb(255, 255, 244, 214),
+                System.Drawing.Color.FromArgb(255, 243, 229, 245),
+                System.Drawing.Color.FromArgb(255, 232, 245, 233)
+            };
+
+            return palette[Math.Max(0, row - 1) % palette.Length];
+        }
+
 
         private T? FindParentWithDataContext<T>(DependencyObject element) where T : class
         {

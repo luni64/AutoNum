@@ -43,7 +43,9 @@ namespace AutoNumber.Model
 
         public static Bitmap AddMetadata(this Bitmap bitmap, ImageVM model, LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
         {
-            var md = new AutoNumMetaData_V4(model, lm, nm, tm, iim, idm);
+            // Update existing metadata with latest values
+            model.UpdateMetadataBeforeSave(lm, nm, tm, iim, idm);
+            var md = model.CurrentMetadata!;
 
             var jsonString = md.ToJson();
 

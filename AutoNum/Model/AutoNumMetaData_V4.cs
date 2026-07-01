@@ -15,34 +15,7 @@ public class AutoNumMetaData_V4 : AutoNumMetaData_V3
         Version = "V4";
     }
 
-    public AutoNumMetaData_V4(ImageVM model, LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
-        : base(model, lm, nm, tm, iim, idm)
-    {
-        Version = "V4";
-
-        var session = model.RowDefinitionSession;
-        if (session is not null)
-        {
-            RowCount = Math.Max(1, session.RowCount);
-            RowBoundaries = session.Boundaries
-                .Select(boundary => new RowBoundary(boundary.LeftY, boundary.RightY))
-                .ToList();
-        }
-        else
-        {
-            // If no active session, try to get saved state from memory
-            var (savedRowCount, savedBoundaries) = model.GetSavedRowDefinitionState();
-            if (savedBoundaries.Count > 0)
-            {
-                RowCount = Math.Max(1, savedRowCount);
-                RowBoundaries = savedBoundaries
-                    .Select(boundary => new RowBoundary(boundary.LeftY, boundary.RightY))
-                    .ToList();
-            }
-            else
-            {
-                RowCount = 1;
-            }
-        }
-    }
+    // Note: Constructor with parameters is no longer needed.
+    // Runtime state is now maintained in the persistent CurrentMetadata instance
+    // and updated via ImageVM.UpdateMetadataBeforeSave() before saving.
 }
