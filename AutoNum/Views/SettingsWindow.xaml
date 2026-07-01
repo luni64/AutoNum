@@ -121,6 +121,17 @@
 
 						<mah:ToggleSwitch IsOn="{Binding ExportCsvMetadata}" Content="CSV (Excel) Daten" Margin="0,0,0,8"/>
 						<mah:ToggleSwitch IsOn="{Binding ExportJsonMetadata}" Content="JSON Daten" Margin="0,0,0,0"/>
+
+						<Button Content="Jetzt Exportieren"
+								Click="ExportNow_Click"
+								IsEnabled="{Binding CanExportNow}"
+								Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
+								FontSize="13"
+								mah:ControlsHelper.ContentCharacterCasing="Upper"
+								Padding="10"
+								Width="auto"
+								Margin="0,10,0,0"
+								HorizontalAlignment="Left"/>
 					</StackPanel>
 				</ScrollViewer>
 			</TabItem>
@@ -144,6 +155,7 @@
 				</ScrollViewer>
 			</TabItem>
 
+			<!--
 			<TabItem Header="Erkennung">
 				<StackPanel Margin="12">
 					<TextBlock Text="Empfindlichkeit (ScaleFactor)" Margin="0,0,0,4"/>
@@ -153,7 +165,7 @@
 					<Slider Minimum="1" Maximum="20" Value="{Binding FaceMinNeighbors, Mode=TwoWay}"/>
 				</StackPanel>
 			</TabItem>
-
+			-->
 		</TabControl>
 		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
 			<Button

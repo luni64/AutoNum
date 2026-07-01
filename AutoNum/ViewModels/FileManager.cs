@@ -15,6 +15,7 @@ using QuestPDF.Helpers;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Collections.Generic;
 
 namespace AutoNumber.ViewModels
 {
@@ -179,10 +180,51 @@ namespace AutoNumber.ViewModels
                 var exportData = BuildExportData();
                 exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
                 WritePdf(filename, exportData, result);
+                WriteMetadataSidecars(filename, exportData, result);
                 parent.PictureVM.CurrentImageFilename = filename;
             }
         }
 
+
+        public bool CanExportMetadataNow()
+        {
+            var hasSelection = ExportCsvMetadata || ExportJsonMetadata;
+            var currentFile = GetCurrentSaveFilename();
+            return hasSelection && !string.IsNullOrWhiteSpace(currentFile);
+        }
+
+        public List<string> ExportMetadataNow()
+        {
+            var exportedFiles = new List<string>();
+
+            if (!CanExportMetadataNow())
+            {
+                return exportedFiles;
+            }
+
+            var targetFilename = GetCurrentSaveFilename();
+            using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+            if (result is null)
+            {
+                return exportedFiles;
+            }
+
+            var exportData = BuildExportData();
+            exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
+            WriteMetadataSidecars(targetFilename, exportData, result);
+
+            if (ExportCsvMetadata)
+            {
+                exportedFiles.Add(Path.ChangeExtension(targetFilename, ".csv"));
+            }
+
+            if (ExportJsonMetadata)
+            {
+                exportedFiles.Add(Path.ChangeExtension(targetFilename, ".json"));
+            }
+
+            return exportedFiles;
+        }
 
         private SidecarExportData BuildExportData()
         {

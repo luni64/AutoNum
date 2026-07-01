@@ -88,7 +88,7 @@ public class ImageInfoManager : BaseViewModel
                     : ResolveLegacyScale(md.ImageInfoFont.Size, md.LabelsFont.Size);
 
                 FontScale = scale;
-                ImageInfo = md.ImageInfo;
+                ImageInfo = md.ImageInfo ?? string.Empty;
                 IsEnabled = md.ImageInfoEnabled ?? !string.IsNullOrEmpty(md.ImageInfo);
 
                 Trace.WriteLine("MetadataLoaded[ImageInfoManager]: completed");

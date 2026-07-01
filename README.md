@@ -81,15 +81,16 @@ Das Fenster ist in drei Spalten unterteilt:
 
 Die Software benötigt das **.NET 8.0**-Framework. Falls die automatische Installation fehlschlägt, laden Sie es manuell von [Microsofts Website](https://dotnet.microsoft.com/de-de/download/dotnet/8.0) herunter.
 
-Verwendete Drittanbieter-Bibliotheken:
+Verwendete Drittanbieter-Bibliotheken (Auszug):
 
 | Bibliothek | Zweck | Lizenz |
 |------------|-------|--------|
-| **Emgu.CV.WPF** | OpenCV-Wrapper für .NET | [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE) |
-| **Emgu.CV.Windows** | Windows-spezifische OpenCV-Bindungen | [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE) |
-| **Extended.WPF.Toolkit** | WPF-UI-Komponenten | [MS-PL](https://github.com/xceedsoftware/wpftoolkit/blob/master/license.md) |
+| **CommunityToolkit.Mvvm** | MVVM-Utilities und Messenger | [MIT](https://licenses.nuget.org/MIT) |
+| **Emgu.CV.runtime.windows / Emgu.CV.Wpf** | Gesichtserkennung (OpenCV für .NET/WPF) | Dual-Lizenz (GPLv3 oder kommerziell) |
+| **MahApps.Metro (+ IconPacks)** | WPF-UI-Styling und Icons | [MIT](https://licenses.nuget.org/MIT) |
+| **QuestPDF** | PDF-Erzeugung | Dual-Lizenz (Community / Professional / Enterprise) |
 
-Siehe [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) für vollständige Details.
+Siehe [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) für vollständige Details und Lizenzhinweise.
 
 ---
 

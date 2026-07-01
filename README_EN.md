@@ -81,15 +81,16 @@ Open the **Settings** dialog (gear icon, top-right):
 
 The software requires the **.NET 8.0** framework. If the automatic installation fails, download it manually from [Microsoft's website](https://dotnet.microsoft.com/en-us/download/dotnet/8.0).
 
-Third-party libraries used:
+Third-party libraries used (summary):
 
 | Library | Purpose | License |
 |---------|---------|---------|
-| **Emgu.CV.WPF** | OpenCV wrapper for .NET | [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE) |
-| **Emgu.CV.Windows** | Windows-specific OpenCV bindings | [BSD 3-Clause](https://github.com/emgucv/emgucv/blob/master/LICENSE) |
-| **Extended.WPF.Toolkit** | WPF UI components | [MS-PL](https://github.com/xceedsoftware/wpftoolkit/blob/master/license.md) |
+| **CommunityToolkit.Mvvm** | MVVM helpers and messaging | [MIT](https://licenses.nuget.org/MIT) |
+| **Emgu.CV.runtime.windows / Emgu.CV.Wpf** | Face detection (OpenCV for .NET/WPF) | Dual license (GPLv3 or commercial) |
+| **MahApps.Metro (+ IconPacks)** | WPF UI styling and icons | [MIT](https://licenses.nuget.org/MIT) |
+| **QuestPDF** | PDF generation | Dual license (Community / Professional / Enterprise) |
 
-See [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) for full details.
+See [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) for full details and licensing notes.
 
 ---
 

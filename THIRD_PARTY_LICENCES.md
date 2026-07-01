@@ -1,57 +1,31 @@
 # Third-Party Licenses
 
-This project makes use of the following third-party libraries, which are subject to their respective licenses.
+This project uses the following third-party dependencies (direct NuGet references from `AutoNum/AutoNumber.csproj`).
 
-## Emgu.CV.WPF & Emgu.CV.Windows
-**License:** BSD 3-Clause License  
-**Repository:** [Emgu.CV](https://github.com/emgucv/emgucv)  
-**License Text:**
-```
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
+| Package | Version | License | Project |
+|---|---:|---|---|
+| CommunityToolkit.Mvvm | 8.4.0 | MIT | https://github.com/CommunityToolkit/dotnet |
+| Emgu.CV.runtime.windows | 4.10.0.5680 | Dual license: GPLv3 (open-source use) or commercial license | https://www.emgu.com/ |
+| Emgu.CV.Wpf | 4.10.0.5680 | Dual license: GPLv3 (open-source use) or commercial license | https://www.emgu.com/ |
+| MahApps.Metro | 3.0.0-alpha0513 | MIT | https://github.com/MahApps/MahApps.Metro |
+| MahApps.Metro.IconPacks.BoxIcons | 5.1.0 | MIT | https://github.com/MahApps/MahApps.Metro.IconPacks |
+| MahApps.Metro.IconPacks.JamIcons | 5.1.0 | MIT | https://github.com/MahApps/MahApps.Metro.IconPacks |
+| MahApps.Metro.IconPacks.Material | 5.1.0 | MIT | https://github.com/MahApps/MahApps.Metro.IconPacks |
+| QuestPDF | 2026.6.1 | Dual license: Community / Professional / Enterprise (see vendor terms) | https://www.questpdf.com/license |
 
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-3. Neither the name of the copyright holder nor the names of its contributors
-   may be used to endorse or promote products derived from this software
-   without specific prior written permission.
+## Important Notes
 
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-```
+- **Emgu.CV** is not BSD-only in the NuGet package used here; it is distributed under Emgu's dual-license model. If your usage does not meet GPL obligations, a commercial license may be required.
+- **QuestPDF** is dual-licensed with eligibility criteria for the free Community license. Verify your use case against the official license terms.
 
-## Extended.WPF.Toolkit
-**License:** Microsoft Public License (MS-PL)  
-**Repository:** [Extended.WPF.Toolkit](https://github.com/xceedsoftware/wpftoolkit)  
-**License Text:**
-```
-This license governs use of the accompanying software. If you use the software,
-you accept this license. If you do not accept the license, do not use the software.
+## Full License Texts
 
-1. Definitions
-The terms "reproduce," "reproduction," "derivative works," and "distribution" have
-   the same meaning here as under U.S. copyright law.
+The authoritative license texts are included in each NuGet package under your local NuGet cache, for example:
 
-2. Grant of Rights
-(a) You may use, copy, distribute, and make derivative works of the software,
-   under certain conditions, provided that you include the original copyright notice
-   and this license document.
-(b) If you distribute any portion of the software in source code form, you may do so
-   only under this license by including a complete copy of this license with your distribution.
+- `%USERPROFILE%\.nuget\packages\emgu.cv.runtime.windows\4.10.0.5680\LICENSE.txt`
+- `%USERPROFILE%\.nuget\packages\emgu.cv.wpf\4.10.0.5680\LICENSE.txt`
+- `%USERPROFILE%\.nuget\packages\questpdf\2026.6.1\LICENSE.md`
 
-NO WARRANTY. THE SOFTWARE IS LICENSED "AS-IS." YOU BEAR THE RISK OF USING IT.
-THE AUTHORS GIVE NO EXPRESS WARRANTIES, GUARANTEES, OR CONDITIONS.
-```
+For MIT-licensed packages, see the SPDX MIT text: https://licenses.nuget.org/MIT
 
-For more details, see the full license texts in the respective repositories.
+> This file is informational and not legal advice.

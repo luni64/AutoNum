@@ -321,6 +321,7 @@ public class SettingsManager : BaseViewModel
         set
         {
             SetProperty(ref _exportCsvMetadata, value);
+            OnPropertyChanged(nameof(CanExportNow));
             SaveSettings();
         }
     }
@@ -331,9 +332,12 @@ public class SettingsManager : BaseViewModel
         set
         {
             SetProperty(ref _exportJsonMetadata, value);
+            OnPropertyChanged(nameof(CanExportNow));
             SaveSettings();
         }
     }
+
+    public bool CanExportNow => ExportCsvMetadata || ExportJsonMetadata;
 
     private RelayCommand? _readCurrentValuesCommand;
     public RelayCommand ReadCurrentValuesCommand => _readCurrentValuesCommand ??= new RelayCommand(ExecuteReadCurrentValues);
@@ -449,16 +453,19 @@ public class SettingsManager : BaseViewModel
         titleManager.FontScale = DefaultTitleFontScale;
         titleManager.TitleFontColor = DefaultTitleFontColor;
         titleManager.BackgroundColor = DefaultTitleBackgroundColor;
+        titleManager.Title = string.Empty;
         titleManager.IsEnabled = DefaultTitleEnabled;
 
         imageInfoManager.FontScale = DefaultImageInfoFontScale;
         imageInfoManager.ImageInfoFontColor = DefaultImageInfoFontColor;
         imageInfoManager.BackgroundColor = DefaultImageInfoBackgroundColor;
+        imageInfoManager.ImageInfo = string.Empty;
         imageInfoManager.IsEnabled = DefaultImageInfoEnabled;
 
         imageIdManager.FontScale = DefaultImageIdFontScale;
         imageIdManager.FontColor = DefaultImageIdFontColor;
         imageIdManager.BackgroundColor = DefaultImageIdBackgroundColor;
+        imageIdManager.ImageId = string.Empty;
         imageIdManager.IsEnabled = DefaultImageIdEnabled;
     }
 

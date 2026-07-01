@@ -1,0 +1,14 @@
+AutoNum ${VERSION} — Was ist neu
+=================================
+
+Fehlerbehebungen
+----------------
+- Der PDF-Export berücksichtigt jetzt die Metadaten-Optionen unter Einstellungen > Export (CSV/JSON-Sidecar-Dateien), genauso wie der JPG-Export.
+- Beim Öffnen eines neuen Bildes werden zuvor eingegebene bildbezogene Texte (Titel, Information, Bild-ID) jetzt korrekt zurückgesetzt.
+
+Verbesserungen
+--------------
+- Der Dateiname des aktuell geöffneten Bildes wird jetzt in der Titelleiste angezeigt.
+- Die Aktionsbuttons in der rechten Spalte verwenden jetzt konsistent den kreisförmigen MahApps-Stil; Sichtbarkeits-Umschalter funktionieren wieder korrekt.
+- Zwischen Bildbereich und unterer Aktionsleiste wurde ein zusätzlicher visueller Abstand ergänzt.
+- Neuer Button „Jetzt Exportieren“ unter Einstellungen > Export für den direkten Metadaten-Export mit Bestätigungsrückmeldung.

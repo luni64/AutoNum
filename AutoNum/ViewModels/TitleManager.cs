@@ -90,7 +90,7 @@ namespace AutoNumber.ViewModels
                         : ResolveLegacyScale(md.TitleFont.Size, md.LabelsFont.Size);
 
                     FontScale = scale;
-                    Title = md.Title;
+                    Title = md.Title ?? string.Empty;
                     IsEnabled = md.TitleEnabled ?? !string.IsNullOrEmpty(md.Title);
 
                     Trace.WriteLine("MetadataLoaded[TitleManager]: completed");

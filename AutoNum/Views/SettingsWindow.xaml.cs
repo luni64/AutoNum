@@ -45,4 +45,17 @@ public partial class SettingsWindow : MetroWindow
                 _mainVM.ImageIdManager);
         }
     }
+
+    private void ExportNow_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsManager)
+        {
+            var exportedFiles = _mainVM.FileManager.ExportMetadataNow();
+            if (exportedFiles.Count > 0)
+            {
+                var message = "Folgende Dateien wurden exportiert:\n\n" + string.Join("\n", exportedFiles);
+                MessageBox.Show(this, message, "Export erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+    }
 }
