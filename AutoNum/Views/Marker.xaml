@@ -21,7 +21,8 @@
         <is:CenteredGlyphOffsetConverter x:Key="CenteredGlyphOffsetConverter"/>
         <is:NameTableNumberColumnWidthConverter x:Key="NameTableNumberColumnWidthConverter"/>
         <is:NameTableNameColumnWidthConverter x:Key="NameTableNameColumnWidthConverter"/>
-        
+        <is:RowPreviewFillConverter x:Key="RowPreviewFillConverter"/>
+
         <DataTemplate DataType="{x:Type vm:MarkerLabel}">
             <Grid 
                 Visibility="{Binding Visible, Converter={StaticResource bool2Vis}}"
@@ -29,10 +30,16 @@
 
                 <Ellipse                                    
                     HorizontalAlignment="Center"  VerticalAlignment="Center" Height="{Binding Diameter}" Width="{Binding Diameter}"
-                    Fill="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}"            
                     Stroke="{Binding EdgeColor, Converter={StaticResource Col2Brush}}"                    
-                    StrokeThickness="{Binding StrokeThickness}"                      
-                    />
+                    StrokeThickness="{Binding StrokeThickness}">
+                    <Ellipse.Fill>
+                        <MultiBinding Converter="{StaticResource RowPreviewFillConverter}">
+                            <Binding Path="Person.RowPreviewActive"/>
+                            <Binding Path="Person.RowPreviewColor" Converter="{StaticResource Col2Brush}"/>
+                            <Binding Path="BackgroundColor" Converter="{StaticResource Col2Brush}"/>
+                        </MultiBinding>
+                    </Ellipse.Fill>
+                </Ellipse>
 
                 <TextBlock x:Name="LabelNumberText"                       
                     Text="{Binding Person.Label.Number}"

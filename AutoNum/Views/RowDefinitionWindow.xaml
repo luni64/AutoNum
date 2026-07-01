@@ -1,0 +1,83 @@
+﻿<mah:MetroWindow x:Class="AutoNumber.Views.RowDefinitionWindow"
+				 xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+				 xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+				 xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+				 xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+				 xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
+				 xmlns:vm="clr-namespace:AutoNumber.ViewModels"
+				 mc:Ignorable="d"
+				 Title="Reihen definieren"
+				 Width="450"
+				 Height="280"
+				 WindowStartupLocation="CenterOwner"
+				 ResizeMode="NoResize"
+				 ShowInTaskbar="False">
+	<Grid Margin="16">
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition Height="*"/>
+			<RowDefinition Height="Auto"/>
+		</Grid.RowDefinitions>
+
+		<StackPanel Grid.Row="0">
+
+			<TextBlock TextWrapping="Wrap" Margin="0,4,0,14" FontSize="13">
+				<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
+					Anleitung
+				</Run>
+				<LineBreak/>
+				<Run>
+					Mit den Hilfslinien können Sie Reihen definieren. Dazu ziehen Sie die rechteckigen Griffe oder die Linien. Die Nummern werden den Reihen entsprechend farblich hinterlegt."
+				
+					Mit ÜBERNEHMEN werden die aktuellen Reihen den Personen zugewiesen.
+				</Run>
+
+			</TextBlock>
+
+
+			<!--<TextBlock Text="Anleitung:"
+					   TextWrapping="Wrap"/>
+			<TextBlock Text="Mit den Hilfslinien können Sie Reihen definieren. Dazu ziehen Sie die rechteckigen Griffe oder die Linien. Die Nummern werden zur besseren Identifikation den Reihen entsprechend farblich hinterlegt."
+					   TextWrapping="Wrap"/>
+			<TextBlock Text="Mit Übernehmen werden die aktuellen Reihen den Personen zugewiesen."
+					   TextWrapping="Wrap"
+					   Margin="0,8,0,0"/>-->
+		</StackPanel>
+
+		<Grid Grid.Row="1"
+			  Margin="0,5,0,12">
+			<Grid.ColumnDefinitions>
+				<ColumnDefinition Width="Auto"/>
+				<ColumnDefinition Width="Auto"/>
+			</Grid.ColumnDefinitions>
+
+			<TextBlock Grid.Column="0" FontSize="14"
+					   VerticalAlignment="Center"
+					   Text="Anzahl der Reihen:"
+					   Margin="0,0,8,0"/>
+			<TextBox Grid.Column="1"
+					 Width="50"
+					 Text="{Binding RowCountText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+					 HorizontalContentAlignment="Left"
+					 VerticalContentAlignment="Center"/>
+		</Grid>
+
+		<StackPanel Grid.Row="3"
+					Orientation="Horizontal"
+					HorizontalAlignment="Right"
+					Margin="0,12,0,0">
+			<Button Content="Übernehmen"
+					Width="110"
+					Height="40"
+					Margin="0,0,8,0"
+					Style="{StaticResource MahApps.Styles.Button.Square.Accent}" 	mah:ControlsHelper.ContentCharacterCasing="Upper"							
+					Command="{Binding ApplyCommand}"/>
+			<Button Content="Schliessen"
+					Width="110"
+					Height="40"
+					Style="{StaticResource MahApps.Styles.Button.Square.Accent}" 	mah:ControlsHelper.ContentCharacterCasing="Upper"
+					Click="Close_Click"/>
+		</StackPanel>
+	</Grid>
+</mah:MetroWindow>

@@ -25,6 +25,7 @@ namespace AutoNumber.ViewModels
         public ImageIdManager ImageIdManager { get; }
         public SettingsManager SettingsManager { get; }
         public LabelManager LabelManager { get; }
+        public RowDefinitionManager RowDefinitionManager { get; }
         public ImageVM PictureVM { get; }
 
         public IDialogService DialogService { get; }
@@ -43,6 +44,7 @@ namespace AutoNumber.ViewModels
             };
 
             LabelManager = new LabelManager(PictureVM);
+            RowDefinitionManager = new RowDefinitionManager(PictureVM, LabelManager);
             ImageIdManager = new ImageIdManager(LabelManager);
             NameManager = new NameManager(PictureVM, LabelManager, ImageIdManager);
             TitleManager = new TitleManager(LabelManager);

@@ -232,6 +232,7 @@ namespace AutoNumber.ViewModels
                 .OrderBy(p => p.Label.Number)
                 .Select(p => new SidecarPerson
                 {
+                    Row = p.Row,
                     Number = p.Label.Number,
                     Name = string.IsNullOrWhiteSpace(p.Name.Text) ? string.Empty : p.Name.Text
                 })
@@ -283,11 +284,11 @@ namespace AutoNumber.ViewModels
             builder.AppendLine($"Description;{EscapeCsv(exportData.Description)}");
             builder.AppendLine($"ID;{EscapeCsv(exportData.Id)}");
             builder.AppendLine();
-            builder.AppendLine("Number;Name");
+            builder.AppendLine("Row;Number;Name");
 
             foreach (var person in exportData.Persons)
             {
-                builder.AppendLine($"{person.Number};{EscapeCsv(person.Name)}");
+                builder.AppendLine($"{person.Row};{person.Number};{EscapeCsv(person.Name)}");
             }
 
             File.WriteAllText(filename, builder.ToString(), new UTF8Encoding(true));
@@ -429,7 +430,7 @@ namespace AutoNumber.ViewModels
                 });
             }).GeneratePdf(pdfStream);
 
-            var metadata = new AutoNumMetaData_V3(parent.PictureVM, parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+            var metadata = new AutoNumMetaData_V4(parent.PictureVM, parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
             using var compositeStream = new MemoryStream();
             numberedBitmapResult.Bitmap.Save(compositeStream, DrawingImageFormat.Jpeg);
 
@@ -626,6 +627,9 @@ namespace AutoNumber.ViewModels
 
         private sealed class SidecarPerson
         {
+            [JsonPropertyName("row")]
+            public int Row { get; set; }
+
             [JsonPropertyName("number")]
             public int Number { get; set; }
 

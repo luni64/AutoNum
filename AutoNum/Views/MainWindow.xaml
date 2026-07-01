@@ -20,6 +20,9 @@
         <CommandBinding Command="{x:Static local:MainWindow.OpenFormatDialogCommand}"
                         Executed="OpenFormatDialog_Executed"
                         CanExecute="OpenFormatDialog_CanExecute"/>
+        <CommandBinding Command="{x:Static local:MainWindow.OpenRowDefinitionDialogCommand}"
+                        Executed="OpenRowDefinitionDialog_Executed"
+                        CanExecute="OpenRowDefinitionDialog_CanExecute"/>
     </Window.CommandBindings>
 
     <mah:MetroWindow.RightWindowCommands>
@@ -101,6 +104,15 @@
 
             <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <TextBlock Text="Nummerierung:" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <Button Width="32"
+                        Height="32"
+                        ToolTip="Zeilen definieren"
+                        Margin="0,0,5,0"
+                        Style="{StaticResource MahApps.Styles.Button.Circle}"
+                        Command="{x:Static local:MainWindow.OpenRowDefinitionDialogCommand}"
+                        CommandParameter="{Binding RowDefinitionManager}">
+                    <TextBlock Text="R" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                </Button>
                 <Button Width="32"
                         Height="32"
                         ToolTip="Personen neu nummerieren"

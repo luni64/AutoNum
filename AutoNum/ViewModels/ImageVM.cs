@@ -70,6 +70,11 @@ namespace AutoNumber.ViewModels
             get => _titleRegionHeight;
             set => SetProperty(ref _titleRegionHeight, value);
         }
+        public RowDefinitionSession? RowDefinitionSession
+        {
+            get => _rowDefinitionSession;
+            private set => SetProperty(ref _rowDefinitionSession, value);
+        }
 
         // position and size of the image on the canvas
         public int PanX
@@ -107,15 +112,87 @@ namespace AutoNumber.ViewModels
 
             foreach (var p in md.Persons)
             {
-                this.Persons.Add(new Person(p.Label.Number, p.Name.Text, new PointF(p.Label.CenterX, p.Label.CenterY)));
+                this.Persons.Add(new Person(p.Label.Number, p.Name.Text, new PointF(p.Label.CenterX, p.Label.CenterY))
+                {
+                    Row = p.Row
+                });
             }
 
             var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95;
             LabelDiameter = labelSize;
 
+            if (md is AutoNumMetaData_V4 v4)
+            {
+                if (v4.RowBoundaries.Count > 0)
+                {
+                    BeginRowDefinition(Math.Max(1, v4.RowCount));
+                    RowDefinitionSession?.Restore(
+                        Math.Max(1, v4.RowCount),
+                        ImageWidth,
+                        ImageHeight,
+                        v4.RowBoundaries);
+                }
+                else
+                {
+                    ClearRowDefinition();
+                }
+            }
+            else
+            {
+                ClearRowDefinition();
+            }
+
             Trace.WriteLine($"InitFromMetadata: sending MetadataLoadedMessage version={md.Version}, persons={md.Persons.Count}");
             WeakReferenceMessenger.Default.Send(new MetadataLoadedMessage(md));
             Trace.WriteLine("InitFromMetadata: MetadataLoadedMessage completed");
+        }
+
+        public void BeginRowDefinition(int rowCount)
+        {
+            var session = new RowDefinitionSession();
+            session.Initialize(rowCount, ImageWidth, ImageHeight);
+            RowDefinitionSession = session;
+        }
+
+        public void ClearRowDefinition()
+        {
+            RowDefinitionSession = null;
+        }
+
+        public void SaveRowDefinitionToMetadata()
+        {
+            if (RowDefinitionSession is null)
+            {
+                return;
+            }
+
+            // Store the current row boundaries in memory for later restoration
+            _savedRowCount = RowDefinitionSession.RowCount;
+            _savedRowBoundaries = RowDefinitionSession.Boundaries
+                .Select(b => new RowBoundary(b.LeftY, b.RightY))
+                .ToList();
+        }
+
+        public void RestoreRowDefinitionFromSavedState()
+        {
+            if (_savedRowBoundaries.Count == 0)
+            {
+                return;
+            }
+
+            var session = new RowDefinitionSession();
+            session.Restore(_savedRowCount, ImageWidth, ImageHeight, _savedRowBoundaries);
+            RowDefinitionSession = session;
+        }
+
+        public (int rowCount, List<RowBoundary> boundaries) GetSavedRowDefinitionState()
+        {
+            return (_savedRowCount, _savedRowBoundaries);
+        }
+
+        public void ApplyRowDefinition()
+        {
+            RowDefinitionSession?.ApplyToPersons(Persons);
         }
 
         public void Init()
@@ -151,5 +228,8 @@ namespace AutoNumber.ViewModels
         private double _labelDiameter;
         private double _namesRegionHeight;
         private double _titleRegionHeight = 300;
+        private RowDefinitionSession? _rowDefinitionSession;
+        private int _savedRowCount = 0;
+        private List<RowBoundary> _savedRowBoundaries = [];
     }
 }

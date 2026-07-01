@@ -17,23 +17,17 @@ namespace AutoNumber.ViewModels
         public void Numerate(object? _ = null)
         {
             if (_imageVM.Persons.Count == 0) return;
-            var persons = _imageVM.Persons;
 
-            double minY = persons.Min(p => p.Label.CenterY);
-            double maxY = persons.Max(p => p.Label.CenterY);
-            int nrOfRows = (int)Math.Max(1, (maxY - minY) / (BaseLabelDiameter * 1.25));
-            double delta = (maxY - minY) / nrOfRows;
+            var orderedPersons = _imageVM.Persons
+                .OrderBy(person => person.Row <= 0 ? int.MaxValue : person.Row)
+                .ThenBy(person => person.Label.X)
+                .ToList();
 
-            int nr = 1;
-            for (int row = 0; row < nrOfRows; row++)
+            var nr = 1;
+            foreach (var person in orderedPersons)
             {
-                double lower = minY + row * delta;
-                double upper = minY + (row + 1) * delta;
-                foreach (var person in persons.Where(p => p.Label.Y >= lower && p.Label.Y <= upper).OrderBy(p => p.Label.X))
-                {
-                    person.Label.Number = nr;
-                    nr++;
-                }
+                person.Label.Number = nr;
+                nr++;
             }
 
             RecalculateBaseLabelFontSize();
@@ -228,8 +222,33 @@ namespace AutoNumber.ViewModels
                 _imageVM.Persons.Add(new Person(0, "", labelPos));
             }
 
+            AssignDetectedRows();
             RecalculateBaseLabelFontSize();
             Numerate();
+        }
+
+        private void AssignDetectedRows()
+        {
+            if (_imageVM.Persons.Count == 0)
+            {
+                return;
+            }
+
+            var persons = _imageVM.Persons;
+            double minY = persons.Min(p => p.GetRowAnchorPoint().Y);
+            double maxY = persons.Max(p => p.GetRowAnchorPoint().Y);
+            int nrOfRows = (int)Math.Max(1, (maxY - minY) / (BaseLabelDiameter * 1.25));
+            double delta = (maxY - minY) / nrOfRows;
+
+            for (int row = 0; row < nrOfRows; row++)
+            {
+                double lower = minY + row * delta;
+                double upper = minY + (row + 1) * delta;
+                foreach (var person in persons.Where(p => p.Label.Y >= lower && p.Label.Y <= upper))
+                {
+                    person.Row = row + 1;
+                }
+            }
         }
 
         public LabelManager(ImageVM imageVM)

@@ -7,6 +7,7 @@
     xmlns:vm="clr-namespace:AutoNumber.ViewModels" 
     xmlns:is="clr-namespace:AutoNumber.Infrastructure" 
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
+    xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
     x:Class="AutoNumber.Views.PictureDisplay" 
     x:Name="PD" 
     mc:Ignorable="d" 
@@ -20,6 +21,34 @@
         <is:BoolToVisibilityConverter x:Key="Bool2Vis"/>
         <is:DrawingColToMediaBrush  x:Key="Col2Brush"/>
         <is:DrawingFontFamilyToMediaFontFamily x:Key="DrawingFontFamilyToMediaFontFamily"/>
+
+        <Style x:Key="RowBoundaryThumbStyle" TargetType="primitives:Thumb">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="BorderBrush" Value="Black"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="SizeNS"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="primitives:Thumb">
+                        <Rectangle Fill="{TemplateBinding Background}"
+                                   Stroke="{TemplateBinding BorderBrush}"
+                                   StrokeThickness="1"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RowBoundaryLineThumbStyle" TargetType="primitives:Thumb">
+            <Setter Property="Background" Value="#01000000"/>
+            <Setter Property="Cursor" Value="SizeNS"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="primitives:Thumb">
+                        <Border Background="{TemplateBinding Background}"/>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
 
@@ -108,6 +137,14 @@
                     <TranslateTransform Y="{Binding ImageIdManager.LineHeight}"/>
                 </Border.RenderTransform>
             </Border>
+            <Canvas x:Name="rowDefinitionOverlay"
+                    Canvas.Left="0"
+                    Canvas.Top="0"
+                    Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
+                    Height="{Binding Page.ImageHeight, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
+                    Background="Transparent"
+                    Visibility="Collapsed"
+                    IsHitTestVisible="True"/>
         </Canvas>
     </view:ZoomBorder>
 </UserControl>

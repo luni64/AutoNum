@@ -13,6 +13,9 @@ namespace AutoNumber
     public partial class MainWindow : MetroWindow
     {
         public static RoutedUICommand OpenFormatDialogCommand { get; } = new(nameof(OpenFormatDialogCommand), nameof(OpenFormatDialogCommand), typeof(MainWindow));
+        public static RoutedUICommand OpenRowDefinitionDialogCommand { get; } = new(nameof(OpenRowDefinitionDialogCommand), nameof(OpenRowDefinitionDialogCommand), typeof(MainWindow));
+
+        private RowDefinitionWindow? _rowDefinitionWindow;
 
         public MainWindow(MainVM mainVM)
         {
@@ -41,6 +44,32 @@ namespace AutoNumber
                 Owner = this
             };
             settingsWindow.ShowDialog();
+        }
+
+        private void OpenRowDefinitionDialog_CanExecute(object sender, CanExecuteRoutedEventArgs e)
+        {
+            e.CanExecute = e.Parameter is RowDefinitionManager;
+        }
+
+        private void OpenRowDefinitionDialog_Executed(object sender, ExecutedRoutedEventArgs e)
+        {
+            if (e.Parameter is not RowDefinitionManager manager)
+            {
+                return;
+            }
+
+            if (_rowDefinitionWindow is null || !_rowDefinitionWindow.IsVisible)
+            {
+                _rowDefinitionWindow = new RowDefinitionWindow(manager)
+                {
+                    Owner = this
+                };
+                _rowDefinitionWindow.Closed += (_, _) => _rowDefinitionWindow = null;
+                _rowDefinitionWindow.Show();
+                return;
+            }
+
+            _rowDefinitionWindow.Activate();
         }
 
         private void ZoomToFit_Click(object sender, RoutedEventArgs e)

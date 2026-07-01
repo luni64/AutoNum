@@ -57,11 +57,13 @@ namespace AutoNumber.Model
 
     public class AutoNumPerson
     {
+        public int Row { get; set; }
         public Label Label { get; set; } = null!;
         public Name Name { get; set; } = null!;
 
         public AutoNumPerson(Person person)
         {
+            Row = person.Row;
             Label = new(person.Label);
             Name = new(person.Name);
         }
@@ -134,6 +136,7 @@ namespace AutoNumber.Model
 
                 MetaData = version switch
                 {
+                    "V4" => JsonSerializer.Deserialize<AutoNumMetaData_V4>(json),
                     "V3" => JsonSerializer.Deserialize<AutoNumMetaData_V3>(json),
                     "V2" => JsonSerializer.Deserialize<AutoNumMetaData_V2>(json),
                     "V1" => JsonSerializer.Deserialize<AutoNumMetaData_V1>(json),
