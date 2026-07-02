@@ -1,8 +1,10 @@
+using QuestPDF.Fluent;
 using System.IO;
 using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using UglyToad.PdfPig;
 
 namespace AutoNumber.Model;
 
@@ -18,26 +20,12 @@ internal static class PdfPayloadStore
         var metadataJson = payload.Metadata.ToJson();
         var metadataBytes = Encoding.UTF8.GetBytes(metadataJson);
 
-        var patchEntries = payload.Patches
-            .Select(p => new PdfPatchEntry
-            {
-                X = p.X,
-                Y = p.Y,
-                Width = p.Width,
-                Height = p.Height,
-                PngBytes = p.PngBytes
-            })
-            .ToList();
-
-        var patchesBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(patchEntries, JsonOptions));
-
         var manifest = new PdfPayloadManifest
         {
             CreatedAt = DateTimeOffset.Now.ToString("O"),
             MetadataVersion = payload.Metadata.Version,
             MetadataSha256 = ComputeSha256(metadataBytes),
-            CompositeSha256 = ComputeSha256(payload.CompositeImageBytes),
-            PatchesSha256 = ComputeSha256(patchesBytes)
+            BaseImageSha256 = ComputeSha256(payload.BaseImageBytes)
         };
 
         var manifestBytes = Encoding.UTF8.GetBytes(JsonSerializer.Serialize(manifest, JsonOptions));
@@ -47,8 +35,7 @@ internal static class PdfPayloadStore
         {
             AddZipEntry(zip, PdfPayloadContract.ManifestEntry, manifestBytes);
             AddZipEntry(zip, PdfPayloadContract.MetadataEntry, metadataBytes);
-            AddZipEntry(zip, PdfPayloadContract.CompositeImageEntry, payload.CompositeImageBytes);
-            AddZipEntry(zip, PdfPayloadContract.PatchesEntry, patchesBytes);
+            AddZipEntry(zip, PdfPayloadContract.BaseImageEntry, payload.BaseImageBytes);
         }
 
         return ms.ToArray();
@@ -65,8 +52,7 @@ internal static class PdfPayloadStore
 
             var manifestBytes = ReadZipEntry(zip, PdfPayloadContract.ManifestEntry);
             var metadataBytes = ReadZipEntry(zip, PdfPayloadContract.MetadataEntry);
-            var compositeBytes = ReadZipEntry(zip, PdfPayloadContract.CompositeImageEntry);
-            var patchesBytes = ReadZipEntry(zip, PdfPayloadContract.PatchesEntry);
+            var baseImageBytes = ReadZipEntry(zip, PdfPayloadContract.BaseImageEntry);
 
             var manifest = JsonSerializer.Deserialize<PdfPayloadManifest>(manifestBytes, JsonOptions);
             if (manifest is null || manifest.Schema != "autonum-pdf-payload-v1")
@@ -75,8 +61,7 @@ internal static class PdfPayloadStore
             }
 
             if (!string.Equals(manifest.MetadataSha256, ComputeSha256(metadataBytes), StringComparison.OrdinalIgnoreCase)
-                || !string.Equals(manifest.CompositeSha256, ComputeSha256(compositeBytes), StringComparison.OrdinalIgnoreCase)
-                || !string.Equals(manifest.PatchesSha256, ComputeSha256(patchesBytes), StringComparison.OrdinalIgnoreCase))
+                || !string.Equals(manifest.BaseImageSha256, ComputeSha256(baseImageBytes), StringComparison.OrdinalIgnoreCase))
             {
                 return false;
             }
@@ -87,16 +72,10 @@ internal static class PdfPayloadStore
                 return false;
             }
 
-            var patchEntries = JsonSerializer.Deserialize<List<PdfPatchEntry>>(patchesBytes, JsonOptions) ?? [];
-            var patches = patchEntries
-                .Select(p => new PatchData(p.X, p.Y, p.Width, p.Height, p.PngBytes))
-                .ToList();
-
             payload = new PdfPayloadData
             {
                 Metadata = metadata,
-                CompositeImageBytes = compositeBytes,
-                Patches = patches
+                BaseImageBytes = baseImageBytes
             };
 
             return true;
@@ -107,81 +86,90 @@ internal static class PdfPayloadStore
         }
     }
 
-    public static byte[] EmbedPayload(byte[] pdfBytes, byte[] payloadZipBytes)
+    public static void SavePdfWithPayloadAttachment(byte[] pdfBytes, byte[] payloadZipBytes, string outputPdfPath)
     {
-        var magicBytes = Encoding.UTF8.GetBytes(PdfPayloadContract.FooterMagic);
-        var magicLengthBytes = BitConverter.GetBytes(magicBytes.Length);
-        var versionBytes = BitConverter.GetBytes(PdfPayloadContract.FooterVersion);
-        var payloadLengthBytes = BitConverter.GetBytes((long)payloadZipBytes.Length);
-
-        using var ms = new MemoryStream(pdfBytes.Length + payloadZipBytes.Length + magicBytes.Length + 4 + 4 + 8);
-        ms.Write(pdfBytes, 0, pdfBytes.Length);
-        ms.Write(payloadZipBytes, 0, payloadZipBytes.Length);
-        ms.Write(magicBytes, 0, magicBytes.Length);
-        ms.Write(versionBytes, 0, versionBytes.Length);
-        ms.Write(payloadLengthBytes, 0, payloadLengthBytes.Length);
-        ms.Write(magicLengthBytes, 0, magicLengthBytes.Length);
-
-        return ms.ToArray();
-    }
-
-    public static bool TryExtractPayload(byte[] pdfBytes, out byte[]? payloadZipBytes)
-    {
-        payloadZipBytes = null;
-
-        if (pdfBytes.Length < 4 + 8 + 4)
-        {
-            return false;
-        }
+        var tempPdfPath = Path.Combine(Path.GetTempPath(), $"autonum-pdf-{Guid.NewGuid():N}.pdf");
+        var tempZipPath = Path.Combine(Path.GetTempPath(), $"autonum-payload-{Guid.NewGuid():N}.zip");
 
         try
         {
-            var magicLength = BitConverter.ToInt32(pdfBytes, pdfBytes.Length - 4);
-            if (magicLength <= 0 || magicLength > 128)
+            File.WriteAllBytes(tempPdfPath, pdfBytes);
+            File.WriteAllBytes(tempZipPath, payloadZipBytes);
+
+            DocumentOperation
+                .LoadFile(tempPdfPath)
+                .AddAttachment(new DocumentOperation.DocumentAttachment
+                {
+                    Key = PdfPayloadContract.PayloadAttachmentKey,
+                    FilePath = tempZipPath,
+                    AttachmentName = PdfPayloadContract.PayloadAttachmentName,
+                    MimeType = PdfPayloadContract.PayloadAttachmentMimeType,
+                    Description = "Interne AutoNum-Bearbeitungsdaten",
+                    Relationship = DocumentOperation.DocumentAttachmentRelationship.Unspecified,
+                    CreationDate = DateTime.UtcNow,
+                    ModificationDate = DateTime.UtcNow,
+                    Replace = true
+                })
+                .Save(outputPdfPath);
+        }
+        finally
+        {
+            TryDeleteFile(tempPdfPath);
+            TryDeleteFile(tempZipPath);
+        }
+    }
+
+    public static bool TryExtractPayloadFromPdfAttachment(string pdfPath, out byte[]? payloadZipBytes)
+    {
+        payloadZipBytes = null;
+
+        try
+        {
+            using var document = PdfDocument.Open(pdfPath);
+            if (!document.Advanced.TryGetEmbeddedFiles(out var embeddedFiles) || embeddedFiles.Count == 0)
             {
                 return false;
             }
 
-            var payloadLengthOffset = pdfBytes.Length - 4 - 8;
-            var versionOffset = payloadLengthOffset - 4;
-            var magicOffset = versionOffset - magicLength;
-
-            if (magicOffset < 0)
+            foreach (var embeddedFile in embeddedFiles)
             {
-                return false;
+                if (string.Equals(embeddedFile.Name, PdfPayloadContract.PayloadAttachmentName, StringComparison.OrdinalIgnoreCase)
+                    || string.Equals(embeddedFile.Name, PdfPayloadContract.PayloadAttachmentKey, StringComparison.OrdinalIgnoreCase))
+                {
+                    payloadZipBytes = embeddedFile.Bytes.ToArray();
+                    return payloadZipBytes.Length > 0;
+                }
             }
 
-            var version = BitConverter.ToInt32(pdfBytes, versionOffset);
-            if (version != PdfPayloadContract.FooterVersion)
+            foreach (var embeddedFile in embeddedFiles)
             {
-                return false;
+                if (embeddedFile.Name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase))
+                {
+                    payloadZipBytes = embeddedFile.Bytes.ToArray();
+                    return payloadZipBytes.Length > 0;
+                }
             }
 
-            var magic = Encoding.UTF8.GetString(pdfBytes, magicOffset, magicLength);
-            if (!string.Equals(magic, PdfPayloadContract.FooterMagic, StringComparison.Ordinal))
-            {
-                return false;
-            }
-
-            var payloadLength = BitConverter.ToInt64(pdfBytes, payloadLengthOffset);
-            if (payloadLength <= 0 || payloadLength > int.MaxValue)
-            {
-                return false;
-            }
-
-            var payloadOffset = magicOffset - payloadLength;
-            if (payloadOffset < 0 || payloadOffset > int.MaxValue)
-            {
-                return false;
-            }
-
-            payloadZipBytes = new byte[(int)payloadLength];
-            Buffer.BlockCopy(pdfBytes, (int)payloadOffset, payloadZipBytes, 0, (int)payloadLength);
-            return true;
+            return false;
         }
         catch
         {
             return false;
+        }
+    }
+
+    private static void TryDeleteFile(string path)
+    {
+        try
+        {
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch
+        {
+            // best effort cleanup only
         }
     }
 

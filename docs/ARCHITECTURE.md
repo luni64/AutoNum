@@ -106,7 +106,7 @@ AutoNum/
 1. Metadata is loaded from either:
    - JPEG EXIF UserComment (`_num.jpg`), or
    - embedded PDF payload zip (`_num.pdf`) via `PdfPayloadStore`.
-2. For JPEG V2/V3 and editable PDF payloads, the clean base image is reconstructed from embedded patches (`AppSegmentIO`/`RestoreFromPatches` for JPEG, payload patches for PDF).
+2. For JPEG V2/V3, the clean base image is reconstructed from embedded patches (`AppSegmentIO`/`RestoreFromPatches`). For editable PDF payloads, the clean base image is read directly from the embedded payload image.
 3. `ImageVM.InitFromMetadata(...)` rebuilds persons and publishes `MetadataLoadedMessage`.
 4. Managers restore styling/toggles/scales/font families from metadata:
    - V3 restores exact sizing anchors/scales
@@ -129,7 +129,7 @@ AutoNum/
 2. Prevent overwrite only for the protected original file path.
 3. Render with `ToNumberedBitmap(...)`, including optional stacked title, image-information, image-ID, and names blocks in order: Title, Information, Image, ID, Names.
 4. Save JPEG bytes, inject APP4 patches, embed metadata as `Version = "V3"` with exact sizing anchors plus relative scales.
-5. Optional PDF export path renders the PDF document and appends a versioned embedded AutoNum payload zip (metadata + composite + patches) for round-trip editing from `_num.pdf`.
+5. Optional PDF export path renders the PDF document and embeds a versioned AutoNum payload zip (`metadata + base image`) as a standard PDF attachment for round-trip editing from `_num.pdf`.
 
 ## Slider & Scale Control Architecture
 
@@ -187,7 +187,7 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 ## Rendering Notes
 - **Live preview renderer (WPF/XAML):** marker templates in `Marker.xaml` render label circles and names-table rows.
 - **JPG export renderer (GDI+):** `ExtensionMethods` draws final bitmap; label drawing uses supersampled anti-aliased overlay/downsampling for improved small-label quality.
-- **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output; editable payload is embedded separately and is not page-visible.
+- **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output, sets standard PDF document metadata, and embeds editable payload as a non-visible PDF attachment.
 - Names-table row geometry is computed once via `NameTableLayoutEngine` and projected to `TextLabel` row bounds (`X/Y/W/H`) so preview and JPG share the same wrap-aware layout foundation.
 - To minimize drift between renderers, column-width and padding rules are centralized in `NamesTableLayout`; preview uses dedicated converters, JPG uses GDI drawing helpers, and PDF uses the same width resolver.
 - Names-table measurement/rendering paths use pixel-based GDI font units to avoid WPF/GDI point-vs-pixel mismatch.
@@ -196,7 +196,8 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 - **Emgu.CV** — face detection
 - **MahApps.Metro** — WPF shell + dialogs
 - **CommunityToolkit.Mvvm** — messenger only
-- **QuestPDF** — PDF rendering
+- **QuestPDF** — PDF rendering and standards-compliant PDF attachment embedding
+- **PdfPig** — extraction of embedded PDF payload attachments on import
 
 ## Conventions
 - C# 12 / .NET 8

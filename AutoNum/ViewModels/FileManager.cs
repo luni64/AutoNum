@@ -12,6 +12,7 @@ using System.Linq;
 using System.Text;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -179,7 +180,7 @@ namespace AutoNumber.ViewModels
 
                 var exportData = BuildExportData();
                 exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
-                WritePdf(filename, exportData, result);
+                WritePdf(filename, exportData);
                 WriteMetadataSidecars(filename, exportData, result);
                 parent.PictureVM.CurrentImageFilename = filename;
             }
@@ -318,7 +319,7 @@ namespace AutoNumber.ViewModels
             return $"\"{text.Replace("\"", "\"\"")}\"";
         }
 
-        private void WritePdf(string filename, SidecarExportData exportData, NumberedBitmapResult numberedBitmapResult)
+        private void WritePdf(string filename, SidecarExportData exportData)
         {
             byte[]? photoBytes = null;
             using (var photoWithLabels = parent.PictureVM.ToPhotoWithLabelsBitmap())
@@ -338,9 +339,10 @@ namespace AutoNumber.ViewModels
             var tableReferenceWidth = 360d / namesColumnCount;
             var pdfNumberColumnWidth = NamesTableLayout.ResolveNumberColumnWidth(tableReferenceWidth);
 
-            var createdDate = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
-                ? generatedAt.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"))
-                : DateTime.Now.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"));
+            var documentTimestamp = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
+                ? generatedAt
+                : DateTimeOffset.Now;
+            var createdDate = documentTimestamp.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"));
 
             using var pdfStream = new MemoryStream();
 
@@ -428,39 +430,54 @@ namespace AutoNumber.ViewModels
                         });
                     });
                 });
-            }).GeneratePdf(pdfStream);
+            })
+            .WithMetadata(new DocumentMetadata
+            {
+                Title = heading,
+                Author = "AutoNum",
+                Subject = "AutoNum export",
+                Keywords = "AutoNum, Face labels, Numbered image, PDF",
+                Creator = "AutoNum",
+                Producer = "QuestPDF",
+                Language = "de-DE",
+                CreationDate = documentTimestamp,
+                ModifiedDate = documentTimestamp
+            })
+            .GeneratePdf(pdfStream);
 
             // Update existing metadata with latest runtime values, then use it
             parent.PictureVM.UpdateMetadataBeforeSave(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
             var metadata = parent.PictureVM.CurrentMetadata!;
 
-            using var compositeStream = new MemoryStream();
-            numberedBitmapResult.Bitmap.Save(compositeStream, DrawingImageFormat.Jpeg);
+            if (parent.PictureVM.Bitmap is null)
+            {
+                throw new InvalidOperationException("Die Basisgrafik für den PDF-Export ist nicht verfügbar.");
+            }
+
+            using var baseImageStream = new MemoryStream();
+            parent.PictureVM.Bitmap.Save(baseImageStream, DrawingImageFormat.Jpeg);
 
             var payloadZip = PdfPayloadStore.CreatePayloadZip(new PdfPayloadData
             {
                 Metadata = metadata,
-                CompositeImageBytes = compositeStream.ToArray(),
-                Patches = [.. numberedBitmapResult.Patches]
+                BaseImageBytes = baseImageStream.ToArray()
             });
 
             if (!PdfPayloadStore.TryReadPayloadZip(payloadZip, out var payloadCheck)
                 || payloadCheck is null
                 || payloadCheck.Metadata is null
-                || payloadCheck.Patches.Count != numberedBitmapResult.Patches.Count)
+                || payloadCheck.BaseImageBytes.Length == 0)
             {
                 throw new InvalidDataException("Die PDF-Nutzdaten konnten nicht verifiziert werden.");
             }
 
-            var finalPdfBytes = PdfPayloadStore.EmbedPayload(pdfStream.ToArray(), payloadZip);
-            File.WriteAllBytes(filename, finalPdfBytes);
+            PdfPayloadStore.SavePdfWithPayloadAttachment(pdfStream.ToArray(), payloadZip, filename);
         }
 
         private void OpenFromPdfFile(string pdfFilename, ImageVM pvm)
         {
             Trace.WriteLine($"OpenFromPdfFile: reading '{pdfFilename}'");
-            var pdfBytes = File.ReadAllBytes(pdfFilename);
-            if (!PdfPayloadStore.TryExtractPayload(pdfBytes, out var payloadZipBytes) || payloadZipBytes is null)
+            if (!PdfPayloadStore.TryExtractPayloadFromPdfAttachment(pdfFilename, out var payloadZipBytes) || payloadZipBytes is null)
             {
                 throw new InvalidDataException("Die PDF enthält keine editierbaren AutoNum-Daten.");
             }
@@ -471,21 +488,11 @@ namespace AutoNumber.ViewModels
                 throw new InvalidDataException("Die eingebetteten AutoNum-Daten in der PDF sind ungültig.");
             }
 
-            Trace.WriteLine($"OpenFromPdfFile: payload metadata version '{payload.Metadata.Version}', patches={payload.Patches.Count}");
+            Trace.WriteLine($"OpenFromPdfFile: payload metadata version '{payload.Metadata.Version}', base image size={payload.BaseImageBytes.Length} bytes");
 
-            using var compositeStream = new MemoryStream(payload.CompositeImageBytes);
-            using var compositeSource = new Bitmap(compositeStream);
-            using var compositeBitmap = new Bitmap(compositeSource);
-
-            Bitmap restoredBitmap;
-            if (payload.Metadata is AutoNumMetaData_V2 v2)
-            {
-                restoredBitmap = compositeBitmap.RestoreFromPatches(v2, payload.Patches);
-            }
-            else
-            {
-                restoredBitmap = new Bitmap(compositeBitmap);
-            }
+            using var baseStream = new MemoryStream(payload.BaseImageBytes);
+            using var baseSource = new Bitmap(baseStream);
+            var restoredBitmap = new Bitmap(baseSource);
 
             pvm.OriginalPropertyItems = restoredBitmap.PropertyItems;
             pvm.Bitmap = restoredBitmap;
