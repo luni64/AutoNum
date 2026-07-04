@@ -13,6 +13,7 @@ namespace AutoNumber.ViewModels
             PreviewCommand = new RelayCommand(_ => Preview(), _ => CanPreview);
             ApplyCommand = new RelayCommand(_ => Apply(), _ => CanApply);
             CancelCommand = new RelayCommand(_ => Cancel(), _ => CanCancel);
+            DeleteRowCommand = new RelayCommand(DeleteRowFromParameter, _ => CanApply);
 
             _imageVM.PropertyChanged += ImageVM_PropertyChanged;
 
@@ -105,6 +106,7 @@ namespace AutoNumber.ViewModels
         public RelayCommand PreviewCommand { get; }
         public RelayCommand ApplyCommand { get; }
         public RelayCommand CancelCommand { get; }
+        public RelayCommand DeleteRowCommand { get; }
 
         public void Preview()
         {
@@ -157,6 +159,67 @@ namespace AutoNumber.ViewModels
                 var row = ResolvePreviewRow(anchor.X, anchor.Y);
                 person.RowPreviewActive = true;
                 person.RowPreviewColor = GetPreviewColor(row);
+            }
+        }
+
+        public bool TryInsertRowAtRightEdgeY(double rightY)
+        {
+            if (!HasPreview)
+            {
+                Preview();
+            }
+
+            if (_imageVM.RowDefinitionSession is null)
+            {
+                return false;
+            }
+
+            var inserted = _imageVM.RowDefinitionSession.TryInsertBoundaryAtRightY(rightY);
+            if (!inserted)
+            {
+                return false;
+            }
+
+            _rowCount = _imageVM.RowDefinitionSession.RowCount;
+            OnPropertyChanged(nameof(RowCount));
+            OnPropertyChanged(nameof(RowCountText));
+            CommitSessionChanges();
+            CommandManager.InvalidateRequerySuggested();
+            return true;
+        }
+
+        public bool TryDeleteRow(int row)
+        {
+            if (_imageVM.RowDefinitionSession is null)
+            {
+                return false;
+            }
+
+            var deleted = _imageVM.RowDefinitionSession.TryDeleteRow(row);
+            if (!deleted)
+            {
+                return false;
+            }
+
+            _rowCount = _imageVM.RowDefinitionSession.RowCount;
+            OnPropertyChanged(nameof(RowCount));
+            OnPropertyChanged(nameof(RowCountText));
+            CommitSessionChanges();
+            CommandManager.InvalidateRequerySuggested();
+            return true;
+        }
+
+        private void DeleteRowFromParameter(object? parameter)
+        {
+            if (parameter is int row)
+            {
+                TryDeleteRow(row);
+                return;
+            }
+
+            if (parameter is string text && int.TryParse(text, out var parsedRow))
+            {
+                TryDeleteRow(parsedRow);
             }
         }
 
@@ -260,9 +323,7 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            _imageVM.SyncRowDefinitionToMetadata();
-            _imageVM.ApplyRowDefinition();
-            _labelManager.Numerate();
+            CommitSessionChanges();
             // Don't clear the session - keep the lines visible
             OnPropertyChanged(nameof(HasPreview));
             CommandManager.InvalidateRequerySuggested();
@@ -315,6 +376,19 @@ namespace AutoNumber.ViewModels
 
                 CommandManager.InvalidateRequerySuggested();
             }
+        }
+
+        private void CommitSessionChanges()
+        {
+            if (_imageVM.RowDefinitionSession is null)
+            {
+                return;
+            }
+
+            _imageVM.SyncRowDefinitionToMetadata();
+            _imageVM.ApplyRowDefinition();
+            ApplyRowPreviewColoring();
+            _labelManager.Numerate();
         }
 
         private void SyncModeStateFromSession()

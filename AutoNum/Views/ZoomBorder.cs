@@ -77,6 +77,9 @@ namespace AutoNumber.Views
                 if (markerLabel != null)
                 {
                     mainVM.PictureVM.Persons.Remove(markerLabel.Person);
+                    // Auto-renumber after deletion to keep numbering consistent
+                    // (rows remain unchanged - they're only modified in row mode)
+                    mainVM.LabelManager.Numerate();
                 }
                 else
                 {
@@ -89,28 +92,64 @@ namespace AutoNumber.Views
                     var center = new System.Drawing.PointF((float)(np.X - MarkerLabel.Style.Diameter / 2), (float)(np.Y - MarkerLabel.Style.Diameter / 2));
                     var newPerson = new Person(lastIdx + 1, "", center);
 
-                    // If row definition session is active, assign the correct row and preview color
+                    // Determine which row the new label belongs to
+                    // Use the row anchor point (bottom-right) for consistency with boundary calculations
+                    var anchorY = newPerson.GetRowAnchorPoint().Y;
+                    var anchorX = newPerson.GetRowAnchorPoint().X;
+
                     if (mainVM.PictureVM.RowDefinitionSession is not null)
                     {
-                        var row = ResolveRowForPosition(center.Y, mainVM.PictureVM.RowDefinitionSession, mainVM.PictureVM.ImageWidth);
+                        // In row mode: use the row definition session boundaries
+                        var row = ResolveRowForPosition(anchorY, anchorX, mainVM.PictureVM.RowDefinitionSession, mainVM.PictureVM.ImageWidth);
                         newPerson.Row = row;
                         newPerson.RowPreviewActive = true;
                         newPerson.RowPreviewColor = GetPreviewColorForRow(row);
                     }
+                    else if (mainVM.PictureVM.CurrentMetadata?.RowBoundaries.Count > 0)
+                    {
+                        // Not in row mode but boundaries exist (from metadata or prior detection):
+                        // use the metadata boundaries to determine the row
+                        var row = ResolveRowForPositionFromMetadata(anchorY, anchorX, mainVM.PictureVM.CurrentMetadata.RowBoundaries, mainVM.PictureVM.ImageWidth);
+                        newPerson.Row = row;
+                    }
+                    else
+                    {
+                        // No boundaries defined: default to row 1
+                        newPerson.Row = 1;
+                    }
 
                     mainVM.PictureVM.Persons.Add(newPerson);
+                    // Note: don't call AssignDetectedRows() here - we already assigned the row based on boundaries
+                    // Just renumber to keep the sequence consistent
+                    mainVM.LabelManager.Numerate();
                 }
             }
         }
 
-        private static int ResolveRowForPosition(double y, RowDefinitionSession session, double imageWidth)
+        private static int ResolveRowForPosition(double y, double x, RowDefinitionSession session, double imageWidth)
         {
             var row = 1;
             foreach (var boundary in session.Boundaries)
             {
-                // Assuming we're at the center of the label (approximate x position)
-                var centerX = imageWidth / 2;
-                var boundaryY = GetBoundaryYAtX(boundary, centerX, imageWidth);
+                var boundaryY = GetBoundaryYAtX(boundary, x, imageWidth);
+                if (y > boundaryY)
+                {
+                    row++;
+                }
+            }
+            return row;
+        }
+
+        /// <summary>
+        /// Resolve row for a given Y position using metadata boundaries.
+        /// Used when adding labels outside of row mode.
+        /// </summary>
+        private static int ResolveRowForPositionFromMetadata(double y, double x, IReadOnlyList<RowBoundary> boundaries, double imageWidth)
+        {
+            var row = 1;
+            foreach (var boundary in boundaries)
+            {
+                var boundaryY = GetBoundaryYAtX(boundary, x, imageWidth);
                 if (y > boundaryY)
                 {
                     row++;

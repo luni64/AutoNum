@@ -10,6 +10,8 @@ using System.Windows.Data;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
+using System.Windows.Input;
+using MahApps.Metro.IconPacks;
 
 namespace AutoNumber.Views
 {
@@ -335,8 +337,12 @@ namespace AutoNumber.Views
                 rowDefinitionOverlay.Children.Clear();
                 rowDefinitionOverlay.Visibility = Visibility.Collapsed;
                 _rowBoundaryVisuals.Clear();
+                rowChipHost.Children.Clear();
+                rowInsertGhost.Visibility = Visibility.Collapsed;
                 return;
             }
+
+            UpdateRowEditStripLayout();
 
             rowDefinitionOverlay.Visibility = Visibility.Visible;
             rowDefinitionOverlay.Children.Clear();
@@ -349,6 +355,8 @@ namespace AutoNumber.Views
             {
                 CreateBoundaryVisual(boundary.LeftY, boundary.RightY, width);
             }
+
+            RenderRowStripChips();
         }
 
         private RowBoundaryVisualState CreateBoundaryVisual(double leftY, double rightY, double width)
@@ -438,6 +446,7 @@ namespace AutoNumber.Views
         {
             SyncVisualsToSession();
             CommitRowAssignmentsFromSession();
+            RenderRowStripChips();
         }
 
         private void MoveBoundaryVisual(RowBoundaryVisualState state, RowBoundaryDragTarget target, double deltaY)
@@ -657,6 +666,257 @@ namespace AutoNumber.Views
             return true;
         }
 
+        private void UpdateRowEditStripLayout()
+        {
+            if (Page is null)
+            {
+                return;
+            }
+
+            var handleSize = Math.Max(8, GetBoundaryHandleSize());
+
+            // Dimensions in units of handle width
+            _rowStripHandleDistance = handleSize * 0.2;
+            _rowStripInsertWidth = handleSize *1.7;
+            _rowStripGap = handleSize * 0.2;
+            _rowStripChipWidth = handleSize * 2.5;
+            _rowStripTotalWidth = _rowStripInsertWidth + _rowStripGap + _rowStripChipWidth;
+
+            Canvas.SetLeft(rowEditStrip, Page.ImageWidth + handleSize / 2.0 + _rowStripHandleDistance);
+            rowEditStrip.Width = _rowStripTotalWidth;
+
+            if (rowEditStrip.FindName("rowInsertLane") is Border insertLane)
+            {
+                insertLane.Width = _rowStripInsertWidth;
+                insertLane.CornerRadius = new CornerRadius(Math.Max(3, _rowStripInsertWidth * 0.18));
+            }
+
+            rowInsertGhost.X1 = Math.Max(3, _rowStripInsertWidth * 0.16);
+            rowInsertGhost.X2 = Math.Max(rowInsertGhost.X1 + 4, _rowStripInsertWidth - _rowStripInsertWidth * 0.16);
+            rowInsertGhost.Stroke = new SolidColorBrush(Color.FromArgb(230, 0, 188, 212));
+            rowInsertGhost.StrokeThickness = handleSize * 0.2;
+            rowInsertGhost.StrokeDashArray = null;
+
+            var headerSize = Math.Clamp(handleSize * 0.9, 10, 22);
+            rowStripHeader.Width = headerSize*2.5;
+            rowStripHeader.Height = headerSize*2.5;
+            Canvas.SetLeft(rowStripHeader, Math.Max(0, (_rowStripInsertWidth - rowStripHeader.Width) / 2.0));
+            Canvas.SetTop(rowStripHeader, -Math.Max(10, rowStripHeader.Height * 1.5));
+
+            Canvas.SetLeft(rowChipHost, _rowStripInsertWidth + _rowStripGap);
+            rowChipHost.Width = _rowStripChipWidth;
+        }
+
+        private void RowEditStrip_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_rowDefinitionSession is null || Page is null || Page.ImageHeight <= 0)
+            {
+                rowInsertGhost.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var position = e.GetPosition(rowEditStrip);
+            if (position.X > _rowStripInsertWidth)
+            {
+                rowInsertGhost.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            var y = Math.Clamp(position.Y, 0, Page.ImageHeight);
+            rowInsertGhost.Y1 = y;
+            rowInsertGhost.Y2 = y;
+            rowInsertGhost.Visibility = Visibility.Visible;
+        }
+
+        private void RowEditStrip_MouseLeave(object sender, MouseEventArgs e)
+        {
+            rowInsertGhost.Visibility = Visibility.Collapsed;
+        }
+
+        private void RowEditStrip_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (DataContext is not MainVM mainVM || !mainVM.RowDefinitionManager.IsRowDefinitionMode)
+            {
+                return;
+            }
+
+            if (_rowDefinitionSession is null || Page is null)
+            {
+                return;
+            }
+
+            if (FindParent<Button>(e.OriginalSource as DependencyObject) is not null)
+            {
+                return;
+            }
+
+            var taggedElement = FindParent<FrameworkElement>(e.OriginalSource as DependencyObject);
+            if (taggedElement?.Tag is int)
+            {
+                return;
+            }
+
+            var position = e.GetPosition(rowEditStrip);
+            if (position.X > _rowStripInsertWidth)
+            {
+                return;
+            }
+
+            var y = Math.Clamp(position.Y, 0, Page.ImageHeight);
+            if (mainVM.RowDefinitionManager.TryInsertRowAtRightEdgeY(y))
+            {
+                RenderRowDefinitionOverlay();
+            }
+
+            e.Handled = true;
+        }
+
+        private void RenderRowStripChips()
+        {
+            rowChipHost.Children.Clear();
+
+            if (_rowDefinitionSession is null || Page is null || Page.ImageHeight <= 0)
+            {
+                return;
+            }
+
+            var rows = _rowDefinitionSession.GetRowsAtRightEdge();
+            foreach (var row in rows)
+            {
+                var bracket = CreateRowBracket(row.Top, row.Bottom);
+                rowChipHost.Children.Add(bracket);
+
+                var centerY = (row.Top + row.Bottom) / 2.0;
+                var chip = CreateRowChip(row.Row, centerY, row.Bottom - row.Top);
+                rowChipHost.Children.Add(chip);
+            }
+        }
+
+        private FrameworkElement CreateRowBracket(double top, double bottom)
+        {
+            var clampedTop = Math.Clamp(top, 0, Page?.ImageHeight ?? top);
+            var clampedBottom = Math.Clamp(bottom, clampedTop, Page?.ImageHeight ?? bottom);
+            var centerX = Math.Max(4, _rowStripChipWidth * 0.22);
+            var armLength = Math.Max(4, _rowStripChipWidth * 0.24);
+            var strokeThickness = Math.Max(1, _rowStripInsertWidth * 0.08);
+
+            var group = new Canvas
+            {
+                Width = _rowStripChipWidth,
+                Height = Math.Max(1, clampedBottom - clampedTop),
+                IsHitTestVisible = false
+            };
+
+            var topArm = new Line
+            {
+                X1 = centerX,
+                Y1 = 0,
+                X2 = centerX + armLength,
+                Y2 = 0,
+                Stroke = new SolidColorBrush(Color.FromArgb(170, 120, 120, 120)),
+                StrokeThickness = strokeThickness
+            };
+
+            var spine = new Line
+            {
+                X1 = centerX + armLength,
+                Y1 = 0,
+                X2 = centerX + armLength,
+                Y2 = group.Height,
+                Stroke = new SolidColorBrush(Color.FromArgb(170, 120, 120, 120)),
+                StrokeThickness = strokeThickness
+            };
+
+            var bottomArm = new Line
+            {
+                X1 = centerX,
+                Y1 = group.Height,
+                X2 = centerX + armLength,
+                Y2 = group.Height,
+                Stroke = new SolidColorBrush(Color.FromArgb(170, 120, 120, 120)),
+                StrokeThickness = strokeThickness
+            };
+
+            group.Children.Add(topArm);
+            group.Children.Add(spine);
+            group.Children.Add(bottomArm);
+
+            Canvas.SetLeft(group, 0);
+            Canvas.SetTop(group, clampedTop);
+            return group;
+        }
+
+        private FrameworkElement CreateRowChip(int row, double centerY, double availableHeight)
+        {
+            //var iconSize = Math.Max(12, _rowStripChipWidth * 0.55);
+            //var buttonSize = Math.Clamp(availableHeight - 4, Math.Max(14, _rowStripChipWidth * 0.8), Math.Max(20, _rowStripChipWidth));
+            var buttonSize = _rowStripChipWidth*0.5;
+            var iconSize = buttonSize * 0.6;
+
+            var deleteButton = new Button
+            {
+                Content = new PackIconMaterial
+                {
+                    Kind = PackIconMaterialKind.DeleteOutline,
+                    Width = iconSize,
+                    Height = iconSize,
+                    Foreground = Brushes.DarkRed,
+                    Background = Brushes.White
+                },
+                Width = buttonSize,
+                Height = buttonSize,
+                //Background=Brushes.White,
+                Padding = new Thickness(0),
+                VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Style = TryFindResource("MahApps.Styles.Button.Circle") as Style,
+                Tag = row,
+                ToolTip = $"Reihe R{row} entfernen"
+                
+            };
+            deleteButton.Click += RowChipDelete_Click;
+
+            var canDelete = _rowDefinitionSession is not null && _rowDefinitionSession.RowCount > 1;
+            deleteButton.IsEnabled = canDelete;
+            deleteButton.Opacity = canDelete ? 0.9 : 0.3;
+
+            Canvas.SetLeft(deleteButton, Math.Clamp(_rowStripChipWidth * 0.52, 0, Math.Max(0, _rowStripChipWidth - deleteButton.Width)));
+            Canvas.SetTop(deleteButton, Math.Clamp(centerY - deleteButton.Height / 2.0, 0, Math.Max(0, Page!.ImageHeight - deleteButton.Height)));
+            return deleteButton;
+        }
+
+        private void RowChipDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is not Button deleteButton || deleteButton.Tag is not int row)
+            {
+                return;
+            }
+
+            if (DataContext is MainVM mainVM && mainVM.RowDefinitionManager.DeleteRowCommand.CanExecute(row))
+            {
+                mainVM.RowDefinitionManager.DeleteRowCommand.Execute(row);
+                RenderRowDefinitionOverlay();
+            }
+
+            e.Handled = true;
+        }
+
+        private static T? FindParent<T>(DependencyObject? element) where T : class
+        {
+            var current = element;
+            while (current is not null)
+            {
+                if (current is T candidate)
+                {
+                    return candidate;
+                }
+
+                current = VisualTreeHelper.GetParent(current);
+            }
+
+            return null;
+        }
+
         private void TopTextPanel_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (DataContext is MainVM mainVM)
@@ -690,5 +950,10 @@ namespace AutoNumber.Views
         private RowDefinitionSession? _rowDefinitionSession;
         private readonly Dictionary<RowBoundary, PropertyChangedEventHandler> _rowBoundaryHandlers = [];
         private readonly List<RowBoundaryVisualState> _rowBoundaryVisuals = [];
+        private double _rowStripHandleDistance = 12;
+        private double _rowStripInsertWidth = 24;
+        private double _rowStripGap = 12;
+        private double _rowStripChipWidth = 36;
+        private double _rowStripTotalWidth = 72;
     }
 }

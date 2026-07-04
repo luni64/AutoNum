@@ -225,9 +225,10 @@ namespace AutoNumber.ViewModels
             AssignDetectedRows();
             RecalculateBaseLabelFontSize();
             Numerate();
+            CalculateAndStoreRowBoundaries();
         }
 
-        private void AssignDetectedRows()
+        public void AssignDetectedRows()
         {
             if (_imageVM.Persons.Count == 0)
             {
@@ -275,6 +276,56 @@ namespace AutoNumber.ViewModels
             {
                 person.Row = rowMap.TryGetValue(person.Row, out var compactRow) ? compactRow : 1;
             }
+        }
+
+        /// <summary>
+        /// Calculate row boundaries from the currently assigned row numbers and store them in metadata.
+        /// Only creates boundaries for multi-row images (single-row images get empty boundaries).
+        /// </summary>
+        public void CalculateAndStoreRowBoundaries()
+        {
+            if (_imageVM.Persons.Count == 0 || _imageVM.CurrentMetadata is null)
+            {
+                return;
+            }
+
+            // Group persons by row
+            var groups = _imageVM.Persons
+                .Where(person => person.Row > 0)
+                .GroupBy(person => person.Row)
+                .OrderBy(group => group.Key)
+                .Select(group => new
+                {
+                    Row = group.Key,
+                    MinY = group.Min(person => (double)person.GetRowAnchorPoint().Y),
+                    MaxY = group.Max(person => (double)person.GetRowAnchorPoint().Y)
+                })
+                .ToList();
+
+            // Single row or no rows: no boundaries needed
+            if (groups.Count <= 1)
+            {
+                _imageVM.CurrentMetadata.RowBoundaries = [];
+                _imageVM.CurrentMetadata.RowCount = 1;
+                return;
+            }
+
+            // Multi-row: calculate boundaries between rows
+            var boundaries = new List<RowBoundary>();
+            for (var index = 0; index < groups.Count - 1; index++)
+            {
+                var current = groups[index];
+                var next = groups[index + 1];
+                var boundaryY = (current.MaxY + next.MinY) / 2.0;
+
+                var minAllowed = index == 0 ? 0.0 : boundaries[index - 1].LeftY + 2.0;
+                boundaryY = Math.Clamp(boundaryY, minAllowed, _imageVM.ImageHeight);
+
+                boundaries.Add(new RowBoundary(boundaryY, boundaryY));
+            }
+
+            _imageVM.CurrentMetadata.RowBoundaries = boundaries;
+            _imageVM.CurrentMetadata.RowCount = groups.Count;
         }
 
         public LabelManager(ImageVM imageVM)

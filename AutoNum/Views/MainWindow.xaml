@@ -120,14 +120,6 @@
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <TextBlock Text="Nummerierung:" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                <Button Width="32"
-                        Height="32"
-                        ToolTip="Personen neu nummerieren"
-                        Margin="0,0,5,0"
-                        Style="{StaticResource MahApps.Styles.Button.Circle}"
-                        Command="{Binding LabelManager.NumerateCommand}">
-                    <iconPacks:PackIconMaterial Kind="Refresh" Width="16" Height="16"/>
-                </Button>
                 <Button 
                         ToolTip="Alle Personen löschen"
                         Width="32" Height="32" Margin="0,0,5,0"

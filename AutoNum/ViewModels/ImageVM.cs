@@ -166,6 +166,13 @@ namespace AutoNumber.ViewModels
 
             ApplyRowsFromMetadataBoundariesIfAvailable();
 
+            // Calculate boundaries from detected rows if they don't exist yet
+            // This handles V1-V3 images and edge cases where rows are assigned but boundaries aren't
+            if (CurrentMetadata.RowBoundaries.Count == 0 && Persons.Count > 0)
+            {
+                CalculateBoundariesFromDetectedRows();
+            }
+
             // Don't automatically show row boundaries - they'll be restored when user opens the dialog
             // The metadata is preserved in CurrentMetadata for later use
             ClearRowDefinition();
@@ -230,6 +237,69 @@ namespace AutoNumber.ViewModels
             var session = new RowDefinitionSession();
             session.Restore(CurrentMetadata.RowCount, ImageWidth, ImageHeight, CurrentMetadata.RowBoundaries);
             session.ApplyToPersons(Persons);
+        }
+
+        /// <summary>
+        /// Calculate and store row boundaries from the current person row assignments.
+        /// Called after loading metadata where persons may have rows but no boundaries.
+        /// This handles V1-V3 images and edge cases where row assignments exist but boundaries don't.
+        /// </summary>
+        public void CalculateBoundariesFromDetectedRows()
+        {
+            if (CurrentMetadata is null || Persons.Count == 0)
+            {
+                return;
+            }
+
+            // First check if persons have any row assignments
+            var hasAnyRows = Persons.Any(p => p.Row > 0);
+
+            if (!hasAnyRows)
+            {
+                // Edge case: persons with no rows - assign all to row 1
+                foreach (var person in Persons)
+                {
+                    person.Row = 1;
+                }
+            }
+
+            // Group persons by row
+            var groups = Persons
+                .Where(person => person.Row > 0)
+                .GroupBy(person => person.Row)
+                .OrderBy(group => group.Key)
+                .Select(group => new
+                {
+                    Row = group.Key,
+                    MinY = group.Min(person => (double)person.GetRowAnchorPoint().Y),
+                    MaxY = group.Max(person => (double)person.GetRowAnchorPoint().Y)
+                })
+                .ToList();
+
+            // Single row or no rows: no boundaries needed
+            if (groups.Count <= 1)
+            {
+                CurrentMetadata.RowBoundaries = [];
+                CurrentMetadata.RowCount = 1;
+                return;
+            }
+
+            // Multi-row: calculate boundaries between rows
+            var boundaries = new List<RowBoundary>();
+            for (var index = 0; index < groups.Count - 1; index++)
+            {
+                var current = groups[index];
+                var next = groups[index + 1];
+                var boundaryY = (current.MaxY + next.MinY) / 2.0;
+
+                var minAllowed = index == 0 ? 0.0 : boundaries[index - 1].LeftY + 2.0;
+                boundaryY = Math.Clamp(boundaryY, minAllowed, ImageHeight);
+
+                boundaries.Add(new RowBoundary(boundaryY, boundaryY));
+            }
+
+            CurrentMetadata.RowBoundaries = boundaries;
+            CurrentMetadata.RowCount = groups.Count;
         }
 
         public void UpdateMetadataBeforeSave(LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)

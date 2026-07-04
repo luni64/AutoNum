@@ -7,6 +7,7 @@
     xmlns:vm="clr-namespace:AutoNumber.ViewModels" 
     xmlns:is="clr-namespace:AutoNumber.Infrastructure" 
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
     x:Class="AutoNumber.Views.PictureDisplay" 
     x:Name="PD" 
@@ -185,6 +186,46 @@
                     Background="Transparent"
                     Visibility="Collapsed"
                     IsHitTestVisible="True"/>
+
+            <Canvas x:Name="rowEditStrip"
+                    Canvas.Left="0"
+                    Canvas.Top="0"
+                    Width="54"
+                    Height="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
+                    Background="Transparent"
+                    Visibility="{Binding RowDefinitionManager.IsRowDefinitionMode, Converter={StaticResource Bool2Vis}}"
+                    MouseMove="RowEditStrip_MouseMove"
+                    MouseLeave="RowEditStrip_MouseLeave"
+                    MouseLeftButtonDown="RowEditStrip_MouseLeftButtonDown"
+                    IsHitTestVisible="True">
+                <Border x:Name="rowInsertLane"
+                        Width="24"
+                        Height="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
+                        Background="#22FFFFFF"
+                        BorderBrush="#AA7F7F7F"
+                        BorderThickness="2"
+                        CornerRadius="6"/>
+                <Line x:Name="rowInsertGhost"
+                      X1="4"
+                      X2="20"
+                      Y1="0"
+                      Y2="0"
+                      Stroke="#E600BCD4"
+                      StrokeThickness="2"
+                      Visibility="Collapsed"
+                      IsHitTestVisible="False"/>
+                <iconPacks:PackIconMaterial x:Name="rowStripHeader"
+                                            Kind="PlusCircleOutline"
+                                            Foreground="#AA4A4A4A"
+                                            Width="14"
+                                            Height="14"
+                                            IsHitTestVisible="False"/>
+                <Canvas x:Name="rowChipHost"
+                        Canvas.Left="30"
+                        Width="22"
+                        Height="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
+                        IsHitTestVisible="True"/>
+            </Canvas>
         </Canvas>
     </view:ZoomBorder>
 </UserControl>
