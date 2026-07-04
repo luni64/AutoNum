@@ -100,26 +100,18 @@
                 </Button>
             </StackPanel>
 
-            <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <TextBlock Text="Reihen:" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
-                <ToggleButton Width="32"
-                              Height="32"
-                              ToolTip="Reihenmodus ein-/ausschalten"
-                              Margin="0,0,8,0"
-                              Style="{StaticResource MahApps.Styles.ToggleButton.Circle}"
-                              IsChecked="{Binding RowDefinitionManager.IsRowDefinitionMode, Mode=TwoWay}">
-                    <TextBlock Text="R" FontWeight="Bold" FontSize="14" VerticalAlignment="Center" HorizontalAlignment="Center"/>
-                </ToggleButton>
-                <TextBox Width="50"
-                         Height="30"
-                         VerticalContentAlignment="Center"
-                         HorizontalContentAlignment="Center"
-                         Text="{Binding RowDefinitionManager.RowCountText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
-                         IsEnabled="{Binding RowDefinitionManager.IsRowDefinitionMode}"/>
-            </StackPanel>
+
 
             <StackPanel Grid.Column="2" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <TextBlock Text="Nummerierung:" Margin="0,0,10,0" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                <ToggleButton Width="32"
+                              Height="32"
+                              ToolTip="Reihenmodus ein-/ausschalten"
+                              Margin="0,0,5,0"
+                              Style="{StaticResource MahApps.Styles.ToggleButton.Circle}"
+                              IsChecked="{Binding RowDefinitionManager.IsRowDefinitionMode, Mode=TwoWay}">
+                    <iconPacks:PackIconMaterial Kind="FormatLineSpacing" Width="16" Height="16"/>
+                </ToggleButton>
                 <Button 
                         ToolTip="Alle Personen löschen"
                         Width="32" Height="32" Margin="0,0,5,0"
