@@ -100,7 +100,7 @@
                 </Button>
                 <Button Width="32"
                         Height="32"
-                        ToolTip="Zoom auf Bild mit Reihenwerkzeugen"
+                        ToolTip="Zoom auf Bild"
                         Margin="0,0,5,0"
                         Style="{StaticResource MahApps.Styles.Button.Circle}"
                         Click="ZoomToImage_Click">
