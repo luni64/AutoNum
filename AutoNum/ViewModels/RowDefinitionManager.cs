@@ -10,10 +10,7 @@ namespace AutoNumber.ViewModels
             _imageVM = imageVM;
             _labelManager = labelManager;
 
-            PreviewCommand = new RelayCommand(_ => Preview(), _ => CanPreview);
-            ApplyCommand = new RelayCommand(_ => Apply(), _ => CanApply);
-            CancelCommand = new RelayCommand(_ => Cancel(), _ => CanCancel);
-            DeleteRowCommand = new RelayCommand(DeleteRowFromParameter, _ => CanApply);
+            DeleteRowCommand = new RelayCommand(DeleteRowFromParameter, _ => HasPreview);
 
             _imageVM.PropertyChanged += ImageVM_PropertyChanged;
 
@@ -67,8 +64,6 @@ namespace AutoNumber.ViewModels
 
         public bool HasPreview => _imageVM.RowDefinitionSession is not null;
         public bool CanPreview => _imageVM.ImageWidth > 0 && _imageVM.ImageHeight > 0;
-        public bool CanApply => HasPreview;
-        public bool CanCancel => HasPreview;
 
         public bool IsRowDefinitionMode
         {
@@ -97,15 +92,16 @@ namespace AutoNumber.ViewModels
 
                 if (HasPreview)
                 {
-                    Apply();
-                    CloseDialog();
+                    CommitSessionChanges();
+                    _imageVM.SyncRowDefinitionToMetadata();
+                    _imageVM.ClearRowDefinition();
+                    OnPropertyChanged(nameof(HasPreview));
+                    SyncModeStateFromSession();
+                    CommandManager.InvalidateRequerySuggested();
                 }
             }
         }
 
-        public RelayCommand PreviewCommand { get; }
-        public RelayCommand ApplyCommand { get; }
-        public RelayCommand CancelCommand { get; }
         public RelayCommand DeleteRowCommand { get; }
 
         public void Preview()
@@ -300,58 +296,12 @@ namespace AutoNumber.ViewModels
         }
 
 
-        public void Apply()
-        {
-            if (!CanApply)
-            {
-                return;
-            }
-
-            CommitSessionChanges();
-            // Don't clear the session - keep the lines visible
-            OnPropertyChanged(nameof(HasPreview));
-            CommandManager.InvalidateRequerySuggested();
-        }
-
-        public void CloseDialog()
-        {
-            if (!CanCancel)
-            {
-                SyncModeStateFromSession();
-                return;
-            }
-
-            // Sync current state to metadata before closing
-            _imageVM.SyncRowDefinitionToMetadata();
-            _imageVM.ClearRowDefinition();
-            OnPropertyChanged(nameof(HasPreview));
-            SyncModeStateFromSession();
-            CommandManager.InvalidateRequerySuggested();
-        }
-
-        public void Cancel()
-        {
-            if (!CanCancel)
-            {
-                SyncModeStateFromSession();
-                return;
-            }
-
-            // Discard all changes - don't save
-            _imageVM.ClearRowDefinition();
-            OnPropertyChanged(nameof(HasPreview));
-            SyncModeStateFromSession();
-            CommandManager.InvalidateRequerySuggested();
-        }
-
         private void ImageVM_PropertyChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
             if (e.PropertyName is nameof(ImageVM.ImageWidth) or nameof(ImageVM.ImageHeight) or nameof(ImageVM.RowDefinitionSession))
             {
                 OnPropertyChanged(nameof(HasPreview));
                 OnPropertyChanged(nameof(CanPreview));
-                OnPropertyChanged(nameof(CanApply));
-                OnPropertyChanged(nameof(CanCancel));
 
                 if (e.PropertyName == nameof(ImageVM.RowDefinitionSession))
                 {
