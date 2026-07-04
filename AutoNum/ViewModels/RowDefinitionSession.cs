@@ -174,7 +174,7 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        private static Color GetPreviewColor(int row)
+        public static Color GetPreviewColor(int row)
         {
             var palette = new[]
             {

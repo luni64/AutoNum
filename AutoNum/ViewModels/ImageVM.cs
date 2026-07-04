@@ -182,17 +182,17 @@ namespace AutoNumber.ViewModels
             Trace.WriteLine("InitFromMetadata: MetadataLoadedMessage completed");
         }
 
-        public void BeginRowDefinition(int rowCount)
+        public void BeginRowDefinition(int rowCount, IEnumerable<RowBoundary>? boundaries = null)
         {
             var session = new RowDefinitionSession();
-            session.Initialize(rowCount, ImageWidth, ImageHeight);
-            RowDefinitionSession = session;
-        }
-
-        public void BeginRowDefinitionFromBoundaries(int rowCount, IEnumerable<RowBoundary> boundaries)
-        {
-            var session = new RowDefinitionSession();
-            session.Restore(rowCount, ImageWidth, ImageHeight, boundaries);
+            if (boundaries is not null)
+            {
+                session.Restore(rowCount, ImageWidth, ImageHeight, boundaries);
+            }
+            else
+            {
+                session.Initialize(rowCount, ImageWidth, ImageHeight);
+            }
             RowDefinitionSession = session;
         }
 
@@ -234,9 +234,19 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            var session = new RowDefinitionSession();
-            session.Restore(CurrentMetadata.RowCount, ImageWidth, ImageHeight, CurrentMetadata.RowBoundaries);
-            session.ApplyToPersons(Persons);
+            foreach (var person in Persons)
+            {
+                var anchor = person.GetRowAnchorPoint();
+                var row = 1;
+                foreach (var boundary in CurrentMetadata.RowBoundaries)
+                {
+                    if (anchor.Y > boundary.GetYAtX(anchor.X, ImageWidth))
+                    {
+                        row++;
+                    }
+                }
+                person.Row = row;
+            }
         }
 
         /// <summary>
@@ -344,14 +354,8 @@ namespace AutoNumber.ViewModels
                 CurrentMetadata.Persons.Add(new AutoNumPerson(person));
             }
 
-            // Row boundaries are synced directly from session if active
-            if (RowDefinitionSession != null)
-            {
-                CurrentMetadata.RowCount = RowDefinitionSession.RowCount;
-                CurrentMetadata.RowBoundaries = RowDefinitionSession.Boundaries
-                    .Select(b => new RowBoundary(b.LeftY, b.RightY))
-                    .ToList();
-            }
+            // Sync row boundaries from session if active
+            SyncRowDefinitionToMetadata();
         }
 
         public void ApplyRowDefinition()

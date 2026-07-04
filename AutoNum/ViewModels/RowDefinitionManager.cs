@@ -146,6 +146,35 @@ namespace AutoNumber.ViewModels
             CommandManager.InvalidateRequerySuggested();
         }
 
+        /// <summary>
+        /// Resolves the row for a person using the active session (row mode) if available,
+        /// otherwise falls back to the persisted metadata boundaries.
+        /// Returns 1 if no boundaries are defined.
+        /// </summary>
+        public int ResolveRow(Person person)
+        {
+            if (_imageVM.RowDefinitionSession is not null)
+            {
+                return _imageVM.RowDefinitionSession.ResolveRow(person);
+            }
+
+            if (_imageVM.CurrentMetadata?.RowBoundaries.Count > 0)
+            {
+                var anchor = person.GetRowAnchorPoint();
+                var row = 1;
+                foreach (var boundary in _imageVM.CurrentMetadata.RowBoundaries)
+                {
+                    if (anchor.Y > boundary.GetYAtX(anchor.X, _imageVM.ImageWidth))
+                    {
+                        row++;
+                    }
+                }
+                return row;
+            }
+
+            return 1;
+        }
+
         private void ApplyRowPreviewColoring()
         {
             if (_imageVM?.RowDefinitionSession is null || _imageVM?.Persons is null)
@@ -153,13 +182,7 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            foreach (var person in _imageVM.Persons)
-            {
-                var anchor = person.GetRowAnchorPoint();
-                var row = ResolvePreviewRow(anchor.X, anchor.Y);
-                person.RowPreviewActive = true;
-                person.RowPreviewColor = GetPreviewColor(row);
-            }
+            _imageVM.RowDefinitionSession.ApplyPreviewToPersons(_imageVM.Persons);
         }
 
         public bool TryInsertRowAtRightEdgeY(double rightY)
@@ -272,47 +295,8 @@ namespace AutoNumber.ViewModels
                 boundaries.Add(new RowBoundary(boundaryY, boundaryY));
             }
 
-            _imageVM.BeginRowDefinitionFromBoundaries(groups.Count, boundaries);
+            _imageVM.BeginRowDefinition(groups.Count, boundaries);
             return true;
-        }
-
-        private int ResolvePreviewRow(double x, double y)
-        {
-            if (_imageVM?.RowDefinitionSession is null)
-            {
-                return 1;
-            }
-
-            var row = 1;
-            foreach (var boundary in _imageVM.RowDefinitionSession.Boundaries)
-            {
-                if (y > GetBoundaryY(boundary, x, _imageVM.ImageWidth))
-                {
-                    row++;
-                }
-            }
-
-            return row;
-        }
-
-        private static double GetBoundaryY(RowBoundary boundary, double x, double imageWidth)
-        {
-            var width = Math.Max(1, imageWidth);
-            var t = Math.Clamp(x / width, 0.0, 1.0);
-            return boundary.LeftY + (boundary.RightY - boundary.LeftY) * t;
-        }
-
-        private static System.Drawing.Color GetPreviewColor(int row)
-        {
-            var palette = new[]
-            {
-                System.Drawing.Color.FromArgb(255, 255, 82, 82),
-                System.Drawing.Color.FromArgb(255, 76, 175, 80),
-                System.Drawing.Color.FromArgb(255, 33, 150, 243),
-                System.Drawing.Color.FromArgb(255, 255, 193, 7)
-            };
-
-            return palette[Math.Max(0, row - 1) % palette.Length];
         }
 
 
