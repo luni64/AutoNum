@@ -48,6 +48,11 @@ namespace AutoNumber
             PictureDisplayControl.ZoomToFit();
         }
 
+        private void ZoomToImage_Click(object sender, RoutedEventArgs e)
+        {
+            PictureDisplayControl.ZoomToImage();
+        }
+
         private void OpenFormatDialog_CanExecute(object sender, CanExecuteRoutedEventArgs e)
         {
             e.CanExecute = e.Parameter is LabelManager or TitleManager or ImageInfoManager or ImageIdManager or NameManager;

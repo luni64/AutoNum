@@ -98,6 +98,14 @@
                         Click="ZoomToFit_Click">
                     <iconPacks:PackIconMaterial Kind="FitToPageOutline" Width="16" Height="16"/>
                 </Button>
+                <Button Width="32"
+                        Height="32"
+                        ToolTip="Zoom auf Bild mit Reihenwerkzeugen"
+                        Margin="0,0,5,0"
+                        Style="{StaticResource MahApps.Styles.Button.Circle}"
+                        Click="ZoomToImage_Click">
+                    <iconPacks:PackIconMaterial Kind="ImageArea" Width="16" Height="16"/>
+                </Button>
             </StackPanel>
 
 

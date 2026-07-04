@@ -636,6 +636,37 @@ namespace AutoNumber.Views
             }
         }
 
+        public void ZoomToImage()
+        {
+            if (border is null || PageCanvas is null || Page is null)
+            {
+                return;
+            }
+
+            if (!pageimg.IsVisible || pageimg.ActualWidth <= 0 || pageimg.ActualHeight <= 0)
+            {
+                return;
+            }
+
+            // Get image bounds (always needed as the base)
+            var imageBounds = pageimg.TransformToAncestor(PageCanvas).TransformBounds(new Rect(0, 0, pageimg.ActualWidth, pageimg.ActualHeight));
+
+            // If in row mode and row edit strip is visible, include it in zoom
+            if (rowEditStrip.Visibility == Visibility.Visible)
+            {
+                // The row strip is positioned to the right of the image
+                // Get its bounds and union with image bounds
+                var stripBounds = rowEditStrip.TransformToAncestor(PageCanvas).TransformBounds(new Rect(0, 0, rowEditStrip.ActualWidth, rowEditStrip.ActualHeight));
+                var combinedBounds = Rect.Union(imageBounds, stripBounds);
+                border.ZoomToFit(combinedBounds);
+            }
+            else
+            {
+                // Just zoom to image when row mode is off
+                border.ZoomToFit(imageBounds);
+            }
+        }
+
         private bool TryGetContentBounds(bool requireImage, out Rect bounds)
         {
             bounds = Rect.Empty;
