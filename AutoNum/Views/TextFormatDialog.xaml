@@ -30,19 +30,26 @@
 
 		<Grid x:Name="NameTableOptionsPanel"
 			  Grid.Row="1"
-			  Margin="0,30,0,0"
+			  Margin="0,20,0,0"
 			  Visibility="Collapsed">
+			<Grid.RowDefinitions>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+				<RowDefinition Height="Auto"/>
+			</Grid.RowDefinitions>
 			<Grid.ColumnDefinitions>
 				<ColumnDefinition Width="*"/>
 				<ColumnDefinition Width="Auto"/>
 			</Grid.ColumnDefinitions>
 
-			<TextBlock Grid.Column="0"
+			<TextBlock Grid.Row="0"
+					   Grid.Column="0"
 					   VerticalAlignment="Center"
 					   HorizontalAlignment="Right"
 					   Text="Spaltenanzahl Namensliste:"/>
 
 			<ComboBox x:Name="NameTableColumnCountComboBox"
+					  Grid.Row="0"
 					  Margin="10,0,0,0"
 					  Grid.Column="1"
 					  Width="80"
@@ -53,6 +60,33 @@
 				<ComboBoxItem Content="3" Tag="3"/>
 				<ComboBoxItem Content="4" Tag="4"/>
 			</ComboBox>
+
+			<TextBlock Grid.Row="1"
+					   Grid.Column="0"
+					   VerticalAlignment="Center"
+					   HorizontalAlignment="Right"
+					   Margin="0,10,0,0"
+					   Text="Reihentrenner anzeigen:"/>
+			<CheckBox x:Name="ShowRowDividersCheckBox"
+					  Grid.Row="1"
+					  Grid.Column="1"
+					  Margin="10,10,0,0"
+					  VerticalAlignment="Center"
+					  HorizontalAlignment="Right"/>
+
+			<TextBlock Grid.Row="2"
+					   Grid.Column="0"
+					   VerticalAlignment="Center"
+					   HorizontalAlignment="Right"
+					   Margin="0,10,0,0"
+					   Text="Reihentext (n = Nummer):"/>
+			<TextBox x:Name="RowDividerTextTemplateTextBox"
+				 Grid.Row="2"
+				 Grid.Column="1"
+				 Width="180"
+				 Margin="10,10,0,0"
+				 HorizontalAlignment="Right"
+				 VerticalContentAlignment="Center"/>
 		</Grid>
 
 		<StackPanel Grid.Row="2"

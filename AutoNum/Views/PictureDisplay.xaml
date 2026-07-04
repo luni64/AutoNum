@@ -137,6 +137,46 @@
                     <TranslateTransform Y="{Binding ImageIdManager.LineHeight}"/>
                 </Border.RenderTransform>
             </Border>
+
+            <ItemsControl
+                Canvas.Left="0"
+                Canvas.Top="0"
+                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
+                Height="{Binding ActualHeight, ElementName=PageCanvas, Mode=OneWay}"
+                Visibility="{Binding NameManager.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
+                ItemsSource="{Binding NameManager.RowDividers}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas IsHitTestVisible="False"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                        <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="{Binding Width}"
+                                Height="{Binding Height}"
+                                BorderBrush="#AA787878"
+                                BorderThickness="0,0,0,1"
+                                Background="Transparent"
+                                Padding="8,0,8,0">
+                            <TextBlock
+                                Text="{Binding Text}"
+                                FontWeight="SemiBold"
+                                VerticalAlignment="Center"
+                                TextAlignment="Left"
+                                FontFamily="{Binding Source={x:Static vm:TextLabel.Style}, Path=FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}}"
+                                FontSize="{Binding Source={x:Static vm:TextLabel.Style}, Path=FontSize}"
+                                Foreground="{Binding DataContext.NameManager.FontColor, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}}, Converter={StaticResource Col2Brush}}"/>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <Canvas x:Name="rowDefinitionOverlay"
                     Canvas.Left="0"
                     Canvas.Top="0"

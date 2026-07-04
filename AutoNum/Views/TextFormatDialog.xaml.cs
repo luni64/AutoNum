@@ -36,7 +36,7 @@ public partial class TextFormatDialog : MetroWindow
         if (manager is NameManager)
         {
             NameTableOptionsPanel.Visibility = Visibility.Visible;
-            Height = 260;
+            Height = 340;
 
             BindingOperations.SetBinding(
                 NameTableColumnCountComboBox,
@@ -44,6 +44,23 @@ public partial class TextFormatDialog : MetroWindow
                 new Binding(nameof(NameManager.NameTableColumnCount))
                 {
                     Mode = BindingMode.TwoWay
+                });
+
+            BindingOperations.SetBinding(
+                ShowRowDividersCheckBox,
+                CheckBox.IsCheckedProperty,
+                new Binding(nameof(NameManager.ShowRowDividers))
+                {
+                    Mode = BindingMode.TwoWay
+                });
+
+            BindingOperations.SetBinding(
+                RowDividerTextTemplateTextBox,
+                TextBox.TextProperty,
+                new Binding(nameof(NameManager.RowDividerTextTemplate))
+                {
+                    Mode = BindingMode.TwoWay,
+                    UpdateSourceTrigger = UpdateSourceTrigger.PropertyChanged
                 });
         }
 

@@ -83,6 +83,8 @@ namespace AutoNumber.Model
         public AutoNumFont NamesFont { get; set; } = new AutoNumFont();
         public bool? NamesEnabled { get; set; }
         public int? NamesColumnCount { get; set; }
+        public bool? NamesRowDividersEnabled { get; set; }
+        public string NamesRowDividerTemplate { get; set; } = "Reihe n:";
         public string ImageId { get; set; } = string.Empty;
         public AutoNumFont ImageIdFont { get; set; } = new AutoNumFont();
         public bool? ImageIdEnabled { get; set; }
@@ -107,6 +109,8 @@ namespace AutoNumber.Model
             NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.Style.FontSize);
             NamesEnabled = nm.IsEnabled;
             NamesColumnCount = nm.NameTableColumnCount;
+            NamesRowDividersEnabled = nm.ShowRowDividers;
+            NamesRowDividerTemplate = nm.RowDividerTextTemplate;
             ImageId = idm.ImageId;
             ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
             ImageIdEnabled = idm.IsEnabled;

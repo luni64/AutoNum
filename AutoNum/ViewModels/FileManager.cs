@@ -338,6 +338,19 @@ namespace AutoNumber.ViewModels
             var namesColumnCount = Math.Clamp(parent.NameManager.NameTableColumnCount, 1, 4);
             var tableReferenceWidth = 360d / namesColumnCount;
             var pdfNumberColumnWidth = NamesTableLayout.ResolveNumberColumnWidth(tableReferenceWidth);
+            var showRowDividers = parent.NameManager.ShowRowDividers;
+            var orderedPersons = exportData.Persons
+                .OrderBy(person => person.Row <= 0 ? int.MaxValue : person.Row)
+                .ThenBy(person => person.Number)
+                .ToList();
+            var assignedRowGroups = orderedPersons
+                .Where(person => person.Row > 0)
+                .GroupBy(person => person.Row)
+                .OrderBy(group => group.Key)
+                .ToList();
+            var unassignedPersons = orderedPersons
+                .Where(person => person.Row <= 0)
+                .ToList();
 
             var documentTimestamp = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
                 ? generatedAt
@@ -409,23 +422,47 @@ namespace AutoNumber.ViewModels
                                 }
                             });
 
-                            for (var index = 0; index < exportData.Persons.Count; index += namesColumnCount)
+                            void RenderPersonRows(IReadOnlyList<SidecarPerson> persons)
                             {
-                                for (var c = 0; c < namesColumnCount; c++)
+                                for (var index = 0; index < persons.Count; index += namesColumnCount)
                                 {
-                                    var personIndex = index + c;
-                                    if (personIndex < exportData.Persons.Count)
+                                    for (var c = 0; c < namesColumnCount; c++)
                                     {
-                                        var person = exportData.Persons[personIndex];
-                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Number.ToString());
-                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Name);
-                                    }
-                                    else
-                                    {
-                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
-                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
+                                        var personIndex = index + c;
+                                        if (personIndex < persons.Count)
+                                        {
+                                            var person = persons[personIndex];
+                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Number.ToString());
+                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Name);
+                                        }
+                                        else
+                                        {
+                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
+                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
+                                        }
                                     }
                                 }
+                            }
+
+                            foreach (var rowGroup in assignedRowGroups)
+                            {
+                                if (showRowDividers)
+                                {
+                                    table.Cell()
+                                        .ColumnSpan((uint)(namesColumnCount * 2))
+                                        .Border(NamesTableLayout.PdfBorderWidth)
+                                        .BorderColor(Colors.Grey.Lighten2)
+                                        .Padding(NamesTableLayout.CellPadding)
+                                        .Text(parent.NameManager.FormatRowDividerText(rowGroup.Key))
+                                        .SemiBold();
+                                }
+
+                                RenderPersonRows(rowGroup.OrderBy(person => person.Number).ToList());
+                            }
+
+                            if (unassignedPersons.Count > 0)
+                            {
+                                RenderPersonRows(unassignedPersons);
                             }
                         });
                     });

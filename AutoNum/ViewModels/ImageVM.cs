@@ -147,6 +147,8 @@ namespace AutoNumber.ViewModels
                     NamesFont = md.NamesFont,
                     NamesEnabled = md.NamesEnabled,
                     NamesColumnCount = md.NamesColumnCount,
+                    NamesRowDividersEnabled = md.NamesRowDividersEnabled,
+                    NamesRowDividerTemplate = md.NamesRowDividerTemplate,
                     ImageId = md.ImageId,
                     ImageIdFont = md.ImageIdFont,
                     ImageIdEnabled = md.ImageIdEnabled,
@@ -162,6 +164,8 @@ namespace AutoNumber.ViewModels
                 };
             }
 
+            ApplyRowsFromMetadataBoundariesIfAvailable();
+
             // Don't automatically show row boundaries - they'll be restored when user opens the dialog
             // The metadata is preserved in CurrentMetadata for later use
             ClearRowDefinition();
@@ -175,6 +179,13 @@ namespace AutoNumber.ViewModels
         {
             var session = new RowDefinitionSession();
             session.Initialize(rowCount, ImageWidth, ImageHeight);
+            RowDefinitionSession = session;
+        }
+
+        public void BeginRowDefinitionFromBoundaries(int rowCount, IEnumerable<RowBoundary> boundaries)
+        {
+            var session = new RowDefinitionSession();
+            session.Restore(rowCount, ImageWidth, ImageHeight, boundaries);
             RowDefinitionSession = session;
         }
 
@@ -209,6 +220,18 @@ namespace AutoNumber.ViewModels
             RowDefinitionSession = session;
         }
 
+        private void ApplyRowsFromMetadataBoundariesIfAvailable()
+        {
+            if (CurrentMetadata is null || CurrentMetadata.RowBoundaries.Count == 0 || Persons.Count == 0)
+            {
+                return;
+            }
+
+            var session = new RowDefinitionSession();
+            session.Restore(CurrentMetadata.RowCount, ImageWidth, ImageHeight, CurrentMetadata.RowBoundaries);
+            session.ApplyToPersons(Persons);
+        }
+
         public void UpdateMetadataBeforeSave(LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
         {
             if (CurrentMetadata == null)
@@ -234,6 +257,8 @@ namespace AutoNumber.ViewModels
             CurrentMetadata.NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.Style.FontSize);
             CurrentMetadata.NamesEnabled = nm.IsEnabled;
             CurrentMetadata.NamesColumnCount = nm.NameTableColumnCount;
+            CurrentMetadata.NamesRowDividersEnabled = nm.ShowRowDividers;
+            CurrentMetadata.NamesRowDividerTemplate = nm.RowDividerTextTemplate;
             CurrentMetadata.ImageId = idm.ImageId;
             CurrentMetadata.ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
             CurrentMetadata.ImageIdEnabled = idm.IsEnabled;

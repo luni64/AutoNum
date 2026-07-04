@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using AutoNumber.ViewModels;
 
 namespace AutoNumber.Views
@@ -117,7 +118,34 @@ namespace AutoNumber.Views
         {
             oldMousePosition = null;
             MarkerUI.ReleaseMouseCapture();
+
+            if (DataContext is MarkerLabel markerLabel)
+            {
+                var mainVM = FindParentWithDataContext<MainVM>(this);
+                if (mainVM?.PictureVM.RowDefinitionSession is not null)
+                {
+                    markerLabel.Person.Row = mainVM.PictureVM.RowDefinitionSession.ResolveRow(markerLabel.Person);
+                    mainVM.LabelManager.Numerate();
+                }
+            }
+
             e.Handled = true;
+        }
+
+        private static T? FindParentWithDataContext<T>(DependencyObject element) where T : class
+        {
+            var current = element;
+            while (current is not null)
+            {
+                if (current is FrameworkElement fe && fe.DataContext is T dataContext)
+                {
+                    return dataContext;
+                }
+
+                current = VisualTreeHelper.GetParent(current);
+            }
+
+            return default;
         }
 
         #endregion

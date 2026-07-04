@@ -234,20 +234,46 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            var persons = _imageVM.Persons;
-            double minY = persons.Min(p => p.GetRowAnchorPoint().Y);
-            double maxY = persons.Max(p => p.GetRowAnchorPoint().Y);
-            int nrOfRows = (int)Math.Max(1, (maxY - minY) / (BaseLabelDiameter * 1.25));
-            double delta = (maxY - minY) / nrOfRows;
+            var persons = _imageVM.Persons.ToList();
+            var anchors = persons
+                .Select(person => new { Person = person, Y = (double)person.GetRowAnchorPoint().Y })
+                .ToList();
 
-            for (int row = 0; row < nrOfRows; row++)
+            var minY = anchors.Min(item => item.Y);
+            var maxY = anchors.Max(item => item.Y);
+            var span = Math.Max(0, maxY - minY);
+            var estimatedRowCount = (int)Math.Max(1, span / (BaseLabelDiameter * 1.25));
+
+            if (span <= 0 || estimatedRowCount <= 1)
             {
-                double lower = minY + row * delta;
-                double upper = minY + (row + 1) * delta;
-                foreach (var person in persons.Where(p => p.Label.Y >= lower && p.Label.Y <= upper))
+                foreach (var person in persons)
                 {
-                    person.Row = row + 1;
+                    person.Row = 1;
                 }
+
+                return;
+            }
+
+            var delta = span / estimatedRowCount;
+
+            foreach (var item in anchors)
+            {
+                var normalized = (item.Y - minY) / delta;
+                var detectedRow = Math.Clamp((int)Math.Floor(normalized) + 1, 1, estimatedRowCount);
+                item.Person.Row = detectedRow;
+            }
+
+            var rowMap = persons
+                .Select(person => person.Row)
+                .Where(row => row > 0)
+                .Distinct()
+                .OrderBy(row => row)
+                .Select((row, index) => new { row, compactRow = index + 1 })
+                .ToDictionary(item => item.row, item => item.compactRow);
+
+            foreach (var person in persons)
+            {
+                person.Row = rowMap.TryGetValue(person.Row, out var compactRow) ? compactRow : 1;
             }
         }
 

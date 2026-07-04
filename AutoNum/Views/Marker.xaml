@@ -30,14 +30,16 @@
 
                 <Ellipse                                    
                     HorizontalAlignment="Center"  VerticalAlignment="Center" Height="{Binding Diameter}" Width="{Binding Diameter}"
-                    Stroke="{Binding EdgeColor, Converter={StaticResource Col2Brush}}"                    
                     StrokeThickness="{Binding StrokeThickness}">
-                    <Ellipse.Fill>
+                    <Ellipse.Stroke>
                         <MultiBinding Converter="{StaticResource RowPreviewFillConverter}">
                             <Binding Path="Person.RowPreviewActive"/>
                             <Binding Path="Person.RowPreviewColor" Converter="{StaticResource Col2Brush}"/>
-                            <Binding Path="BackgroundColor" Converter="{StaticResource Col2Brush}"/>
+                            <Binding Path="EdgeColor" Converter="{StaticResource Col2Brush}"/>
                         </MultiBinding>
+                    </Ellipse.Stroke>
+                    <Ellipse.Fill>
+                        <Binding Path="BackgroundColor" Converter="{StaticResource Col2Brush}"/>
                     </Ellipse.Fill>
                 </Ellipse>
 

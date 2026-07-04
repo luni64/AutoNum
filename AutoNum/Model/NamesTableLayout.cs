@@ -54,3 +54,15 @@ internal sealed record NameTableLayoutResult(
     double TotalHeight,
     int RowCount,
     int ColumnCount);
+
+public sealed record NameListDividerRenderItem(
+    int Row,
+    string Text,
+    double X,
+    double Y,
+    double Width,
+    double Height);
+
+public sealed record NamePlacementResult(
+    double TotalHeight,
+    IReadOnlyList<NameListDividerRenderItem> Dividers);

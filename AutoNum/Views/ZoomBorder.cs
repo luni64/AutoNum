@@ -130,10 +130,10 @@ namespace AutoNumber.Views
         {
             var palette = new[]
             {
-                System.Drawing.Color.FromArgb(255, 224, 242, 254),
-                System.Drawing.Color.FromArgb(255, 255, 244, 214),
-                System.Drawing.Color.FromArgb(255, 243, 229, 245),
-                System.Drawing.Color.FromArgb(255, 232, 245, 233)
+                System.Drawing.Color.FromArgb(255, 255, 82, 82),
+                System.Drawing.Color.FromArgb(255, 76, 175, 80),
+                System.Drawing.Color.FromArgb(255, 33, 150, 243),
+                System.Drawing.Color.FromArgb(255, 255, 193, 7)
             };
 
             return palette[Math.Max(0, row - 1) % palette.Length];

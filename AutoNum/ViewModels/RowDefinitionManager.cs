@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Windows.Input;
 
 namespace AutoNumber.ViewModels
@@ -38,6 +39,9 @@ namespace AutoNumber.ViewModels
                     if (HasPreview && CanPreview)
                     {
                         _imageVM.BeginRowDefinition(RowCount);
+                        ApplyRowPreviewColoring();
+                        _imageVM.ApplyRowDefinition();
+                        _labelManager.Numerate();
                     }
                 }
             }
@@ -65,6 +69,39 @@ namespace AutoNumber.ViewModels
         public bool CanApply => HasPreview;
         public bool CanCancel => HasPreview;
 
+        public bool IsRowDefinitionMode
+        {
+            get => _isRowDefinitionMode;
+            set
+            {
+                if (_isRowDefinitionMode == value)
+                {
+                    return;
+                }
+
+                _isRowDefinitionMode = value;
+                OnPropertyChanged(nameof(IsRowDefinitionMode));
+
+                if (_suppressModeTransition)
+                {
+                    return;
+                }
+
+                if (_isRowDefinitionMode)
+                {
+                    Preview();
+                    SyncModeStateFromSession();
+                    return;
+                }
+
+                if (HasPreview)
+                {
+                    Apply();
+                    CloseDialog();
+                }
+            }
+        }
+
         public RelayCommand PreviewCommand { get; }
         public RelayCommand ApplyCommand { get; }
         public RelayCommand CancelCommand { get; }
@@ -73,20 +110,27 @@ namespace AutoNumber.ViewModels
         {
             if (!CanPreview)
             {
+                SyncModeStateFromSession();
                 return;
             }
 
             // Try to restore from metadata first
             _imageVM.RestoreRowDefinitionFromMetadata();
 
-            // If no metadata state, create a new session
+            // If no metadata state, seed from detected rows on fresh images.
             if (_imageVM.RowDefinitionSession == null)
             {
-                _imageVM.BeginRowDefinition(RowCount);
+                if (!TryInitializeSessionFromDetectedRows())
+                {
+                    _rowCount = ResolveDetectedRowCount();
+                    OnPropertyChanged(nameof(RowCount));
+                    OnPropertyChanged(nameof(RowCountText));
+                    _imageVM.BeginRowDefinition(RowCount);
+                }
             }
-            else if (_imageVM.RowDefinitionSession.Boundaries.Count > 0)
+
+            if (_imageVM.RowDefinitionSession is not null)
             {
-                // Update row count to match restored session
                 _rowCount = _imageVM.RowDefinitionSession.RowCount;
                 OnPropertyChanged(nameof(RowCount));
                 OnPropertyChanged(nameof(RowCountText));
@@ -96,6 +140,7 @@ namespace AutoNumber.ViewModels
             ApplyRowPreviewColoring();
 
             OnPropertyChanged(nameof(HasPreview));
+            SyncModeStateFromSession();
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -113,6 +158,59 @@ namespace AutoNumber.ViewModels
                 person.RowPreviewActive = true;
                 person.RowPreviewColor = GetPreviewColor(row);
             }
+        }
+
+        private int ResolveDetectedRowCount()
+        {
+            var count = _imageVM.Persons
+                .Select(person => person.Row)
+                .Where(row => row > 0)
+                .Distinct()
+                .Count();
+
+            return Math.Max(1, count);
+        }
+
+        private bool TryInitializeSessionFromDetectedRows()
+        {
+            var groups = _imageVM.Persons
+                .Where(person => person.Row > 0)
+                .GroupBy(person => person.Row)
+                .OrderBy(group => group.Key)
+                .Select(group => new
+                {
+                    Row = group.Key,
+                    MinY = group.Min(person => (double)person.GetRowAnchorPoint().Y),
+                    MaxY = group.Max(person => (double)person.GetRowAnchorPoint().Y)
+                })
+                .ToList();
+
+            if (groups.Count == 0)
+            {
+                return false;
+            }
+
+            if (groups.Count == 1)
+            {
+                _imageVM.BeginRowDefinition(1);
+                return true;
+            }
+
+            var boundaries = new List<RowBoundary>();
+            for (var index = 0; index < groups.Count - 1; index++)
+            {
+                var current = groups[index];
+                var next = groups[index + 1];
+                var boundaryY = (current.MaxY + next.MinY) / 2.0;
+
+                var minAllowed = index == 0 ? 0.0 : boundaries[index - 1].LeftY + 2.0;
+                boundaryY = Math.Clamp(boundaryY, minAllowed, _imageVM.ImageHeight);
+
+                boundaries.Add(new RowBoundary(boundaryY, boundaryY));
+            }
+
+            _imageVM.BeginRowDefinitionFromBoundaries(groups.Count, boundaries);
+            return true;
         }
 
         private int ResolvePreviewRow(double x, double y)
@@ -145,10 +243,10 @@ namespace AutoNumber.ViewModels
         {
             var palette = new[]
             {
-                System.Drawing.Color.FromArgb(255, 224, 242, 254),
-                System.Drawing.Color.FromArgb(255, 255, 244, 214),
-                System.Drawing.Color.FromArgb(255, 243, 229, 245),
-                System.Drawing.Color.FromArgb(255, 232, 245, 233)
+                System.Drawing.Color.FromArgb(255, 255, 82, 82),
+                System.Drawing.Color.FromArgb(255, 76, 175, 80),
+                System.Drawing.Color.FromArgb(255, 33, 150, 243),
+                System.Drawing.Color.FromArgb(255, 255, 193, 7)
             };
 
             return palette[Math.Max(0, row - 1) % palette.Length];
@@ -174,6 +272,7 @@ namespace AutoNumber.ViewModels
         {
             if (!CanCancel)
             {
+                SyncModeStateFromSession();
                 return;
             }
 
@@ -181,6 +280,7 @@ namespace AutoNumber.ViewModels
             _imageVM.SyncRowDefinitionToMetadata();
             _imageVM.ClearRowDefinition();
             OnPropertyChanged(nameof(HasPreview));
+            SyncModeStateFromSession();
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -188,12 +288,14 @@ namespace AutoNumber.ViewModels
         {
             if (!CanCancel)
             {
+                SyncModeStateFromSession();
                 return;
             }
 
             // Discard all changes - don't save
             _imageVM.ClearRowDefinition();
             OnPropertyChanged(nameof(HasPreview));
+            SyncModeStateFromSession();
             CommandManager.InvalidateRequerySuggested();
         }
 
@@ -205,12 +307,34 @@ namespace AutoNumber.ViewModels
                 OnPropertyChanged(nameof(CanPreview));
                 OnPropertyChanged(nameof(CanApply));
                 OnPropertyChanged(nameof(CanCancel));
+
+                if (e.PropertyName == nameof(ImageVM.RowDefinitionSession))
+                {
+                    SyncModeStateFromSession();
+                }
+
                 CommandManager.InvalidateRequerySuggested();
             }
+        }
+
+        private void SyncModeStateFromSession()
+        {
+            var hasSession = _imageVM.RowDefinitionSession is not null;
+            if (_isRowDefinitionMode == hasSession)
+            {
+                return;
+            }
+
+            _suppressModeTransition = true;
+            _isRowDefinitionMode = hasSession;
+            OnPropertyChanged(nameof(IsRowDefinitionMode));
+            _suppressModeTransition = false;
         }
 
         private readonly ImageVM _imageVM;
         private readonly LabelManager _labelManager;
         private int _rowCount = 3;
+        private bool _isRowDefinitionMode;
+        private bool _suppressModeTransition;
     }
 }
