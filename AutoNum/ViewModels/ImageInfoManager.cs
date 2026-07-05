@@ -91,6 +91,7 @@ public class ImageInfoManager : BaseViewModel
                 ImageInfo = md.ImageInfo ?? string.Empty;
                 IsEnabled = md.ImageInfoEnabled ?? !string.IsNullOrEmpty(md.ImageInfo);
 
+                Trace.WriteLine($"MetadataLoaded[ImageInfoManager]: scale={scale:F4}, storedSize={md.ImageInfoFont.Size:F4}, baseLabelStored={md.LabelsFont.Size:F4}, baseLabelRuntime={_labelManager.BaseLabelFontSize:F4}, resolvedFontSize={ImageInfoFontSize:F4}, enabled={IsEnabled}");
                 Trace.WriteLine("MetadataLoaded[ImageInfoManager]: completed");
             }
             catch (Exception ex)

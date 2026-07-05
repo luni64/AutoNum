@@ -160,7 +160,11 @@ namespace AutoNumber.ViewModels
                     ImageInfo = md.ImageInfo,
                     Persons = md.Persons,
                     RowCount = 1,
-                    RowBoundaries = []
+                    RowBoundaries = [],
+                    // Preserve V2 properties (original image dimensions)
+                    OriginalImageWidth = (md is AutoNumMetaData_V2 v2) ? v2.OriginalImageWidth : 0,
+                    OriginalImageHeight = (md is AutoNumMetaData_V2 v2x) ? v2x.OriginalImageHeight : 0,
+                    TitleHeight = (md is AutoNumMetaData_V2 v2y) ? v2y.TitleHeight : 0
                 };
             }
 
@@ -347,6 +351,13 @@ namespace AutoNumber.ViewModels
             CurrentMetadata.ImageInfoFont = new AutoNumFont(iim.ImageInfoFontColor, iim.BackgroundColor, iim.ImageInfoFontFamily.Name, iim.ImageInfoFontSize);
             CurrentMetadata.ImageInfoEnabled = iim.IsEnabled;
 
+            SyncReconstructionMetadata(tm, iim);
+
+            if (CurrentMetadata is AutoNumMetaData_V3 v3)
+            {
+                SyncSizingMetadata(v3, lm, tm, iim, idm);
+            }
+
             // Update persons
             CurrentMetadata.Persons.Clear();
             foreach (var person in Persons)
@@ -356,6 +367,41 @@ namespace AutoNumber.ViewModels
 
             // Sync row boundaries from session if active
             SyncRowDefinitionToMetadata();
+        }
+
+        private void SyncReconstructionMetadata(TitleManager tm, ImageInfoManager iim)
+        {
+            if (CurrentMetadata is not AutoNumMetaData_V2 v2)
+            {
+                return;
+            }
+
+            v2.OriginalImageWidth = Bitmap?.Width ?? 0;
+            v2.OriginalImageHeight = Bitmap?.Height ?? 0;
+
+            bool hasTopText = (tm.IsEnabled && !string.IsNullOrEmpty(tm.Title))
+                || (iim.IsEnabled && !string.IsNullOrEmpty(iim.ImageInfo));
+            v2.TitleHeight = hasTopText ? Math.Max(0, (int)Math.Round(TitleRegionHeight)) : 0;
+
+            Trace.WriteLine($"UpdateMetadataBeforeSave: synced reconstruction fields width={v2.OriginalImageWidth}, height={v2.OriginalImageHeight}, titleHeight={v2.TitleHeight}, hasTopText={hasTopText}");
+        }
+
+        private static void SyncSizingMetadata(AutoNumMetaData_V3 v3, LabelManager lm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
+        {
+            var baseLabelDiameter = double.IsFinite(lm.BaseLabelDiameter) && lm.BaseLabelDiameter > 0
+                ? lm.BaseLabelDiameter
+                : MarkerLabel.Style.Diameter;
+            var baseLabelFontSize = double.IsFinite(lm.BaseLabelFontSize) && lm.BaseLabelFontSize > 0
+                ? lm.BaseLabelFontSize
+                : MarkerLabel.Style.FontSize;
+
+            v3.BaseLabelDiameter = baseLabelDiameter;
+            v3.BaseLabelFontSize = baseLabelFontSize;
+            v3.LabelScale = SizingModel.SafeScale(MarkerLabel.Style.Diameter, baseLabelDiameter);
+            v3.NameScale = SizingModel.SafeScale(TextLabel.Style.FontSize, baseLabelFontSize);
+            v3.ImageIdScale = SizingModel.SafeScale(idm.FontSize, baseLabelFontSize);
+            v3.TitleScale = SizingModel.SafeScale(tm.TitleFontSize, baseLabelFontSize);
+            v3.ImageInfoScale = SizingModel.SafeScale(iim.ImageInfoFontSize, baseLabelFontSize);
         }
 
         public void ApplyRowDefinition()

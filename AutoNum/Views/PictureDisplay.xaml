@@ -76,6 +76,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         TextAlignment="Center"
+                        TextWrapping="Wrap"
                         FontFamily="{Binding TitleFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                         FontSize="{Binding TitleFontSize}"
                         Foreground="{Binding TitleFontColor, Converter={StaticResource Col2Brush}}"
@@ -88,13 +89,14 @@
                     Background="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}">
                     <TextBlock
                         Text="{Binding ImageInfo}"
-                        HorizontalAlignment="Center"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Center"
-                        TextAlignment="Center"
+                        TextAlignment="Left"
+                        TextWrapping="Wrap"
                         FontFamily="{Binding ImageInfoFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                         FontSize="{Binding ImageInfoFontSize}"
                         Foreground="{Binding ImageInfoFontColor, Converter={StaticResource Col2Brush}}"
-                        Padding="0,4"/>
+                        Padding="8,4,8,4"/>
                 </Border>
             </StackPanel>
             <Image                         

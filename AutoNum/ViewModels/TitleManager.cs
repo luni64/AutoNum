@@ -93,6 +93,7 @@ namespace AutoNumber.ViewModels
                     Title = md.Title ?? string.Empty;
                     IsEnabled = md.TitleEnabled ?? !string.IsNullOrEmpty(md.Title);
 
+                    Trace.WriteLine($"MetadataLoaded[TitleManager]: scale={scale:F4}, storedSize={md.TitleFont.Size:F4}, baseLabelStored={md.LabelsFont.Size:F4}, baseLabelRuntime={_labelManager.BaseLabelFontSize:F4}, resolvedFontSize={TitleFontSize:F4}, enabled={IsEnabled}");
                     Trace.WriteLine("MetadataLoaded[TitleManager]: completed");
                 }
                 catch (Exception ex)

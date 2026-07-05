@@ -145,7 +145,10 @@ namespace AutoNumber.ViewModels
                 }
 
                 using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
-                if (result is null) return;
+                if (result is null)
+                {
+                    return;
+                }
 
                 // Encode bitmap to JPEG in memory, then inject APP4 patch segments
                 using var jpegStream = new MemoryStream();
@@ -153,6 +156,7 @@ namespace AutoNumber.ViewModels
                 var jpegBytes = jpegStream.ToArray();
 
                 var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
+
                 File.WriteAllBytes(filename, finalBytes);
                 parent.PictureVM.CurrentImageFilename = filename;
 

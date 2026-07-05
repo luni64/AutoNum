@@ -215,6 +215,7 @@ namespace AutoNumber.ViewModels
                     IsEnabled = _imageVM.Persons.Count > 0 && (md.NamesEnabled ?? true);
                     ShowNames();
 
+                    Trace.WriteLine($"MetadataLoaded[NameManager]: scale={scale:F4}, storedSize={md.NamesFont.Size:F4}, baseLabelStored={md.LabelsFont.Size:F4}, baseLabelRuntime={_labelManager.BaseLabelFontSize:F4}, resolvedFontSize={TextLabel.Style.FontSize:F4}, columns={NameTableColumnCount}, enabled={IsEnabled}");
                     Trace.WriteLine("MetadataLoaded[NameManager]: completed");
                 }
                 catch (Exception ex)

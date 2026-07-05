@@ -118,6 +118,7 @@ public class ImageIdManager : BaseViewModel
 
                 FontScale = scale;
 
+                Trace.WriteLine($"MetadataLoaded[ImageIdManager]: scale={scale:F4}, storedSize={md.ImageIdFont.Size:F4}, baseLabelStored={md.LabelsFont.Size:F4}, baseLabelRuntime={_labelManager.BaseLabelFontSize:F4}, resolvedFontSize={FontSize:F4}, lineHeight={LineHeight:F2}, enabled={IsEnabled}");
                 Trace.WriteLine("MetadataLoaded[ImageIdManager]: completed");
             }
             catch (Exception ex)

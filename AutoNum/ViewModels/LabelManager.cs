@@ -366,6 +366,7 @@ namespace AutoNumber.ViewModels
                             ? v3.BaseLabelFontSize
                             : md.LabelsFont.Size;
                         LabelScale = v3.LabelScale;
+                        Trace.WriteLine($"MetadataLoaded[LabelManager]: V3+ branch baseDiameter={BaseLabelDiameter:F4}, baseFont={BaseLabelFontSize:F4}, labelScale={LabelScale:F4}, visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     }
                     else
                     {
@@ -376,9 +377,11 @@ namespace AutoNumber.ViewModels
                             ? SizingModel.LegacyStoredFontSizeToVisibleSize(md.LabelsFont.Size)
                             : SizingModel.ComputeFittedLabelFontSize(BaseLabelDiameter, _imageVM.Persons);
                         LabelScale = 1.0;
+                        Trace.WriteLine($"MetadataLoaded[LabelManager]: legacy branch labelsSize={md.LabelsSize:F4}, labelsFontStored={md.LabelsFont.Size:F4}, baseDiameter={BaseLabelDiameter:F4}, baseFont={BaseLabelFontSize:F4}, labelScale={LabelScale:F4}, visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     }
 
                     WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
+                    Trace.WriteLine($"MetadataLoaded[LabelManager]: post-refresh visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     Trace.WriteLine("MetadataLoaded[LabelManager]: completed");
                 }
                 catch (Exception ex)
