@@ -14,6 +14,15 @@
 - Simplified row controls UI by removing the row count text field.
 - Moved the row mode button into the numbering group for a cleaner workflow.
 - Replaced BoxIcons/JamIcons with Material icons and removed unused icon packages.
+- Increased row delete button size to match row boundary handle scaling and moved delete buttons to the right of the color strip for better clickability.
+- Updated row-mode preview palette to a new 8-color set for label background visualization.
+- Changed default fresh-image label scale from 1.0 to 0.75 (75%).
+- Added "Als Standard übernehmen" to the label formatting dialog, including persistence of label edge color defaults.
+- Unified row-strip rectangle borders to dark gray for cleaner seams between adjacent row colors.
+- Normalized row-strip border rendering so shared horizontal seams render at single thickness (no doubled lines between adjacent rows).
+- Removed the temporary debug "Row" column from the names-list DataGrid.
+- Narrowed the PDF names-table number column further and renamed its header to "Nr.".
+- Added retry/cancel handling for save operations when output files are locked by another app.
 
 ## PDF Export / Import
 

@@ -178,10 +178,14 @@ namespace AutoNumber.ViewModels
         {
             var palette = new[]
             {
-                Color.FromArgb(255, 255, 82, 82),
-                Color.FromArgb(255, 76, 175, 80),
-                Color.FromArgb(255, 33, 150, 243),
-                Color.FromArgb(255, 255, 193, 7)
+                Color.FromArgb(255, 197, 227, 204),
+                Color.FromArgb(255, 153, 208, 249),
+                Color.FromArgb(255, 221, 219, 150),
+                Color.FromArgb(255, 203, 213, 231),
+                Color.FromArgb(255, 152, 230, 190),
+                Color.FromArgb(255, 236, 203, 188),
+                Color.FromArgb(255, 231, 189, 239),
+                Color.FromArgb(255, 117, 227, 235)
             };
 
             return palette[Math.Max(0, row - 1) % palette.Length];

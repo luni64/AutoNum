@@ -51,8 +51,9 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            // Clear all persons (labels and names)
+            // Clear all persons (labels and names) and reset row state to one row
             _imageVM.Persons.Clear();
+            _imageVM.ResetRowState();
 
             try
             {
@@ -98,7 +99,7 @@ namespace AutoNumber.ViewModels
             Trace.WriteLine($"RedetectFaces: detected {faces.Count} face(s)");
 
             // Set labels with newly detected faces (scale is preserved as it's not modified by SetLabels)
-            SetLabels(faces);
+            SetLabels(faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
 
             try
             {
@@ -130,7 +131,7 @@ namespace AutoNumber.ViewModels
 
             var faces = FaceDetector.Detect(_imageVM.Bitmap);
             Trace.WriteLine($"RotateImage: detected {faces.Count} face(s) after rotation");
-            SetLabels(faces);
+            SetLabels(faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
 
             try
             {
@@ -212,7 +213,7 @@ namespace AutoNumber.ViewModels
         }
 
         #endregion
-        public void SetLabels(List<Rectangle> faces)
+        public void SetLabels(List<Rectangle> faces, bool assignRows = true)
         {
             BaseLabelDiameter = SizingModel.ComputeBaseLabelDiameter(faces, _imageVM.Bitmap?.Width ?? 0);
 
@@ -222,7 +223,11 @@ namespace AutoNumber.ViewModels
                 _imageVM.Persons.Add(new Person(0, "", labelPos));
             }
 
-            AssignDetectedRows();
+            if (assignRows)
+            {
+                AssignDetectedRows();
+            }
+
             RecalculateBaseLabelFontSize();
             Numerate();
             CalculateAndStoreRowBoundaries();
@@ -340,7 +345,7 @@ namespace AutoNumber.ViewModels
                 MarkerLabel.Style.BackgroundColor = BackgroundColor;
                 MarkerLabel.Style.EdgeColor = EdgeColor;
                 MarkerLabel.Style.FontColor = FontColor;
-                SetLabels(msg.Faces);
+                SetLabels(msg.Faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
             });
 
             WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>

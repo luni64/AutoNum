@@ -205,6 +205,19 @@ namespace AutoNumber.ViewModels
             RowDefinitionSession = null;
         }
 
+        public void ResetRowState()
+        {
+            ClearRowDefinition();
+
+            if (CurrentMetadata is null)
+            {
+                return;
+            }
+
+            CurrentMetadata.RowCount = 1;
+            CurrentMetadata.RowBoundaries = [];
+        }
+
         public void SyncRowDefinitionToMetadata()
         {
             if (CurrentMetadata == null || RowDefinitionSession == null)

@@ -23,9 +23,9 @@ public partial class TextFormatDialog : MetroWindow
         DataContext = manager;
         Title = dialogTitle;
 
-        // Show "Use as default" button for Title, ImageInfo, ImageID, and Names
-        // Hide it for Label (labels always start at 1.0)
-        if (_managerTypeName == nameof(TitleManager) ||
+        // Show "Use as default" button for all supported formatting managers.
+        if (_managerTypeName == nameof(LabelManager) ||
+            _managerTypeName == nameof(TitleManager) ||
             _managerTypeName == nameof(ImageInfoManager) ||
             _managerTypeName == nameof(ImageIdManager) ||
             _managerTypeName == nameof(NameManager))
@@ -125,20 +125,21 @@ public partial class TextFormatDialog : MetroWindow
         }
 
         // Read the current formatting values from the manager
-        var (currentScale, fontColor, backgroundColor) = _manager switch
+        var (currentScale, fontColor, backgroundColor, edgeColor) = _manager switch
         {
-            TitleManager tm => (tm.FontScale, tm.TitleFontColor, tm.BackgroundColor),
-            ImageInfoManager iim => (iim.FontScale, iim.ImageInfoFontColor, iim.BackgroundColor),
-            ImageIdManager idm => (idm.FontScale, idm.FontColor, idm.BackgroundColor),
-            NameManager nm => (nm.FontScale, nm.FontColor, nm.BackgroundColor),
-            _ => (1.0, System.Drawing.Color.Black, System.Drawing.Color.White)
+            LabelManager lm => (lm.LabelScale, lm.FontColor, lm.BackgroundColor, (System.Drawing.Color?)lm.EdgeColor),
+            TitleManager tm => (tm.FontScale, tm.TitleFontColor, tm.BackgroundColor, (System.Drawing.Color?)null),
+            ImageInfoManager iim => (iim.FontScale, iim.ImageInfoFontColor, iim.BackgroundColor, (System.Drawing.Color?)null),
+            ImageIdManager idm => (idm.FontScale, idm.FontColor, idm.BackgroundColor, (System.Drawing.Color?)null),
+            NameManager nm => (nm.FontScale, nm.FontColor, nm.BackgroundColor, (System.Drawing.Color?)null),
+            _ => (1.0, System.Drawing.Color.Black, System.Drawing.Color.White, (System.Drawing.Color?)null)
         };
 
         // Find the SettingsManager in the application's main view model
         // This is a bit of a hack, but we need access to SettingsManager
         if (Owner is MainWindow mainWindow && mainWindow.DataContext is MainVM mainVM)
         {
-            mainVM.SettingsManager.UpdateDefaultFormatting(_managerTypeName, currentScale, fontColor, backgroundColor);
+            mainVM.SettingsManager.UpdateDefaultFormatting(_managerTypeName, currentScale, fontColor, backgroundColor, edgeColor);
             MessageBox.Show("Die Einstellung wurde als Standardwert übernommen.", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }

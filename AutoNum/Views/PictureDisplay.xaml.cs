@@ -171,7 +171,7 @@ namespace AutoNumber.Views
             var row = ResolvePreviewRow(anchor.X, anchor.Y);
             person.Row = row;
             person.RowPreviewActive = true;
-            person.RowPreviewColor = GetPreviewColor(row);
+            person.RowPreviewColor = RowDefinitionSession.GetPreviewColor(row);
         }
 
         private void PageVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -532,7 +532,7 @@ namespace AutoNumber.Views
                 var anchor = person.GetRowAnchorPoint();
                 var row = ResolvePreviewRow(anchor.X, anchor.Y);
                 person.RowPreviewActive = true;
-                person.RowPreviewColor = GetPreviewColor(row);
+                person.RowPreviewColor = RowDefinitionSession.GetPreviewColor(row);
             }
         }
 
@@ -555,19 +555,6 @@ namespace AutoNumber.Views
             var width = Math.Max(1, state.MainLine.X2);
             var t = Math.Clamp(x / width, 0.0, 1.0);
             return state.LeftY + (state.RightY - state.LeftY) * t;
-        }
-
-        private static System.Drawing.Color GetPreviewColor(int row)
-        {
-            var palette = new[]
-            {
-                System.Drawing.Color.FromArgb(255, 255, 82, 82),
-                System.Drawing.Color.FromArgb(255, 76, 175, 80),
-                System.Drawing.Color.FromArgb(255, 33, 150, 243),
-                System.Drawing.Color.FromArgb(255, 255, 193, 7)
-            };
-
-            return palette[Math.Max(0, row - 1) % palette.Length];
         }
 
         private double GetBoundaryHandleSize()
@@ -708,33 +695,27 @@ namespace AutoNumber.Views
 
             // Dimensions in units of handle width
             _rowStripHandleDistance = handleSize * 0.2;
-            _rowStripInsertWidth = handleSize *1.7;
-            _rowStripGap = handleSize * 0.2;
-            _rowStripChipWidth = handleSize * 2.5;
-            _rowStripTotalWidth = _rowStripInsertWidth + _rowStripGap + _rowStripChipWidth;
+            _rowStripChipWidth = handleSize * 1.5;
+            _rowStripDeleteButtonSize = 1.5* handleSize;
+            _rowStripTotalWidth = _rowStripChipWidth + _rowStripHandleDistance + _rowStripDeleteButtonSize;
 
             Canvas.SetLeft(rowEditStrip, Page.ImageWidth + handleSize / 2.0 + _rowStripHandleDistance);
             rowEditStrip.Width = _rowStripTotalWidth;
 
-            if (rowEditStrip.FindName("rowInsertLane") is Border insertLane)
-            {
-                insertLane.Width = _rowStripInsertWidth;
-                insertLane.CornerRadius = new CornerRadius(Math.Max(3, _rowStripInsertWidth * 0.18));
-            }
-
-            rowInsertGhost.X1 = Math.Max(3, _rowStripInsertWidth * 0.16);
-            rowInsertGhost.X2 = Math.Max(rowInsertGhost.X1 + 4, _rowStripInsertWidth - _rowStripInsertWidth * 0.16);
+            rowInsertGhost.X1 = Math.Max(3, _rowStripChipWidth * 0.08);
+            rowInsertGhost.X2 = Math.Max(rowInsertGhost.X1 + 4, _rowStripChipWidth - _rowStripChipWidth * 0.08);
             rowInsertGhost.Stroke = new SolidColorBrush(Color.FromArgb(230, 0, 188, 212));
             rowInsertGhost.StrokeThickness = handleSize * 0.2;
             rowInsertGhost.StrokeDashArray = null;
+            Panel.SetZIndex(rowInsertGhost, 90);
 
             var headerSize = Math.Clamp(handleSize * 0.9, 10, 22);
-            rowStripHeader.Width = headerSize*2.5;
-            rowStripHeader.Height = headerSize*2.5;
-            Canvas.SetLeft(rowStripHeader, Math.Max(0, (_rowStripInsertWidth - rowStripHeader.Width) / 2.0));
+            rowStripHeader.Width = headerSize * 2.5;
+            rowStripHeader.Height = headerSize * 2.5;
+            Canvas.SetLeft(rowStripHeader, Math.Max(0, (_rowStripChipWidth - rowStripHeader.Width) / 2.0));
             Canvas.SetTop(rowStripHeader, -Math.Max(10, rowStripHeader.Height * 1.5));
 
-            Canvas.SetLeft(rowChipHost, _rowStripInsertWidth + _rowStripGap);
+            Canvas.SetLeft(rowChipHost, 0);
             rowChipHost.Width = _rowStripChipWidth;
         }
 
@@ -747,7 +728,7 @@ namespace AutoNumber.Views
             }
 
             var position = e.GetPosition(rowEditStrip);
-            if (position.X > _rowStripInsertWidth)
+            if (position.X < 0 || position.X > _rowStripChipWidth)
             {
                 rowInsertGhost.Visibility = Visibility.Collapsed;
                 return;
@@ -788,7 +769,7 @@ namespace AutoNumber.Views
             }
 
             var position = e.GetPosition(rowEditStrip);
-            if (position.X > _rowStripInsertWidth)
+            if (position.X < 0 || position.X > _rowStripChipWidth)
             {
                 return;
             }
@@ -814,96 +795,65 @@ namespace AutoNumber.Views
             var rows = _rowDefinitionSession.GetRowsAtRightEdge();
             foreach (var row in rows)
             {
-                var bracket = CreateRowBracket(row.Top, row.Bottom);
-                rowChipHost.Children.Add(bracket);
+                var region = CreateRowRegion(row.Row, row.Top, row.Bottom);
+                rowChipHost.Children.Add(region);
+            }
 
+            foreach (var row in rows)
+            {
                 var centerY = (row.Top + row.Bottom) / 2.0;
                 var chip = CreateRowChip(row.Row, centerY, row.Bottom - row.Top);
                 rowChipHost.Children.Add(chip);
             }
         }
 
-        private FrameworkElement CreateRowBracket(double top, double bottom)
+        private FrameworkElement CreateRowRegion(int row, double top, double bottom)
         {
             var clampedTop = Math.Clamp(top, 0, Page?.ImageHeight ?? top);
             var clampedBottom = Math.Clamp(bottom, clampedTop, Page?.ImageHeight ?? bottom);
-            var centerX = Math.Max(4, _rowStripChipWidth * 0.22);
-            var armLength = Math.Max(4, _rowStripChipWidth * 0.24);
-            var strokeThickness = Math.Max(1, _rowStripInsertWidth * 0.08);
+            var regionColor = RowDefinitionSession.GetPreviewColor(row);
+            var borderThickness = Math.Max(1, _rowStripChipWidth * 0.05);
+            var topBorderThickness = clampedTop <= 0.5 ? borderThickness : 0;
 
-            var group = new Canvas
+            var region = new Border
             {
                 Width = _rowStripChipWidth,
                 Height = Math.Max(1, clampedBottom - clampedTop),
+                Background = new SolidColorBrush(System.Windows.Media.Color.FromArgb(regionColor.A, regionColor.R, regionColor.G, regionColor.B)),
+                BorderBrush = Brushes.DarkGray,
+                BorderThickness = new Thickness(borderThickness, topBorderThickness, borderThickness, borderThickness),
                 IsHitTestVisible = false
             };
 
-            var topArm = new Line
-            {
-                X1 = centerX,
-                Y1 = 0,
-                X2 = centerX + armLength,
-                Y2 = 0,
-                Stroke = new SolidColorBrush(Color.FromArgb(170, 120, 120, 120)),
-                StrokeThickness = strokeThickness
-            };
-
-            var spine = new Line
-            {
-                X1 = centerX + armLength,
-                Y1 = 0,
-                X2 = centerX + armLength,
-                Y2 = group.Height,
-                Stroke = new SolidColorBrush(Color.FromArgb(170, 120, 120, 120)),
-                StrokeThickness = strokeThickness
-            };
-
-            var bottomArm = new Line
-            {
-                X1 = centerX,
-                Y1 = group.Height,
-                X2 = centerX + armLength,
-                Y2 = group.Height,
-                Stroke = new SolidColorBrush(Color.FromArgb(170, 120, 120, 120)),
-                StrokeThickness = strokeThickness
-            };
-
-            group.Children.Add(topArm);
-            group.Children.Add(spine);
-            group.Children.Add(bottomArm);
-
-            Canvas.SetLeft(group, 0);
-            Canvas.SetTop(group, clampedTop);
-            return group;
+            Canvas.SetLeft(region, 0);
+            Canvas.SetTop(region, clampedTop);
+            return region;
         }
 
         private FrameworkElement CreateRowChip(int row, double centerY, double availableHeight)
         {
-            //var iconSize = Math.Max(12, _rowStripChipWidth * 0.55);
-            //var buttonSize = Math.Clamp(availableHeight - 4, Math.Max(14, _rowStripChipWidth * 0.8), Math.Max(20, _rowStripChipWidth));
-            var buttonSize = _rowStripChipWidth*0.5;
-            var iconSize = buttonSize * 0.6;
+            var buttonSize = Math.Min(Math.Max(8, _rowStripDeleteButtonSize), Math.Max(8, availableHeight));
+            var iconSize = Math.Max(8, buttonSize * 0.6);
 
             var deleteButton = new Button
             {
                 Content = new PackIconMaterial
                 {
-                    Kind = PackIconMaterialKind.DeleteOutline,
+                    Kind = PackIconMaterialKind.DeleteForeverOutline,
                     Width = iconSize,
                     Height = iconSize,
-                    Foreground = Brushes.DarkRed,
+                    Foreground = Brushes.Black,
                     Background = Brushes.White
                 },
+                BorderThickness = new Thickness(6),
                 Width = buttonSize,
                 Height = buttonSize,
-                //Background=Brushes.White,
                 Padding = new Thickness(0),
                 VerticalAlignment = VerticalAlignment.Center,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 Style = TryFindResource("MahApps.Styles.Button.Circle") as Style,
                 Tag = row,
                 ToolTip = $"Reihe R{row} entfernen"
-                
             };
             deleteButton.Click += RowChipDelete_Click;
 
@@ -911,7 +861,8 @@ namespace AutoNumber.Views
             deleteButton.IsEnabled = canDelete;
             deleteButton.Opacity = canDelete ? 0.9 : 0.3;
 
-            Canvas.SetLeft(deleteButton, Math.Clamp(_rowStripChipWidth * 0.52, 0, Math.Max(0, _rowStripChipWidth - deleteButton.Width)));
+            var buttonLeft = _rowStripChipWidth + (_rowStripHandleDistance * 0.5);
+            Canvas.SetLeft(deleteButton, Math.Clamp(buttonLeft, 0, Math.Max(0, _rowStripTotalWidth - deleteButton.Width)));
             Canvas.SetTop(deleteButton, Math.Clamp(centerY - deleteButton.Height / 2.0, 0, Math.Max(0, Page!.ImageHeight - deleteButton.Height)));
             return deleteButton;
         }
@@ -982,9 +933,8 @@ namespace AutoNumber.Views
         private readonly Dictionary<RowBoundary, PropertyChangedEventHandler> _rowBoundaryHandlers = [];
         private readonly List<RowBoundaryVisualState> _rowBoundaryVisuals = [];
         private double _rowStripHandleDistance = 12;
-        private double _rowStripInsertWidth = 24;
-        private double _rowStripGap = 12;
         private double _rowStripChipWidth = 36;
+        private double _rowStripDeleteButtonSize = 24;
         private double _rowStripTotalWidth = 72;
     }
 }

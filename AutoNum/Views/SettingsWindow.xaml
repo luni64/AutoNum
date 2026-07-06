@@ -14,20 +14,24 @@
                  ShowInTaskbar="False"
                  WindowStartupLocation="CenterOwner"
                  ResizeMode="CanResizeWithGrip">
-	<mah:MetroWindow.Resources>
-		<Infrastructure:ColorConverter x:Key="ColorConverter"/>
-	</mah:MetroWindow.Resources>
-	<Grid Margin="16" >
-		<Grid.RowDefinitions>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="auto"/>
-		</Grid.RowDefinitions>
+    <mah:MetroWindow.Resources>
+        <Infrastructure:ColorConverter x:Key="ColorConverter"/>
+    </mah:MetroWindow.Resources>
+    <Grid Margin="16" >
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
 
-		<TabControl Grid.Row="0" TabStripPlacement="Left" mah:HeaderedControlHelper.HeaderFontSize="16" Margin="0,0,0,0">
-			<TabItem Header="Formattierung">
-				<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
-					<StackPanel Margin="12,0">
-						<TextBlock TextWrapping="Wrap" Margin="0,4,0,14" FontSize="14">
+        <TabControl 
+            Grid.Row="0" Margin="0,0,0,0"
+            TabStripPlacement="Left" 
+            mah:HeaderedControlHelper.HeaderFontSize="16" 
+            mah:HeaderedControlHelper.HeaderFontWeight="Bold" >
+            <TabItem Header="Formattierung">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+                    <StackPanel Margin="12,0">
+                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,14" FontSize="14">
 							<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
 								Standardwerte für neue Bilder
 							</Run>
@@ -35,10 +39,10 @@
 							<Run>
 								AutoNumber bestimmt beim Laden eines Bildes automatisch eine Basis-Schriftgröße basierend auf der Auflösung und Größe des Bildes. Mit den Schiebereglern können Sie Faktoren relativ zu dieser Basis-Schriftgröße einstellen (100% = Basis-Schriftgröße). Zusätzlich können Sie hier Standard-Schrift-, Rand- und Hintergrundfarben festlegen.
 							</Run>
-						</TextBlock>
+                        </TextBlock>
 
-						<TextBlock Text="Nummern" Margin="0,0,0,4" FontWeight="SemiBold"/>
-						<view:FontManager
+                        <TextBlock Text="Nummern" Margin="0,0,0,4" FontWeight="SemiBold"/>
+                        <view:FontManager
 							SelectedScale="{Binding DefaultLabelDiameterScale, Mode=TwoWay}"
 							FontColor="{Binding DefaultLabelFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							BackgroundColor="{Binding DefaultLabelBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
@@ -46,35 +50,35 @@
 							ShowEdgeColor="True"
 							Margin="0,0,0,14"/>
 
-						<TextBlock Text="Titel" Margin="0,0,0,4" FontWeight="SemiBold"/>
-						<view:FontManager
+                        <TextBlock Text="Titel" Margin="0,0,0,4" FontWeight="SemiBold"/>
+                        <view:FontManager
 							SelectedScale="{Binding DefaultTitleFontScale, Mode=TwoWay}"
 							FontColor="{Binding DefaultTitleFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							BackgroundColor="{Binding DefaultTitleBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							Margin="0,0,0,14"/>
 
-						<TextBlock Text="Beschreibung" Margin="0,0,0,4" FontWeight="SemiBold"/>
-						<view:FontManager
+                        <TextBlock Text="Beschreibung" Margin="0,0,0,4" FontWeight="SemiBold"/>
+                        <view:FontManager
 							SelectedScale="{Binding DefaultImageInfoFontScale, Mode=TwoWay}"
 							FontColor="{Binding DefaultImageInfoFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							BackgroundColor="{Binding DefaultImageInfoBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							Margin="0,0,0,14"/>
 
-						<TextBlock Text="Bild-ID" Margin="0,0,0,4" FontWeight="SemiBold"/>
-						<view:FontManager
+                        <TextBlock Text="Bild-ID" Margin="0,0,0,4" FontWeight="SemiBold"/>
+                        <view:FontManager
 							SelectedScale="{Binding DefaultImageIdFontScale, Mode=TwoWay}"
 							FontColor="{Binding DefaultImageIdFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							BackgroundColor="{Binding DefaultImageIdBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							Margin="0,0,0,14"/>
 
-						<TextBlock Text="Namensliste" Margin="0,0,0,4" FontWeight="SemiBold"/>
-						<view:FontManager
+                        <TextBlock Text="Namensliste" Margin="0,0,0,4" FontWeight="SemiBold"/>
+                        <view:FontManager
 							SelectedScale="{Binding DefaultNamesFontScale, Mode=TwoWay}"
 							FontColor="{Binding DefaultNamesFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							BackgroundColor="{Binding DefaultNamesBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							Margin="0,0,0,14"/>
 
-						<Button
+                        <Button
 							Content="Auf das aktuelle Bild Anwenden"
 							ToolTip="Übernimmt die Standardwerte für das aktuelle Bild"
 							Click="Apply_Click"
@@ -84,14 +88,131 @@
 							Padding="10"
 							Margin="0,10,0,0"
 							HorizontalAlignment="Left"/>
-					</StackPanel>
-				</ScrollViewer>
-			</TabItem>
-			
-			<TabItem Header="Export">
-				<ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
-					<StackPanel Margin="12,0">
-						<TextBlock TextWrapping="Wrap" Margin="0,4,0,10" FontSize="12">
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Sichtbarkeit">
+                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                    <StackPanel Margin="12">
+                        <TextBlock Text="Standard-Sichtbarkeit für neue Bilder" FontWeight="SemiBold" Margin="0,0,0,10"/>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="#666666" FontSize="12">
+							Lege fest, welche Elemente bei neu geladenen Bildern standardmäßig sichtbar sein sollen. Diese Einstellungen beeinflussen nur neue Bilder und können pro Bild weiterhin individuell angepasst werden.
+                        </TextBlock>
+
+                        <mah:ToggleSwitch IsOn="{Binding DefaultTitleEnabled}" Content="Titel anzeigen" Margin="0,0,0,10"/>
+                        <mah:ToggleSwitch IsOn="{Binding DefaultImageInfoEnabled}" Content="Beschreibung anzeigen" Margin="0,0,0,10"/>
+                        <mah:ToggleSwitch IsOn="{Binding DefaultImageIdEnabled}" Content="Bild-ID anzeigen" Margin="0,0,0,10"/>
+                        <mah:ToggleSwitch IsOn="{Binding DefaultNamesEnabled}" Content="Namensliste anzeigen"/>
+
+                        <Button Content="Anwenden" Padding="8,4" Margin="0,12,0,0" Click="ApplyVisibility_Click" />
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Erkennung">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+                    <StackPanel Margin="12,0">
+                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,14" FontSize="12">
+							<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
+								Automatische Erkennung
+							</Run>
+							<LineBreak/>
+							<Run>
+								Hier steuern Sie, ob AutoNumber beim Laden neuer Bilder automatisch Gesichter erkennt und daraus Reihen ableitet. Wenn die Gesichtserkennung deaktiviert ist, kann die Reihen-Erkennung nicht aktiviert werden.
+							</Run>
+                        </TextBlock>
+
+                        <mah:ToggleSwitch IsOn="{Binding FaceDetectionEnabled, Mode=TwoWay}" Content="Gesichtserkennung verwenden" Margin="0,0,0,8"/>
+                        <mah:ToggleSwitch IsOn="{Binding RowDetectionEnabled, Mode=TwoWay}" IsEnabled="{Binding CanEnableRowDetection}" Content="Reihenerkennung verwenden" Margin="0,0,0,14"/>
+
+						<TextBlock TextWrapping="Wrap" Margin="0,25,0,14" FontSize="12">
+						<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
+					Parameter für die Gesichtserkennung
+					</Run>
+						</TextBlock>
+
+						<TextBlock Text="Empfindlichkeit (ScaleFactor)" Margin="0,0,0,4" FontWeight="SemiBold"/>
+						<Grid Margin="0,0,0,0">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="180"/>
+								<ColumnDefinition Width="72"/>
+								<ColumnDefinition Width="92"/>
+							</Grid.ColumnDefinitions>
+							<Slider Grid.Column="0"
+									Minimum="1.05"
+									Maximum="2"
+									Value="{Binding FaceScaleFactor, Mode=TwoWay}"
+									Width="170"
+									HorizontalAlignment="Left"/>
+							<TextBox Grid.Column="1"
+								 Text="{Binding FaceScaleFactor, Mode=OneWay, StringFormat={}{0:0.00}}"
+								 IsReadOnly="True"
+								 HorizontalContentAlignment="Right"
+								 Margin="8,0,8,0"
+								 Padding="6,4"/>
+							<Button Grid.Column="2"
+									Content="Standard"
+									Click="ResetFaceScaleFactor_Click"
+									Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
+									FontSize="12"
+									mah:ControlsHelper.ContentCharacterCasing="Upper"
+									Padding="8,4"
+									HorizontalAlignment="Left"/>
+						</Grid>
+						<TextBlock TextWrapping="Wrap" Margin="0,4,0,8">
+							Mit der Einstellung legen Sie fest, wie stark das Bild bei der Gesichtssuche schrittweise verkleinert wird. Kleinere Werte erkennen oft zuverlässiger, die Erkennung dauert aber länger.
+						</TextBlock>
+
+						<TextBlock Text="Bestätigungen (MinNeighbors)" Margin="0,25,0,4" FontWeight="SemiBold"/>
+						<Grid Margin="0,0,0,0">
+							<Grid.ColumnDefinitions>
+								<ColumnDefinition Width="180"/>
+								<ColumnDefinition Width="72"/>
+								<ColumnDefinition Width="92"/>
+							</Grid.ColumnDefinitions>
+							<Slider Grid.Column="0"
+									Minimum="1"
+									Maximum="20"
+									Value="{Binding FaceMinNeighbors, Mode=TwoWay}"
+									Width="170"
+									HorizontalAlignment="Left"/>
+							<TextBox Grid.Column="1"
+									 Text="{Binding FaceMinNeighbors, Mode=OneWay}"
+									 IsReadOnly="True"
+									 HorizontalContentAlignment="Right"
+									 Margin="8,0,8,0"
+									 Padding="6,4"/>
+							<Button Grid.Column="2"
+									Content="Standard"
+									Click="ResetFaceMinNeighbors_Click"
+									Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
+									FontSize="12"
+									mah:ControlsHelper.ContentCharacterCasing="Upper"
+									Padding="8,4"
+									HorizontalAlignment="Left"/>
+						</Grid>
+						<TextBlock TextWrapping="Wrap" Margin="0,4,0,10">
+						   Die Einstellung bestimmt, wie streng ein erkannter Bereich bestätigt werden muss. Höhere Werte reduzieren Fehl-Erkennungen, können aber echte Gesichter übersehen.
+						</TextBlock>
+
+						<Button Content="Neu Erkennen"
+								Click="RedetectFaces_Click"
+								Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
+								FontSize="13"
+								mah:ControlsHelper.ContentCharacterCasing="Upper"
+								Padding="10"
+								Margin="0,6,0,0"
+								HorizontalAlignment="Left"/>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+
+            <TabItem Header="Export">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+                    <StackPanel Margin="12,0">
+                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,10" FontSize="12">
 							<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
 								Export- und Speichereinstellungen
 							</Run>
@@ -103,13 +224,13 @@
 							<Run FontWeight="SemiBold">
 								Suffix für gespeicherte Dateien
 							</Run>
-						</TextBlock>
+                        </TextBlock>
 
-						<TextBox Text="{Binding SaveFileSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                        <TextBox Text="{Binding SaveFileSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 								 Padding="6,4" Margin="0,0,0,14"
 								 ToolTip="z.B. '_num', 'revision_01' oder leer für kein Suffix"/>
 
-						<TextBlock TextWrapping="Wrap" Margin="0,8,0,14" FontSize="12">
+                        <TextBlock TextWrapping="Wrap" Margin="0,8,0,14" FontSize="12">
 							<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
 								Zusätzliche Exporte
 							</Run>
@@ -117,12 +238,12 @@
 							<Run>
 								Optional können zusätzliche Dateien mit Metadaten (CSV und JSON) erzeugt werden. In den erzeugten Dateien werden allgemeine Daten wie Titel, Beschreibung und ID, sowie die Namensliste gespeichert. Diese Dateien können für die Weiterverarbeitung in anderen Programmen (Excel, Datenbanken,...) genutzt werden.
 							</Run>
-						</TextBlock>
+                        </TextBlock>
 
-						<mah:ToggleSwitch IsOn="{Binding ExportCsvMetadata}" Content="CSV (Excel) Daten" Margin="0,0,0,8"/>
-						<mah:ToggleSwitch IsOn="{Binding ExportJsonMetadata}" Content="JSON Daten" Margin="0,0,0,0"/>
+                        <mah:ToggleSwitch IsOn="{Binding ExportCsvMetadata}" Content="CSV (Excel) Daten" Margin="0,0,0,8"/>
+                        <mah:ToggleSwitch IsOn="{Binding ExportJsonMetadata}" Content="JSON Daten" Margin="0,0,0,0"/>
 
-						<Button Content="Jetzt Exportieren"
+                        <Button Content="Jetzt Exportieren"
 								Click="ExportNow_Click"
 								IsEnabled="{Binding CanExportNow}"
 								Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
@@ -132,48 +253,19 @@
 								Width="auto"
 								Margin="0,10,0,0"
 								HorizontalAlignment="Left"/>
-					</StackPanel>
-				</ScrollViewer>
-			</TabItem>
-			
-			<TabItem Header="Sichtbarkeit">
-				<ScrollViewer VerticalScrollBarVisibility="Auto">
-					<StackPanel Margin="12">
-						<TextBlock Text="Standard-Sichtbarkeit für neue Bilder" FontWeight="SemiBold" Margin="0,0,0,10"/>
-
-						<TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="#666666" FontSize="12">
-							Lege fest, welche Elemente bei neu geladenen Bildern standardmäßig sichtbar sein sollen. Diese Einstellungen beeinflussen nur neue Bilder und können pro Bild weiterhin individuell angepasst werden.
-						</TextBlock>
-
-						<mah:ToggleSwitch IsOn="{Binding DefaultTitleEnabled}" Content="Titel anzeigen" Margin="0,0,0,10"/>
-						<mah:ToggleSwitch IsOn="{Binding DefaultImageInfoEnabled}" Content="Beschreibung anzeigen" Margin="0,0,0,10"/>
-						<mah:ToggleSwitch IsOn="{Binding DefaultImageIdEnabled}" Content="Bild-ID anzeigen" Margin="0,0,0,10"/>
-						<mah:ToggleSwitch IsOn="{Binding DefaultNamesEnabled}" Content="Namensliste anzeigen"/>
-
-						<Button Content="Anwenden" Padding="8,4" Margin="0,12,0,0" Click="ApplyVisibility_Click" />
-					</StackPanel>
-				</ScrollViewer>
-			</TabItem>
-
-			<!--
-			<TabItem Header="Erkennung">
-				<StackPanel Margin="12">
-					<TextBlock Text="Empfindlichkeit (ScaleFactor)" Margin="0,0,0,4"/>
-					<Slider Minimum="1.05" Maximum="2" Value="{Binding FaceScaleFactor, Mode=TwoWay}" Margin="0,0,0,14"/>
-
-					<TextBlock Text="Bestätigungen (MinNeighbors)" Margin="0,0,0,4"/>
-					<Slider Minimum="1" Maximum="20" Value="{Binding FaceMinNeighbors, Mode=TwoWay}"/>
-				</StackPanel>
-			</TabItem>
-			-->
-		</TabControl>
-		<StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
-			<Button
-				Content="Schließen"
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button
+				Content="Schliessen"
 				Click="Close_Click"
-				Style="{StaticResource MahApps.Styles.Button.Square.Accent}"  FontSize="13" mah:ControlsHelper.ContentCharacterCasing="Upper"
-				Padding="10" Width="110"
-				/>
-		</StackPanel>
-	</Grid>
+				Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
+				FontSize="13"
+				mah:ControlsHelper.ContentCharacterCasing="Upper"
+				Padding="10"
+				Width="110"/>
+        </StackPanel>
+    </Grid>
 </mah:MetroWindow>

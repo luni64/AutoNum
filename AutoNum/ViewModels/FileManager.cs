@@ -17,6 +17,8 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace AutoNumber.ViewModels
 {
@@ -69,16 +71,25 @@ namespace AutoNumber.ViewModels
 
                 if (metadata is null)  // not written by AutoNumber => use as original image
                 {
-                    Trace.WriteLine("OpenImage: no AutoNum metadata, running face detection");
-                    var faces = FaceDetector.Detect(bitmap);
                     pvm.OriginalImageFilename = filename;
                     pvm.CurrentImageFilename = filename;
                     pvm.OriginalPropertyItems = bitmap.PropertyItems;
                     pvm.Bitmap = bitmap;
                     pvm.Init();
-                    WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
+
+                    if (parent.SettingsManager.FaceDetectionEnabled)
+                    {
+                        Trace.WriteLine("OpenImage: no AutoNum metadata, running face detection");
+                        var faces = FaceDetector.Detect(bitmap);
+                        WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
+                        Trace.WriteLine($"OpenImage: fresh image initialized with {faces.Count} detected face(s)");
+                    }
+                    else
+                    {
+                        Trace.WriteLine("OpenImage: no AutoNum metadata, face detection disabled");
+                    }
+
                     parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
-                    Trace.WriteLine($"OpenImage: fresh image initialized with {faces.Count} detected face(s)");
                 }
                 else if (metadata is AutoNumMetaData_V2 v2)
                 {
@@ -157,7 +168,11 @@ namespace AutoNumber.ViewModels
 
                 var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
 
-                File.WriteAllBytes(filename, finalBytes);
+                if (!TryWriteWithRetry(filename, () => File.WriteAllBytes(filename, finalBytes), "JPEG"))
+                {
+                    return;
+                }
+
                 parent.PictureVM.CurrentImageFilename = filename;
 
                 var exportData = BuildExportData();
@@ -184,9 +199,13 @@ namespace AutoNumber.ViewModels
 
                 var exportData = BuildExportData();
                 exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
-                WritePdf(filename, exportData);
-                WriteMetadataSidecars(filename, exportData, result);
+                if (!WritePdf(filename, exportData))
+                {
+                    return;
+                }
+
                 parent.PictureVM.CurrentImageFilename = filename;
+                WriteMetadataSidecars(filename, exportData, result);
             }
         }
 
@@ -256,27 +275,19 @@ namespace AutoNumber.ViewModels
         {
             if (ExportCsvMetadata)
             {
-                try
+                var csvPath = Path.ChangeExtension(imageFilename, ".csv");
+                if (!TryWriteWithRetry(csvPath, () => WriteCsv(csvPath, exportData), "CSV"))
                 {
-                    var csvPath = Path.ChangeExtension(imageFilename, ".csv");
-                    WriteCsv(csvPath, exportData);
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine($"Error writing CSV sidecar: {ex}");
+                    return;
                 }
             }
 
             if (ExportJsonMetadata)
             {
-                try
+                var jsonPath = Path.ChangeExtension(imageFilename, ".json");
+                if (!TryWriteWithRetry(jsonPath, () => WriteJson(jsonPath, exportData), "JSON"))
                 {
-                    var jsonPath = Path.ChangeExtension(imageFilename, ".json");
-                    WriteJson(jsonPath, exportData);
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine($"Error writing JSON sidecar: {ex}");
+                    return;
                 }
             }
         }
@@ -311,6 +322,92 @@ namespace AutoNumber.ViewModels
             File.WriteAllText(filename, json, new UTF8Encoding(true));
         }
 
+        private bool TryWriteWithRetry(string filename, Action writeAction, string operationName)
+        {
+            while (true)
+            {
+                try
+                {
+                    writeAction();
+                    return true;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    if (!ShowRetryCancelDialog(operationName, filename, ex))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        private bool ShowRetryCancelDialog(string operationName, string filename, Exception ex)
+        {
+            var owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(window => window.IsActive) ?? Application.Current?.MainWindow;
+
+            var dialog = new Window
+            {
+                Title = "Speichern fehlgeschlagen",
+                Width = 560,
+                Height = 420,
+                WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner,
+                ResizeMode = ResizeMode.NoResize,
+                ShowInTaskbar = false,
+                Owner = owner,
+            };
+
+            var grid = new Grid { Margin = new Thickness(16) };
+            grid.RowDefinitions.Add(new RowDefinition { Height = System.Windows.GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = System.Windows.GridLength.Auto });
+
+            var text = new TextBlock
+            {
+                Text = $"Die {operationName}-Datei konnte nicht gespeichert werden.\n\n" +
+                       $"Möglicherweise ist die Datei in einer anderen Anwendung geöffnet.\n\n" +
+                       $"Datei: {Path.GetFileName(filename)}\n" +
+                       $"Details: {ex.Message}\n\n" +
+                       "Schließen Sie die Datei in der anderen Anwendung und klicken Sie auf \"Wiederholen\", oder brechen Sie den Vorgang ab.",
+                TextWrapping = TextWrapping.Wrap
+            };
+            Grid.SetRow(text, 0);
+            grid.Children.Add(text);
+
+            var buttons = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
+                Margin = new Thickness(0, 16, 0, 0)
+            };
+
+            var retryButton = new Button
+            {
+                Content = "Wiederholen",
+                Width = 110,
+                Margin = new Thickness(0, 0, 8, 0),
+                IsDefault = true
+            };
+
+            var cancelButton = new Button
+            {
+                Content = "Abbrechen",
+                Width = 110,
+                IsCancel = true
+            };
+
+            bool? retrySelected = null;
+            retryButton.Click += (_, __) => { retrySelected = true; dialog.DialogResult = true; dialog.Close(); };
+            cancelButton.Click += (_, __) => { retrySelected = false; dialog.DialogResult = false; dialog.Close(); };
+
+            buttons.Children.Add(retryButton);
+            buttons.Children.Add(cancelButton);
+            Grid.SetRow(buttons, 1);
+            grid.Children.Add(buttons);
+
+            dialog.Content = grid;
+            dialog.ShowDialog();
+            return retrySelected == true;
+        }
+
         private static string EscapeCsv(string value)
         {
             var text = value ?? string.Empty;
@@ -323,7 +420,7 @@ namespace AutoNumber.ViewModels
             return $"\"{text.Replace("\"", "\"\"")}\"";
         }
 
-        private void WritePdf(string filename, SidecarExportData exportData)
+        private bool WritePdf(string filename, SidecarExportData exportData)
         {
             byte[]? photoBytes = null;
             using (var photoWithLabels = parent.PictureVM.ToPhotoWithLabelsBitmap())
@@ -341,7 +438,7 @@ namespace AutoNumber.ViewModels
             var hasDescription = !string.IsNullOrWhiteSpace(exportData.Description);
             var namesColumnCount = Math.Clamp(parent.NameManager.NameTableColumnCount, 1, 4);
             var tableReferenceWidth = 360d / namesColumnCount;
-            var pdfNumberColumnWidth = NamesTableLayout.ResolveNumberColumnWidth(tableReferenceWidth);
+            var pdfNumberColumnWidth = Math.Clamp(NamesTableLayout.ResolveNumberColumnWidth(tableReferenceWidth) * 0.5f, 24f, 48f);
             var showRowDividers = parent.NameManager.ShowRowDividers;
             var orderedPersons = exportData.Persons
                 .OrderBy(person => person.Row <= 0 ? int.MaxValue : person.Row)
@@ -421,7 +518,7 @@ namespace AutoNumber.ViewModels
                             {
                                 for (var c = 0; c < namesColumnCount; c++)
                                 {
-                                    header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Nummer").SemiBold();
+                                    header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Nr.").SemiBold();
                                     header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Name").SemiBold();
                                 }
                             });
@@ -512,7 +609,12 @@ namespace AutoNumber.ViewModels
                 throw new InvalidDataException("Die PDF-Nutzdaten konnten nicht verifiziert werden.");
             }
 
-            PdfPayloadStore.SavePdfWithPayloadAttachment(pdfStream.ToArray(), payloadZip, filename);
+            if (!TryWriteWithRetry(filename, () => PdfPayloadStore.SavePdfWithPayloadAttachment(pdfStream.ToArray(), payloadZip, filename), "PDF"))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private void OpenFromPdfFile(string pdfFilename, ImageVM pvm)

@@ -200,13 +200,6 @@
                     MouseLeave="RowEditStrip_MouseLeave"
                     MouseLeftButtonDown="RowEditStrip_MouseLeftButtonDown"
                     IsHitTestVisible="True">
-                <Border x:Name="rowInsertLane"
-                        Width="24"
-                        Height="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
-                        Background="#22FFFFFF"
-                        BorderBrush="#AA7F7F7F"
-                        BorderThickness="2"
-                        CornerRadius="6"/>
                 <Line x:Name="rowInsertGhost"
                       X1="4"
                       X2="20"
@@ -223,7 +216,7 @@
                                             Height="14"
                                             IsHitTestVisible="False"/>
                 <Canvas x:Name="rowChipHost"
-                        Canvas.Left="30"
+                        Canvas.Left="0"
                         Width="22"
                         Height="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
                         IsHitTestVisible="True"/>

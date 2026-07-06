@@ -109,7 +109,8 @@ namespace AutoNumber.Model
         /// </summary>
         public static Bitmap RestoreFromPatches(this Bitmap composite, AutoNumMetaData_V2 md, List<PatchData> patches)
         {
-            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches START: composite={composite?.Width}x{composite?.Height}");
+            ArgumentNullException.ThrowIfNull(composite);
+            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches START: composite={composite.Width}x{composite.Height}");
             System.Diagnostics.Trace.WriteLine($"RestoreFromPatches: OriginalImageWidth={md.OriginalImageWidth}, OriginalImageHeight={md.OriginalImageHeight}, TitleHeight={md.TitleHeight}");
             System.Diagnostics.Trace.WriteLine($"RestoreFromPatches: patches.Count={patches.Count}");
 
