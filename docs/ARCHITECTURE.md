@@ -190,7 +190,7 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 ## Rendering Notes
 - **Live preview renderer (WPF/XAML):** marker templates in `Marker.xaml` render label circles and names-table rows.
 - **JPG export renderer (GDI+):** `ExtensionMethods` draws final bitmap; label drawing uses supersampled anti-aliased overlay/downsampling for improved small-label quality.
-- **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output, sets standard PDF document metadata, and embeds editable payload as a non-visible PDF attachment.
+- **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output, sets standard PDF document metadata, and embeds editable payload as a non-visible PDF attachment. The numbered image is embedded as **PNG** (not JPEG): JPEG embedding causes QuestPDF to write `/ColorTransform 0` alongside an `ICCBased` colorspace, which confuses Acrobat DC's tile cache and makes the image vanish at 100% zoom on scroll.
 - Save operations use retry/cancel prompting when a target file is locked by another application, allowing the user to close the conflicting program and try again.
 - Names-table row geometry is computed once via `NameTableLayoutEngine` and projected to `TextLabel` row bounds (`X/Y/W/H`) so preview and JPG share the same wrap-aware layout foundation.
 - To minimize drift between renderers, column-width and padding rules are centralized in `NamesTableLayout`; preview uses dedicated converters, JPG uses GDI drawing helpers, and PDF uses the same width resolver.

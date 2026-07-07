@@ -428,7 +428,7 @@ namespace AutoNumber.ViewModels
                 if (photoWithLabels is not null)
                 {
                     using var imageStream = new MemoryStream();
-                    photoWithLabels.Save(imageStream, DrawingImageFormat.Jpeg);
+                    photoWithLabels.Save(imageStream, DrawingImageFormat.Png);
                     photoBytes = imageStream.ToArray();
                 }
             }

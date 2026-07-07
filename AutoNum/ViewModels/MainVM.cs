@@ -30,8 +30,8 @@ namespace AutoNumber.ViewModels
 
         public IDialogService DialogService { get; }
         public string Title => string.IsNullOrEmpty(PictureVM.CurrentImageFilename)
-            ? "AutoNumber V2.2.0"
-            : $"AutoNumber V2.2.0  —  {System.IO.Path.GetFileName(PictureVM.CurrentImageFilename)}";
+            ? "AutoNumber V2.3.0"
+            : $"AutoNumber V2.3.0  —  {System.IO.Path.GetFileName(PictureVM.CurrentImageFilename)}";
 
         public MainVM(IDialogService DialogService)
         {

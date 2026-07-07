@@ -284,25 +284,30 @@ internal static class PdfPayloadStore
         else
         {
             // Insert /PageMode /UseNone just before the catalog dict's closing >>.
-            updatedCatalogDict = catalogDictContent[..^2] + "\n/PageMode /UseNone\n>>";
+            updatedCatalogDict = catalogDictContent.TrimEnd()[..^2] + "\r\n/PageMode /UseNone\r\n>>";
         }
 
         // Build the replacement catalog object.
-        var newObjContent = $"{catalogObjNum} {catalogGenNum} obj\n{updatedCatalogDict}\nendobj\n";
+        // Use \r\n throughout so Acrobat DC's strict xref parser accepts the incremental update.
+        var newObjContent = $"{catalogObjNum} {catalogGenNum} obj\r\n{updatedCatalogDict}\r\nendobj\r\n";
         var newObjBytes = Encoding.Latin1.GetBytes(newObjContent);
         long newObjOffset = bytes.Length;
 
-        // xref entry: exactly 20 bytes — "NNNNNNNNNN GGGGG n \r\n"
-        var xrefEntry = FormattableString.Invariant($"{newObjOffset:D10} {catalogGenNum:D5} n \r\n");
+        // xref entry: exactly 20 bytes — "NNNNNNNNNN GGGGG n \r\n" (no space before \r\n)
+        var xrefEntry = FormattableString.Invariant($"{newObjOffset:D10} {catalogGenNum:D5} n\r\n");
         System.Diagnostics.Debug.Assert(Encoding.Latin1.GetByteCount(xrefEntry) == 20);
-        var newXrefContent = $"xref\n{catalogObjNum} 1\n{xrefEntry}";
+        // Xref keyword and subsection header must also use \r\n for consistent line endings.
+        var newXrefContent = $"xref\r\n{catalogObjNum} 1\r\n{xrefEntry}";
         var newXrefBytes = Encoding.Latin1.GetBytes(newXrefContent);
         long newXrefOffset = newObjOffset + newObjBytes.Length;
 
         // New trailer: preserve all entries, strip any existing /Prev, add new /Prev.
+        // Trim trailing whitespace robustly before removing the closing >> to handle any
+        // line-ending variant in the original trailer dict.
         var updatedTrailerDict = Regex.Replace(trailerDictText, @"\s*/Prev\s+\d+", "");
-        updatedTrailerDict = updatedTrailerDict[..^2] + $"\n/Prev {prevStartxref}\n>>";
-        var appendContent = $"trailer\n{updatedTrailerDict}\nstartxref\n{newXrefOffset}\n%%EOF\n";
+        updatedTrailerDict = updatedTrailerDict.TrimEnd();
+        updatedTrailerDict = updatedTrailerDict[..^2] + $"\r\n/Prev {prevStartxref}\r\n>>";
+        var appendContent = $"trailer\r\n{updatedTrailerDict}\r\nstartxref\r\n{newXrefOffset}\r\n%%EOF\r\n";
         var appendBytes = Encoding.Latin1.GetBytes(appendContent);
 
         // Append the incremental update to the file.
