@@ -1,14 +1,25 @@
-AutoNum 2.1.0 — Was ist neu
+AutoNum 2.2.0 — Was ist neu
 =================================
 
 Fehlerbehebungen
 ----------------
-- Der PDF-Export berücksichtigt jetzt die Metadaten-Optionen unter Einstellungen > Export (CSV/JSON-Sidecar-Dateien), genauso wie der JPG-Export.
-- Beim Öffnen eines neuen Bildes werden zuvor eingegebene bildbezogene Texte (Titel, Information, Bild-ID) jetzt korrekt zurückgesetzt.
+- Wenn eine gespeicherte Datei bereits in einem anderen Programm geöffnet ist, zeigt AutoNum jetzt einen Hinweis mit Wiederholen/Abbrechen an.
+- Nach dem erneuten Öffnen einer zuvor gespeicherten Bilddatei wird der Bildausschnitt jetzt wieder korrekt wiederhergestellt.
+- Die Zuordnung von Personen zu Reihen funktioniert jetzt auch bei schräg gezogenen Reihengrenzen korrekt.
+- Die PDF-Namensliste verwendet jetzt eine schmalere Nummernspalte.
+- Lange Titel- und Bildinformationstexte werden jetzt umgebrochen, anstatt abgeschnitten zu werden.
 
 Verbesserungen
 --------------
-- Der Dateiname des aktuell geöffneten Bildes wird jetzt in der Titelleiste angezeigt.
-- Die Aktionsbuttons in der rechten Spalte verwenden jetzt konsistent den kreisförmigen MahApps-Stil; Sichtbarkeits-Umschalter funktionieren wieder korrekt.
-- Zwischen Bildbereich und unterer Aktionsleiste wurde ein zusätzlicher visueller Abstand ergänzt.
-- Neuer Button „Jetzt Exportieren“ unter Einstellungen > Export für den direkten Metadaten-Export mit Bestätigungsrückmeldung.
+- Die neuen Möglichkeiten zur Reihenverwaltung sind der wichtigste Ausbau dieses Releases: Reihen können jetzt einfacher automatisch erkannt, manuell bearbeitet und flexibel zurückgesetzt werden.
+- Die Namensliste und die Reihenbearbeitung wurden visuell überarbeitet und sind besser bedienbar.
+- Ein neuer Button „Auf Bild zoomen“ passt im Reihenmodus Bild und Reihensteuerung gemeinsam in die Ansicht ein.
+- Die Bedienelemente für den Reihenmodus wurden vereinfacht: Das Eingabefeld für die Reihenanzahl entfiel, der Reihenmodus-Button ist jetzt in der Gruppe „Nummerierung“ zu finden.
+- In den Einstellungen gibt es jetzt einen neuen Bereich „Erkennen“ für die automatische Gesichtserkennung und die Reihenerkennung.
+- Gesichtserkennung und Reihenerkennung können für neue Bilder jetzt einzeln ein- oder ausgeschaltet werden.
+- Die Erkennungswerte lassen sich direkt in den Einstellungen anpassen und mit einem Klick neu anwenden.
+- Die Standardwerte für die Gesichtserkennung sind direkt in den Einstellungen rücksetzbar.
+- Die Nummernformatierung lässt sich jetzt auch als Standard speichern.
+- Die Standarddarstellung neuer Bilder wurde überarbeitet und ist nun etwas kompakter.
+- Bearbeitbare PDF-Dateien werden jetzt als standardkonforme PDF-Anhänge gespeichert und können wieder geöffnet werden.
+- Viele Symbole in der Bedienoberfläche wurden durch ein einheitlicheres Icon-Set ersetzt.

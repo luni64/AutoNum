@@ -4,6 +4,7 @@ using System.IO.Compression;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using UglyToad.PdfPig;
 
 namespace AutoNumber.Model;
@@ -111,6 +112,8 @@ internal static class PdfPayloadStore
                     Replace = true
                 })
                 .Save(outputPdfPath);
+
+            AppendPageModeUseNone(outputPdfPath);
         }
         finally
         {
@@ -193,5 +196,234 @@ internal static class PdfPayloadStore
     {
         var hash = SHA256.HashData(data);
         return Convert.ToHexString(hash);
+    }
+
+    // -----------------------------------------------------------------------
+    // PDF incremental update: set /PageMode /UseNone in the document catalog.
+    // This prevents PDF viewers such as Acrobat from automatically opening the
+    // attachments panel when the PDF contains embedded file attachments.
+    //
+    // Only traditional cross-reference tables (PDF 1.4 format, as produced by
+    // QuestPDF/QPDF for this app) are handled.  If an xref stream is detected
+    // the method returns silently without modifying the file.
+    // -----------------------------------------------------------------------
+
+    internal static void AppendPageModeUseNone(string pdfPath)
+    {
+        var bytes = File.ReadAllBytes(pdfPath);
+        // Latin-1 maps every byte to the identical code-point, so byte offsets
+        // and string indices are identical — essential for xref table math.
+        var text = Encoding.Latin1.GetString(bytes);
+
+        // Find the last startxref value (points to xref table or xref stream).
+        var startxrefMatch = Regex.Match(text, @"startxref\s+(\d+)\s+%%EOF", RegexOptions.RightToLeft);
+        if (!startxrefMatch.Success) return;
+        long prevStartxref = long.Parse(startxrefMatch.Groups[1].Value);
+
+        int xrefPos = (int)prevStartxref;
+        if (xrefPos < 0 || xrefPos >= text.Length) return;
+
+        // Detect whether this is a traditional xref table.
+        // An xref stream would start with "N G obj" instead of "xref".
+        int checkPos = xrefPos;
+        while (checkPos < text.Length && text[checkPos] is ' ' or '\r' or '\n') checkPos++;
+        if (checkPos + 4 > text.Length || text[checkPos..].AsSpan()[..4] is not "xref") return;
+
+        // Find the last trailer dictionary.
+        int trailerIdx = text.LastIndexOf("\ntrailer", StringComparison.Ordinal);
+        if (trailerIdx < 0) return;
+        trailerIdx++; // skip the leading \n
+
+        int trailerDictStart = text.IndexOf("<<", trailerIdx, StringComparison.Ordinal);
+        if (trailerDictStart < 0) return;
+
+        int trailerDictEnd = PdfDictEnd(text, trailerDictStart);
+        if (trailerDictEnd < 0) return;
+
+        var trailerDictText = text.Substring(trailerDictStart, trailerDictEnd - trailerDictStart + 2);
+
+        // Extract /Root (catalog object reference) and /Size.
+        var rootRefMatch = Regex.Match(trailerDictText, @"/Root\s+(\d+)\s+(\d+)\s+R");
+        if (!rootRefMatch.Success) return;
+        int catalogObjNum = int.Parse(rootRefMatch.Groups[1].Value);
+        int catalogGenNum = int.Parse(rootRefMatch.Groups[2].Value);
+
+        var sizeMatch = Regex.Match(trailerDictText, @"/Size\s+(\d+)");
+        if (!sizeMatch.Success) return;
+
+        // Locate the catalog object byte offset in the xref table.
+        long catalogByteOffset = PdfXrefEntry(text, xrefPos, catalogObjNum);
+        if (catalogByteOffset < 0 || catalogByteOffset >= text.Length) return;
+
+        // Parse the "N G obj" header at that offset, then find the dict.
+        var objHeaderPat = new Regex($@"{catalogObjNum}\s+{catalogGenNum}\s+obj\s*");
+        var objHeaderMatch = objHeaderPat.Match(text, (int)catalogByteOffset);
+        if (!objHeaderMatch.Success || objHeaderMatch.Index - (int)catalogByteOffset > 50) return;
+
+        int catalogDictStart = objHeaderMatch.Index + objHeaderMatch.Length;
+        while (catalogDictStart < text.Length && text[catalogDictStart] is ' ' or '\t' or '\r' or '\n')
+            catalogDictStart++;
+
+        if (catalogDictStart + 1 >= text.Length || text[catalogDictStart] != '<' || text[catalogDictStart + 1] != '<')
+            return;
+
+        int catalogDictEnd = PdfDictEnd(text, catalogDictStart);
+        if (catalogDictEnd < 0) return;
+
+        var catalogDictContent = text.Substring(catalogDictStart, catalogDictEnd - catalogDictStart + 2);
+
+        // Nothing to do if /PageMode /UseNone is already set.
+        if (Regex.IsMatch(catalogDictContent, @"/PageMode\s*/UseNone\b")) return;
+
+        // Add or replace /PageMode.
+        string updatedCatalogDict;
+        if (Regex.IsMatch(catalogDictContent, @"/PageMode\s*/\w+"))
+        {
+            updatedCatalogDict = Regex.Replace(catalogDictContent, @"/PageMode\s*/\w+", "/PageMode /UseNone");
+        }
+        else
+        {
+            // Insert /PageMode /UseNone just before the catalog dict's closing >>.
+            updatedCatalogDict = catalogDictContent[..^2] + "\n/PageMode /UseNone\n>>";
+        }
+
+        // Build the replacement catalog object.
+        var newObjContent = $"{catalogObjNum} {catalogGenNum} obj\n{updatedCatalogDict}\nendobj\n";
+        var newObjBytes = Encoding.Latin1.GetBytes(newObjContent);
+        long newObjOffset = bytes.Length;
+
+        // xref entry: exactly 20 bytes — "NNNNNNNNNN GGGGG n \r\n"
+        var xrefEntry = FormattableString.Invariant($"{newObjOffset:D10} {catalogGenNum:D5} n \r\n");
+        System.Diagnostics.Debug.Assert(Encoding.Latin1.GetByteCount(xrefEntry) == 20);
+        var newXrefContent = $"xref\n{catalogObjNum} 1\n{xrefEntry}";
+        var newXrefBytes = Encoding.Latin1.GetBytes(newXrefContent);
+        long newXrefOffset = newObjOffset + newObjBytes.Length;
+
+        // New trailer: preserve all entries, strip any existing /Prev, add new /Prev.
+        var updatedTrailerDict = Regex.Replace(trailerDictText, @"\s*/Prev\s+\d+", "");
+        updatedTrailerDict = updatedTrailerDict[..^2] + $"\n/Prev {prevStartxref}\n>>";
+        var appendContent = $"trailer\n{updatedTrailerDict}\nstartxref\n{newXrefOffset}\n%%EOF\n";
+        var appendBytes = Encoding.Latin1.GetBytes(appendContent);
+
+        // Append the incremental update to the file.
+        using var fs = File.Open(pdfPath, FileMode.Append, FileAccess.Write);
+        fs.Write(newObjBytes, 0, newObjBytes.Length);
+        fs.Write(newXrefBytes, 0, newXrefBytes.Length);
+        fs.Write(appendBytes, 0, appendBytes.Length);
+    }
+
+    /// <summary>
+    /// Returns the index of the closing <c>&gt;&gt;</c> that matches the opening
+    /// <c>&lt;&lt;</c> at <paramref name="dictStart"/>.
+    /// Handles nested dicts, PDF literal strings <c>(...)</c>, hex strings
+    /// <c>&lt;...&gt;</c>, and line comments.
+    /// Returns -1 if no matching close is found.
+    /// </summary>
+    private static int PdfDictEnd(string text, int dictStart)
+    {
+        int depth = 0;
+        int i = dictStart;
+        while (i < text.Length)
+        {
+            char c = text[i];
+            switch (c)
+            {
+                case '(':
+                    // Literal string — skip to matching ')'.
+                    i++;
+                    int parenDepth = 1;
+                    while (i < text.Length && parenDepth > 0)
+                    {
+                        if (text[i] == '\\') { i += 2; continue; }
+                        if (text[i] == '(') parenDepth++;
+                        else if (text[i] == ')') parenDepth--;
+                        i++;
+                    }
+                    break;
+                case '<':
+                    if (i + 1 < text.Length && text[i + 1] == '<')
+                    {
+                        depth++;
+                        i += 2;
+                    }
+                    else
+                    {
+                        // Hex string <hexdigits> — skip to '>'.
+                        int closeAngle = text.IndexOf('>', i + 1);
+                        i = closeAngle >= 0 ? closeAngle + 1 : i + 1;
+                    }
+                    break;
+                case '>':
+                    if (i + 1 < text.Length && text[i + 1] == '>')
+                    {
+                        depth--;
+                        if (depth == 0) return i;
+                        i += 2;
+                    }
+                    else
+                    {
+                        i++;
+                    }
+                    break;
+                case '%':
+                    // Line comment — skip to end of line.
+                    while (i < text.Length && text[i] != '\n') i++;
+                    break;
+                default:
+                    i++;
+                    break;
+            }
+        }
+        return -1;
+    }
+
+    /// <summary>
+    /// Parses the traditional PDF cross-reference table starting at
+    /// <paramref name="xrefTableStart"/> and returns the byte offset of
+    /// <paramref name="targetObjNum"/>.  Returns -1 if not found or if the
+    /// entry is free (<c>f</c>).
+    /// </summary>
+    private static long PdfXrefEntry(string text, int xrefTableStart, int targetObjNum)
+    {
+        // Skip the "xref" keyword and its trailing newline.
+        int pos = text.IndexOf('\n', xrefTableStart);
+        if (pos < 0) return -1;
+        pos++;
+
+        while (pos < text.Length)
+        {
+            while (pos < text.Length && text[pos] is ' ' or '\t') pos++;
+
+            // Stop when we reach the trailer keyword.
+            if (pos + 7 <= text.Length && text[pos..(pos + 7)] == "trailer") break;
+
+            // Read subsection header: "firstObj count".
+            int nlPos = text.IndexOf('\n', pos);
+            if (nlPos < 0) break;
+
+            var header = text[pos..nlPos].Trim();
+            var parts = header.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2 || !int.TryParse(parts[0], out int first) || !int.TryParse(parts[1], out int count))
+                break;
+
+            pos = nlPos + 1;
+
+            // Each xref entry is exactly 20 bytes.
+            if (targetObjNum >= first && targetObjNum < first + count)
+            {
+                int entryPos = pos + (targetObjNum - first) * 20;
+                if (entryPos + 20 <= text.Length)
+                {
+                    var entry = text[entryPos..(entryPos + 20)];
+                    var ep = entry.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+                    if (ep.Length >= 3 && ep[2] == "n" && long.TryParse(ep[0], out long offset))
+                        return offset;
+                }
+                return -1; // entry is free or malformed
+            }
+
+            pos += count * 20;
+        }
+        return -1;
     }
 }
