@@ -85,10 +85,12 @@ namespace AutoNumber.Views
         #region Moving --------------------------------------------------
 
         Point? oldMousePosition;
+        MainVM? dragMainVM;
 
         private void imgArr_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             oldMousePosition = e.GetPosition(Parent as FrameworkElement);
+            dragMainVM = DataContext is MarkerLabel ? FindParentWithDataContext<MainVM>(this) : null;
 
             MarkerUI.CaptureMouse();
             e.Handled = true;
@@ -108,15 +110,40 @@ namespace AutoNumber.Views
 
                 Canvas.SetLeft(this, curX + deltaMousePosition.X);
                 Canvas.SetTop(this, curY + deltaMousePosition.Y);
+
+                if (Keyboard.Modifiers.HasFlag(ModifierKeys.Control) && DataContext is MarkerLabel draggedLabel)
+                {
+                    MoveOtherLabels(draggedLabel, deltaMousePosition);
+                }
             }
 
             e.Handled = true;
 
         }
 
+        private void MoveOtherLabels(MarkerLabel draggedLabel, Vector delta)
+        {
+            if (dragMainVM is not { } mainVM)
+            {
+                return;
+            }
+
+            foreach (var person in mainVM.PictureVM.Persons)
+            {
+                if (person.Label == draggedLabel)
+                {
+                    continue;
+                }
+
+                person.Label.X += delta.X;
+                person.Label.Y += delta.Y;
+            }
+        }
+
         private void imgArr_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
             oldMousePosition = null;
+            dragMainVM = null;
             MarkerUI.ReleaseMouseCapture();
 
             if (DataContext is MarkerLabel markerLabel)
