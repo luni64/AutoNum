@@ -12,8 +12,10 @@ public class AppSettings
     public bool DefaultTitleEnabled { get; set; } = true;
     public bool DefaultImageInfoEnabled { get; set; } = true;
     public bool DefaultImageIdEnabled { get; set; } = true;
+    public bool FaceDetectionEnabled { get; set; } = true;
+    public bool RowDetectionEnabled { get; set; } = true;
 
-    public double DefaultLabelDiameterScale { get; set; } = SizingModel.DefaultScale;
+    public double DefaultLabelDiameterScale { get; set; } = 0.75;
     public double DefaultNamesFontScale { get; set; } = SizingModel.DefaultScale;
     public double DefaultTitleFontScale { get; set; } = SizingModel.DefaultScale;
     public double DefaultImageInfoFontScale { get; set; } = SizingModel.DefaultScale;
@@ -82,7 +84,7 @@ public static class AppSettingsStore
     {
         try
         {
-            settings.SchemaVersion = 5;
+            settings.SchemaVersion = 6;
             Directory.CreateDirectory(SettingsDirectory);
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(SettingsPath, json);
@@ -95,16 +97,20 @@ public static class AppSettingsStore
 
     private static AppSettings CreateDefault() => new()
     {
-        SchemaVersion = 5
+        SchemaVersion = 6,
+        FaceDetectionEnabled = true,
+        RowDetectionEnabled = true
     };
 
     private static void Migrate(AppSettings settings)
     {
-        if (settings.SchemaVersion >= 5)
+        if (settings.SchemaVersion >= 6)
         {
             return;
         }
 
-        settings.SchemaVersion = 5;
+        settings.FaceDetectionEnabled = true;
+        settings.RowDetectionEnabled = true;
+        settings.SchemaVersion = 6;
     }
 }

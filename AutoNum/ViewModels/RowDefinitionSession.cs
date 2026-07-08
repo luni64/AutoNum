@@ -57,6 +57,77 @@ namespace AutoNumber.ViewModels
             }
         }
 
+        public bool TryInsertBoundaryAtRightY(double rightY)
+        {
+            if (ImageHeight <= 0)
+            {
+                return false;
+            }
+
+            var clampedRightY = Math.Clamp(rightY, 0, ImageHeight);
+            var insertIndex = 0;
+            while (insertIndex < Boundaries.Count && Boundaries[insertIndex].RightY < clampedRightY)
+            {
+                insertIndex++;
+            }
+
+            var upperLeft = insertIndex == 0 ? 0.0 : Boundaries[insertIndex - 1].LeftY;
+            var upperRight = insertIndex == 0 ? 0.0 : Boundaries[insertIndex - 1].RightY;
+            var lowerLeft = insertIndex >= Boundaries.Count ? ImageHeight : Boundaries[insertIndex].LeftY;
+            var lowerRight = insertIndex >= Boundaries.Count ? ImageHeight : Boundaries[insertIndex].RightY;
+
+            const double minimumGap = 8.0;
+            if (lowerRight - upperRight < minimumGap)
+            {
+                return false;
+            }
+
+            var rightSpan = lowerRight - upperRight;
+            var t = Math.Abs(rightSpan) < 0.001
+                ? 0.5
+                : Math.Clamp((clampedRightY - upperRight) / rightSpan, 0.0, 1.0);
+
+            var newLeft = upperLeft + (lowerLeft - upperLeft) * t;
+            var newRight = upperRight + (lowerRight - upperRight) * t;
+
+            Boundaries.Insert(insertIndex, new RowBoundary(newLeft, newRight));
+            RowCount = Boundaries.Count + 1;
+            ClampAllBoundaries();
+            return true;
+        }
+
+        public bool TryDeleteRow(int row)
+        {
+            if (RowCount <= 1 || Boundaries.Count == 0 || row < 1 || row > RowCount)
+            {
+                return false;
+            }
+
+            var boundaryToRemove = Math.Min(Math.Max(0, row - 1), Boundaries.Count - 1);
+            Boundaries.RemoveAt(boundaryToRemove);
+            RowCount = Boundaries.Count + 1;
+            ClampAllBoundaries();
+            return true;
+        }
+
+        public IReadOnlyList<RowStripRow> GetRowsAtRightEdge()
+        {
+            var result = new List<RowStripRow>(Math.Max(1, RowCount));
+            var top = 0.0;
+
+            for (var index = 0; index < Boundaries.Count; index++)
+            {
+                var bottom = Math.Clamp(Boundaries[index].RightY, 0, ImageHeight);
+                result.Add(new RowStripRow(index + 1, top, bottom));
+                top = bottom;
+            }
+
+            result.Add(new RowStripRow(result.Count + 1, top, ImageHeight));
+            return result;
+        }
+
+        public sealed record RowStripRow(int Row, double Top, double Bottom);
+
         public int ResolveRow(double x, double y)
         {
             var row = 1;
@@ -103,14 +174,18 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        private static Color GetPreviewColor(int row)
+        public static Color GetPreviewColor(int row)
         {
             var palette = new[]
             {
-                Color.FromArgb(255, 224, 242, 254),
-                Color.FromArgb(255, 255, 244, 214),
-                Color.FromArgb(255, 243, 229, 245),
-                Color.FromArgb(255, 232, 245, 233)
+                Color.FromArgb(255, 197, 227, 204),
+                Color.FromArgb(255, 153, 208, 249),
+                Color.FromArgb(255, 221, 219, 150),
+                Color.FromArgb(255, 203, 213, 231),
+                Color.FromArgb(255, 152, 230, 190),
+                Color.FromArgb(255, 236, 203, 188),
+                Color.FromArgb(255, 231, 189, 239),
+                Color.FromArgb(255, 117, 227, 235)
             };
 
             return palette[Math.Max(0, row - 1) % palette.Length];
@@ -179,6 +254,14 @@ namespace AutoNumber.ViewModels
             }
 
             return Math.Clamp(value, min, max);
+        }
+
+        private void ClampAllBoundaries()
+        {
+            for (var index = 0; index < Boundaries.Count; index++)
+            {
+                ClampBoundary(index);
+            }
         }
 
         private bool TryGetBoundary(int index, out RowBoundary boundary)

@@ -12,10 +12,13 @@ using System.Linq;
 using System.Text;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
+using QuestPDF.Infrastructure;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Collections.Generic;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace AutoNumber.ViewModels
 {
@@ -50,8 +53,6 @@ namespace AutoNumber.ViewModels
                     return;
                 }
 
-                var totalSw = Stopwatch.StartNew();
-                var stepSw = Stopwatch.StartNew();
                 Trace.WriteLine($"OpenImage: start '{filename}'");
                 var pvm = parent.PictureVM;
 
@@ -59,46 +60,36 @@ namespace AutoNumber.ViewModels
                 {
                     Trace.WriteLine("OpenImage: detected PDF input");
                     OpenFromPdfFile(filename, pvm);
-                    Trace.WriteLine($"OpenImage: PDF import completed in {totalSw.ElapsedMilliseconds}ms");
+                    Trace.WriteLine("OpenImage: PDF import completed");
                     return;
                 }
 
                 var bitmap = BitmapExtensions.LoadBitmapFromFile(filename);
-                Trace.WriteLine($"OpenImage: LoadBitmapFromFile took {stepSw.ElapsedMilliseconds}ms ({bitmap.Width}x{bitmap.Height})");
-
-                stepSw.Restart();
                 bitmap.ApplyExifOrientation();
-                Trace.WriteLine($"OpenImage: ApplyExifOrientation took {stepSw.ElapsedMilliseconds}ms");
-
-                stepSw.Restart();
                 var metadata = bitmap.GetMetadata();
-                Trace.WriteLine($"OpenImage: GetMetadata took {stepSw.ElapsedMilliseconds}ms, version = '{metadata?.Version ?? "none"}'");
+                Trace.WriteLine($"OpenImage: metadata version = '{metadata?.Version ?? "none"}'");
 
                 if (metadata is null)  // not written by AutoNumber => use as original image
                 {
-                    Trace.WriteLine("OpenImage: no AutoNum metadata, running face detection");
-                    stepSw.Restart();
-                    var faces = FaceDetector.Detect(bitmap);
-                    Trace.WriteLine($"OpenImage: FaceDetector.Detect took {stepSw.ElapsedMilliseconds}ms");
-
                     pvm.OriginalImageFilename = filename;
                     pvm.CurrentImageFilename = filename;
                     pvm.OriginalPropertyItems = bitmap.PropertyItems;
                     pvm.Bitmap = bitmap;
-
-                    stepSw.Restart();
                     pvm.Init();
-                    Trace.WriteLine($"OpenImage: ImageVM.Init took {stepSw.ElapsedMilliseconds}ms");
 
-                    stepSw.Restart();
-                    WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
-                    Trace.WriteLine($"OpenImage: NewImageOpenedMessage handlers took {stepSw.ElapsedMilliseconds}ms");
+                    if (parent.SettingsManager.FaceDetectionEnabled)
+                    {
+                        Trace.WriteLine("OpenImage: no AutoNum metadata, running face detection");
+                        var faces = FaceDetector.Detect(bitmap);
+                        WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
+                        Trace.WriteLine($"OpenImage: fresh image initialized with {faces.Count} detected face(s)");
+                    }
+                    else
+                    {
+                        Trace.WriteLine("OpenImage: no AutoNum metadata, face detection disabled");
+                    }
 
-                    stepSw.Restart();
                     parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
-                    Trace.WriteLine($"OpenImage: ApplyFreshImageDefaults took {stepSw.ElapsedMilliseconds}ms");
-
-                    Trace.WriteLine($"OpenImage: fresh image initialized with {faces.Count} detected face(s), total {totalSw.ElapsedMilliseconds}ms");
                 }
                 else if (metadata is AutoNumMetaData_V2 v2)
                 {
@@ -109,22 +100,16 @@ namespace AutoNumber.ViewModels
                     if (patches is not null && patches.Count > 0)
                     {
                         Trace.WriteLine($"OpenImage: metadata restore from JPEG APP4 patches ({patches.Count} patch(es))");
-                        stepSw.Restart();
                         var restored = bitmap.RestoreFromPatches(v2, patches);
                         bitmap.Dispose();
-                        Trace.WriteLine($"OpenImage: RestoreFromPatches took {stepSw.ElapsedMilliseconds}ms");
 
                         pvm.OriginalPropertyItems = restored.PropertyItems;
                         pvm.Bitmap = restored;
                         pvm.OriginalImageFilename = string.IsNullOrWhiteSpace(v2.OriginalImage) ? filename : v2.OriginalImage;
                         pvm.CurrentImageFilename = filename;
-
-                        stepSw.Restart();
                         pvm.InitFromMetadata(v2);
-                        Trace.WriteLine($"OpenImage: InitFromMetadata took {stepSw.ElapsedMilliseconds}ms");
-
                         RefreshPreviewAfterMetadataLoad("OpenImage/JPEG");
-                        Trace.WriteLine($"OpenImage: metadata restore from JPEG completed, total {totalSw.ElapsedMilliseconds}ms");
+                        Trace.WriteLine("OpenImage: metadata restore from JPEG completed");
                     }
                     else
                     {
@@ -171,7 +156,10 @@ namespace AutoNumber.ViewModels
                 }
 
                 using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
-                if (result is null) return;
+                if (result is null)
+                {
+                    return;
+                }
 
                 // Encode bitmap to JPEG in memory, then inject APP4 patch segments
                 using var jpegStream = new MemoryStream();
@@ -179,7 +167,12 @@ namespace AutoNumber.ViewModels
                 var jpegBytes = jpegStream.ToArray();
 
                 var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
-                File.WriteAllBytes(filename, finalBytes);
+
+                if (!TryWriteWithRetry(filename, () => File.WriteAllBytes(filename, finalBytes), "JPEG"))
+                {
+                    return;
+                }
+
                 parent.PictureVM.CurrentImageFilename = filename;
 
                 var exportData = BuildExportData();
@@ -206,9 +199,13 @@ namespace AutoNumber.ViewModels
 
                 var exportData = BuildExportData();
                 exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
-                WritePdf(filename, exportData, result);
-                WriteMetadataSidecars(filename, exportData, result);
+                if (!WritePdf(filename, exportData))
+                {
+                    return;
+                }
+
                 parent.PictureVM.CurrentImageFilename = filename;
+                WriteMetadataSidecars(filename, exportData, result);
             }
         }
 
@@ -278,27 +275,19 @@ namespace AutoNumber.ViewModels
         {
             if (ExportCsvMetadata)
             {
-                try
+                var csvPath = Path.ChangeExtension(imageFilename, ".csv");
+                if (!TryWriteWithRetry(csvPath, () => WriteCsv(csvPath, exportData), "CSV"))
                 {
-                    var csvPath = Path.ChangeExtension(imageFilename, ".csv");
-                    WriteCsv(csvPath, exportData);
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine($"Error writing CSV sidecar: {ex}");
+                    return;
                 }
             }
 
             if (ExportJsonMetadata)
             {
-                try
+                var jsonPath = Path.ChangeExtension(imageFilename, ".json");
+                if (!TryWriteWithRetry(jsonPath, () => WriteJson(jsonPath, exportData), "JSON"))
                 {
-                    var jsonPath = Path.ChangeExtension(imageFilename, ".json");
-                    WriteJson(jsonPath, exportData);
-                }
-                catch (Exception ex)
-                {
-                    Trace.WriteLine($"Error writing JSON sidecar: {ex}");
+                    return;
                 }
             }
         }
@@ -333,6 +322,92 @@ namespace AutoNumber.ViewModels
             File.WriteAllText(filename, json, new UTF8Encoding(true));
         }
 
+        private bool TryWriteWithRetry(string filename, Action writeAction, string operationName)
+        {
+            while (true)
+            {
+                try
+                {
+                    writeAction();
+                    return true;
+                }
+                catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                {
+                    if (!ShowRetryCancelDialog(operationName, filename, ex))
+                    {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        private bool ShowRetryCancelDialog(string operationName, string filename, Exception ex)
+        {
+            var owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(window => window.IsActive) ?? Application.Current?.MainWindow;
+
+            var dialog = new Window
+            {
+                Title = "Speichern fehlgeschlagen",
+                Width = 560,
+                Height = 420,
+                WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner,
+                ResizeMode = ResizeMode.NoResize,
+                ShowInTaskbar = false,
+                Owner = owner,
+            };
+
+            var grid = new Grid { Margin = new Thickness(16) };
+            grid.RowDefinitions.Add(new RowDefinition { Height = System.Windows.GridLength.Auto });
+            grid.RowDefinitions.Add(new RowDefinition { Height = System.Windows.GridLength.Auto });
+
+            var text = new TextBlock
+            {
+                Text = $"Die {operationName}-Datei konnte nicht gespeichert werden.\n\n" +
+                       $"Möglicherweise ist die Datei in einer anderen Anwendung geöffnet.\n\n" +
+                       $"Datei: {Path.GetFileName(filename)}\n" +
+                       $"Details: {ex.Message}\n\n" +
+                       "Schließen Sie die Datei in der anderen Anwendung und klicken Sie auf \"Wiederholen\", oder brechen Sie den Vorgang ab.",
+                TextWrapping = TextWrapping.Wrap
+            };
+            Grid.SetRow(text, 0);
+            grid.Children.Add(text);
+
+            var buttons = new StackPanel
+            {
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
+                Margin = new Thickness(0, 16, 0, 0)
+            };
+
+            var retryButton = new Button
+            {
+                Content = "Wiederholen",
+                Width = 110,
+                Margin = new Thickness(0, 0, 8, 0),
+                IsDefault = true
+            };
+
+            var cancelButton = new Button
+            {
+                Content = "Abbrechen",
+                Width = 110,
+                IsCancel = true
+            };
+
+            bool? retrySelected = null;
+            retryButton.Click += (_, __) => { retrySelected = true; dialog.DialogResult = true; dialog.Close(); };
+            cancelButton.Click += (_, __) => { retrySelected = false; dialog.DialogResult = false; dialog.Close(); };
+
+            buttons.Children.Add(retryButton);
+            buttons.Children.Add(cancelButton);
+            Grid.SetRow(buttons, 1);
+            grid.Children.Add(buttons);
+
+            dialog.Content = grid;
+            dialog.ShowDialog();
+            return retrySelected == true;
+        }
+
         private static string EscapeCsv(string value)
         {
             var text = value ?? string.Empty;
@@ -345,7 +420,7 @@ namespace AutoNumber.ViewModels
             return $"\"{text.Replace("\"", "\"\"")}\"";
         }
 
-        private void WritePdf(string filename, SidecarExportData exportData, NumberedBitmapResult numberedBitmapResult)
+        private bool WritePdf(string filename, SidecarExportData exportData)
         {
             byte[]? photoBytes = null;
             using (var photoWithLabels = parent.PictureVM.ToPhotoWithLabelsBitmap())
@@ -353,7 +428,7 @@ namespace AutoNumber.ViewModels
                 if (photoWithLabels is not null)
                 {
                     using var imageStream = new MemoryStream();
-                    photoWithLabels.Save(imageStream, DrawingImageFormat.Jpeg);
+                    photoWithLabels.Save(imageStream, DrawingImageFormat.Png);
                     photoBytes = imageStream.ToArray();
                 }
             }
@@ -363,11 +438,25 @@ namespace AutoNumber.ViewModels
             var hasDescription = !string.IsNullOrWhiteSpace(exportData.Description);
             var namesColumnCount = Math.Clamp(parent.NameManager.NameTableColumnCount, 1, 4);
             var tableReferenceWidth = 360d / namesColumnCount;
-            var pdfNumberColumnWidth = NamesTableLayout.ResolveNumberColumnWidth(tableReferenceWidth);
+            var pdfNumberColumnWidth = Math.Clamp(NamesTableLayout.ResolveNumberColumnWidth(tableReferenceWidth) * 0.5f, 24f, 48f);
+            var showRowDividers = parent.NameManager.ShowRowDividers;
+            var orderedPersons = exportData.Persons
+                .OrderBy(person => person.Row <= 0 ? int.MaxValue : person.Row)
+                .ThenBy(person => person.Number)
+                .ToList();
+            var assignedRowGroups = orderedPersons
+                .Where(person => person.Row > 0)
+                .GroupBy(person => person.Row)
+                .OrderBy(group => group.Key)
+                .ToList();
+            var unassignedPersons = orderedPersons
+                .Where(person => person.Row <= 0)
+                .ToList();
 
-            var createdDate = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
-                ? generatedAt.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"))
-                : DateTime.Now.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"));
+            var documentTimestamp = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
+                ? generatedAt
+                : DateTimeOffset.Now;
+            var createdDate = documentTimestamp.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"));
 
             using var pdfStream = new MemoryStream();
 
@@ -429,95 +518,124 @@ namespace AutoNumber.ViewModels
                             {
                                 for (var c = 0; c < namesColumnCount; c++)
                                 {
-                                    header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Nummer").SemiBold();
+                                    header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Nr.").SemiBold();
                                     header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Name").SemiBold();
                                 }
                             });
 
-                            for (var index = 0; index < exportData.Persons.Count; index += namesColumnCount)
+                            void RenderPersonRows(IReadOnlyList<SidecarPerson> persons)
                             {
-                                for (var c = 0; c < namesColumnCount; c++)
+                                for (var index = 0; index < persons.Count; index += namesColumnCount)
                                 {
-                                    var personIndex = index + c;
-                                    if (personIndex < exportData.Persons.Count)
+                                    for (var c = 0; c < namesColumnCount; c++)
                                     {
-                                        var person = exportData.Persons[personIndex];
-                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Number.ToString());
-                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Name);
-                                    }
-                                    else
-                                    {
-                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
-                                        table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
+                                        var personIndex = index + c;
+                                        if (personIndex < persons.Count)
+                                        {
+                                            var person = persons[personIndex];
+                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Number.ToString());
+                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Name);
+                                        }
+                                        else
+                                        {
+                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
+                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
+                                        }
                                     }
                                 }
+                            }
+
+                            foreach (var rowGroup in assignedRowGroups)
+                            {
+                                if (showRowDividers)
+                                {
+                                    table.Cell()
+                                        .ColumnSpan((uint)(namesColumnCount * 2))
+                                        .Border(NamesTableLayout.PdfBorderWidth)
+                                        .BorderColor(Colors.Grey.Lighten2)
+                                        .Padding(NamesTableLayout.CellPadding)
+                                        .Text(parent.NameManager.FormatRowDividerText(rowGroup.Key))
+                                        .SemiBold();
+                                }
+
+                                RenderPersonRows(rowGroup.OrderBy(person => person.Number).ToList());
+                            }
+
+                            if (unassignedPersons.Count > 0)
+                            {
+                                RenderPersonRows(unassignedPersons);
                             }
                         });
                     });
                 });
-            }).GeneratePdf(pdfStream);
+            })
+            .WithMetadata(new DocumentMetadata
+            {
+                Title = heading,
+                Author = "AutoNum",
+                Subject = "AutoNum export",
+                Keywords = "AutoNum, Face labels, Numbered image, PDF",
+                Creator = "AutoNum",
+                Producer = "QuestPDF",
+                Language = "de-DE",
+                CreationDate = documentTimestamp,
+                ModifiedDate = documentTimestamp
+            })
+            .GeneratePdf(pdfStream);
 
             // Update existing metadata with latest runtime values, then use it
             parent.PictureVM.UpdateMetadataBeforeSave(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
             var metadata = parent.PictureVM.CurrentMetadata!;
 
-            using var compositeStream = new MemoryStream();
-            numberedBitmapResult.Bitmap.Save(compositeStream, DrawingImageFormat.Jpeg);
+            if (parent.PictureVM.Bitmap is null)
+            {
+                throw new InvalidOperationException("Die Basisgrafik für den PDF-Export ist nicht verfügbar.");
+            }
+
+            using var baseImageStream = new MemoryStream();
+            parent.PictureVM.Bitmap.Save(baseImageStream, DrawingImageFormat.Jpeg);
 
             var payloadZip = PdfPayloadStore.CreatePayloadZip(new PdfPayloadData
             {
                 Metadata = metadata,
-                CompositeImageBytes = compositeStream.ToArray(),
-                Patches = [.. numberedBitmapResult.Patches]
+                BaseImageBytes = baseImageStream.ToArray()
             });
 
             if (!PdfPayloadStore.TryReadPayloadZip(payloadZip, out var payloadCheck)
                 || payloadCheck is null
                 || payloadCheck.Metadata is null
-                || payloadCheck.Patches.Count != numberedBitmapResult.Patches.Count)
+                || payloadCheck.BaseImageBytes.Length == 0)
             {
                 throw new InvalidDataException("Die PDF-Nutzdaten konnten nicht verifiziert werden.");
             }
 
-            var finalPdfBytes = PdfPayloadStore.EmbedPayload(pdfStream.ToArray(), payloadZip);
-            File.WriteAllBytes(filename, finalPdfBytes);
+            if (!TryWriteWithRetry(filename, () => PdfPayloadStore.SavePdfWithPayloadAttachment(pdfStream.ToArray(), payloadZip, filename), "PDF"))
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private void OpenFromPdfFile(string pdfFilename, ImageVM pvm)
         {
-            var totalSw = Stopwatch.StartNew();
-            var stepSw = Stopwatch.StartNew();
             Trace.WriteLine($"OpenFromPdfFile: reading '{pdfFilename}'");
-            var pdfBytes = File.ReadAllBytes(pdfFilename);
-            if (!PdfPayloadStore.TryExtractPayload(pdfBytes, out var payloadZipBytes) || payloadZipBytes is null)
+            if (!PdfPayloadStore.TryExtractPayloadFromPdfAttachment(pdfFilename, out var payloadZipBytes) || payloadZipBytes is null)
             {
                 throw new InvalidDataException("Die PDF enthält keine editierbaren AutoNum-Daten.");
             }
 
-            Trace.WriteLine($"OpenFromPdfFile: extracted payload zip ({payloadZipBytes.Length} bytes) in {stepSw.ElapsedMilliseconds}ms");
-            stepSw.Restart();
+            Trace.WriteLine($"OpenFromPdfFile: extracted payload zip ({payloadZipBytes.Length} bytes)");
             if (!PdfPayloadStore.TryReadPayloadZip(payloadZipBytes, out var payload) || payload is null)
             {
                 throw new InvalidDataException("Die eingebetteten AutoNum-Daten in der PDF sind ungültig.");
             }
 
-            Trace.WriteLine($"OpenFromPdfFile: payload metadata version '{payload.Metadata.Version}', patches={payload.Patches.Count}, parsed in {stepSw.ElapsedMilliseconds}ms");
+            Trace.WriteLine($"OpenFromPdfFile: payload metadata version '{payload.Metadata.Version}', base image size={payload.BaseImageBytes.Length} bytes");
 
-            stepSw.Restart();
-            using var compositeStream = new MemoryStream(payload.CompositeImageBytes);
-            using var compositeSource = new Bitmap(compositeStream);
-            using var compositeBitmap = new Bitmap(compositeSource);
-
-            Bitmap restoredBitmap;
-            if (payload.Metadata is AutoNumMetaData_V2 v2)
-            {
-                restoredBitmap = compositeBitmap.RestoreFromPatches(v2, payload.Patches);
-            }
-            else
-            {
-                restoredBitmap = new Bitmap(compositeBitmap);
-            }
-            Trace.WriteLine($"OpenFromPdfFile: composite decode + RestoreFromPatches took {stepSw.ElapsedMilliseconds}ms");
+            using var baseStream = new MemoryStream(payload.BaseImageBytes);
+            using var baseSource = new Bitmap(baseStream);
+            var restoredBitmap = new Bitmap(baseSource);
 
             pvm.OriginalPropertyItems = restoredBitmap.PropertyItems;
             pvm.Bitmap = restoredBitmap;
@@ -525,18 +643,13 @@ namespace AutoNumber.ViewModels
                 ? pdfFilename
                 : payload.Metadata.OriginalImage;
             pvm.CurrentImageFilename = pdfFilename;
-
-            stepSw.Restart();
             pvm.InitFromMetadata(payload.Metadata);
-            Trace.WriteLine($"OpenFromPdfFile: InitFromMetadata took {stepSw.ElapsedMilliseconds}ms");
-
             RefreshPreviewAfterMetadataLoad("OpenFromPdfFile");
-            Trace.WriteLine($"OpenFromPdfFile: metadata initialization completed, total {totalSw.ElapsedMilliseconds}ms");
+            Trace.WriteLine("OpenFromPdfFile: metadata initialization completed");
         }
 
         private async Task openFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm, string currentFilename)
         {
-            var totalSw = Stopwatch.StartNew();
             Trace.WriteLine($"openFromOriginalFile: requested original '{metadata.OriginalImage}'");
 
             if (!File.Exists(metadata.OriginalImage))
@@ -547,22 +660,15 @@ namespace AutoNumber.ViewModels
             }
 
             numberedBitmap.Dispose();
-            var stepSw = Stopwatch.StartNew();
             var originalBitmap = BitmapExtensions.LoadBitmapFromFile(metadata.OriginalImage);
             originalBitmap.ApplyExifOrientation();
-            Trace.WriteLine($"openFromOriginalFile: load + orientation took {stepSw.ElapsedMilliseconds}ms ({originalBitmap.Width}x{originalBitmap.Height})");
-
             pvm.OriginalPropertyItems = originalBitmap.PropertyItems;
             pvm.Bitmap = originalBitmap;
             pvm.OriginalImageFilename = metadata.OriginalImage;
             pvm.CurrentImageFilename = currentFilename;
-
-            stepSw.Restart();
             pvm.InitFromMetadata(metadata);
-            Trace.WriteLine($"openFromOriginalFile: InitFromMetadata took {stepSw.ElapsedMilliseconds}ms");
-
             RefreshPreviewAfterMetadataLoad("openFromOriginalFile");
-            Trace.WriteLine($"openFromOriginalFile: metadata initialization completed, total {totalSw.ElapsedMilliseconds}ms");
+            Trace.WriteLine("openFromOriginalFile: metadata initialization completed");
         }
 
         private async Task<string> AskForOriginalFilename(string orignalFilename)

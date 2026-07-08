@@ -7,6 +7,7 @@
     xmlns:vm="clr-namespace:AutoNumber.ViewModels" 
     xmlns:is="clr-namespace:AutoNumber.Infrastructure" 
     xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls" 
+    xmlns:iconPacks="http://metro.mahapps.com/winfx/xaml/iconpacks"
     xmlns:primitives="clr-namespace:System.Windows.Controls.Primitives;assembly=PresentationFramework"
     x:Class="AutoNumber.Views.PictureDisplay" 
     x:Name="PD" 
@@ -75,6 +76,7 @@
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center"
                         TextAlignment="Center"
+                        TextWrapping="Wrap"
                         FontFamily="{Binding TitleFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                         FontSize="{Binding TitleFontSize}"
                         Foreground="{Binding TitleFontColor, Converter={StaticResource Col2Brush}}"
@@ -87,13 +89,14 @@
                     Background="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}">
                     <TextBlock
                         Text="{Binding ImageInfo}"
-                        HorizontalAlignment="Center"
+                        HorizontalAlignment="Left"
                         VerticalAlignment="Center"
-                        TextAlignment="Center"
+                        TextAlignment="Left"
+                        TextWrapping="Wrap"
                         FontFamily="{Binding ImageInfoFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                         FontSize="{Binding ImageInfoFontSize}"
                         Foreground="{Binding ImageInfoFontColor, Converter={StaticResource Col2Brush}}"
-                        Padding="0,4"/>
+                        Padding="8,4,8,4"/>
                 </Border>
             </StackPanel>
             <Image                         
@@ -137,6 +140,46 @@
                     <TranslateTransform Y="{Binding ImageIdManager.LineHeight}"/>
                 </Border.RenderTransform>
             </Border>
+
+            <ItemsControl
+                Canvas.Left="0"
+                Canvas.Top="0"
+                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
+                Height="{Binding ActualHeight, ElementName=PageCanvas, Mode=OneWay}"
+                Visibility="{Binding NameManager.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
+                ItemsSource="{Binding NameManager.RowDividers}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Canvas IsHitTestVisible="False"/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="Canvas.Left" Value="{Binding X}"/>
+                        <Setter Property="Canvas.Top" Value="{Binding Y}"/>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Border Width="{Binding Width}"
+                                Height="{Binding Height}"
+                                BorderBrush="#AA787878"
+                                BorderThickness="0,0,0,1"
+                                Background="Transparent"
+                                Padding="8,0,8,0">
+                            <TextBlock
+                                Text="{Binding Text}"
+                                FontWeight="SemiBold"
+                                VerticalAlignment="Center"
+                                TextAlignment="Left"
+                                FontFamily="{Binding Source={x:Static vm:TextLabel.Style}, Path=FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}}"
+                                FontSize="{Binding Source={x:Static vm:TextLabel.Style}, Path=FontSize}"
+                                Foreground="{Binding DataContext.NameManager.FontColor, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}}, Converter={StaticResource Col2Brush}}"/>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
             <Canvas x:Name="rowDefinitionOverlay"
                     Canvas.Left="0"
                     Canvas.Top="0"
@@ -145,6 +188,39 @@
                     Background="Transparent"
                     Visibility="Collapsed"
                     IsHitTestVisible="True"/>
+
+            <Canvas x:Name="rowEditStrip"
+                    Canvas.Left="0"
+                    Canvas.Top="0"
+                    Width="54"
+                    Height="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
+                    Background="Transparent"
+                    Visibility="{Binding RowDefinitionManager.IsRowDefinitionMode, Converter={StaticResource Bool2Vis}}"
+                    MouseMove="RowEditStrip_MouseMove"
+                    MouseLeave="RowEditStrip_MouseLeave"
+                    MouseLeftButtonDown="RowEditStrip_MouseLeftButtonDown"
+                    IsHitTestVisible="True">
+                <Line x:Name="rowInsertGhost"
+                      X1="4"
+                      X2="20"
+                      Y1="0"
+                      Y2="0"
+                      Stroke="#E600BCD4"
+                      StrokeThickness="2"
+                      Visibility="Collapsed"
+                      IsHitTestVisible="False"/>
+                <iconPacks:PackIconMaterial x:Name="rowStripHeader"
+                                            Kind="PlusCircleOutline"
+                                            Foreground="#AA4A4A4A"
+                                            Width="14"
+                                            Height="14"
+                                            IsHitTestVisible="False"/>
+                <Canvas x:Name="rowChipHost"
+                        Canvas.Left="0"
+                        Width="22"
+                        Height="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
+                        IsHitTestVisible="True"/>
+            </Canvas>
         </Canvas>
     </view:ZoomBorder>
 </UserControl>

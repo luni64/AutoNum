@@ -4,16 +4,17 @@ namespace AutoNumber.Model;
 
 /// <summary>
 /// Versioned AutoNum payload contract stored in PDF as a non-rendered embedded zip payload.
+/// Payload contains metadata plus the editable base image.
 /// </summary>
 internal static class PdfPayloadContract
 {
-    public const string FooterMagic = "AUTONUM_PDF_PAYLOAD_V1";
-    public const int FooterVersion = 1;
+    public const string PayloadAttachmentKey = "autonum-data";
+    public const string PayloadAttachmentName = "autonum-payload.zip";
+    public const string PayloadAttachmentMimeType = "application/zip";
 
     public const string ManifestEntry = "autonum/manifest.json";
     public const string MetadataEntry = "autonum/metadata.json";
-    public const string CompositeImageEntry = "autonum/composite.jpg";
-    public const string PatchesEntry = "autonum/patches.json";
+    public const string BaseImageEntry = "autonum/base.jpg";
 }
 
 internal sealed class PdfPayloadManifest
@@ -30,36 +31,13 @@ internal sealed class PdfPayloadManifest
     [JsonPropertyName("metadataSha256")]
     public string MetadataSha256 { get; set; } = string.Empty;
 
-    [JsonPropertyName("compositeSha256")]
-    public string CompositeSha256 { get; set; } = string.Empty;
-
-    [JsonPropertyName("patchesSha256")]
-    public string PatchesSha256 { get; set; } = string.Empty;
-}
-
-internal sealed class PdfPatchEntry
-{
-    [JsonPropertyName("x")]
-    public float X { get; set; }
-
-    [JsonPropertyName("y")]
-    public float Y { get; set; }
-
-    [JsonPropertyName("width")]
-    public float Width { get; set; }
-
-    [JsonPropertyName("height")]
-    public float Height { get; set; }
-
-    [JsonPropertyName("png")]
-    public byte[] PngBytes { get; set; } = [];
+    [JsonPropertyName("baseImageSha256")]
+    public string BaseImageSha256 { get; set; } = string.Empty;
 }
 
 internal sealed class PdfPayloadData
 {
     public required AutoNumMetaData_V1 Metadata { get; init; }
 
-    public required byte[] CompositeImageBytes { get; init; }
-
-    public required List<PatchData> Patches { get; init; }
+    public required byte[] BaseImageBytes { get; init; }
 }

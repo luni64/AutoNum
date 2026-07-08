@@ -1,5 +1,8 @@
 # Copilot Instructions
 
+## General Guidelines
+- Always read `.github/copilot-instructions.md` and `docs/ARCHITECTURE.md` at the start of a new thread before making changes.
+
 ## Architecture Reference
 - **Architecture overview:** `docs/ARCHITECTURE.md` — project structure, design patterns, dependency flow, data flow, external dependencies. Read this first when starting a new session.
 

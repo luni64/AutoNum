@@ -147,6 +147,8 @@ namespace AutoNumber.ViewModels
                     NamesFont = md.NamesFont,
                     NamesEnabled = md.NamesEnabled,
                     NamesColumnCount = md.NamesColumnCount,
+                    NamesRowDividersEnabled = md.NamesRowDividersEnabled,
+                    NamesRowDividerTemplate = md.NamesRowDividerTemplate,
                     ImageId = md.ImageId,
                     ImageIdFont = md.ImageIdFont,
                     ImageIdEnabled = md.ImageIdEnabled,
@@ -158,8 +160,21 @@ namespace AutoNumber.ViewModels
                     ImageInfo = md.ImageInfo,
                     Persons = md.Persons,
                     RowCount = 1,
-                    RowBoundaries = []
+                    RowBoundaries = [],
+                    // Preserve V2 properties (original image dimensions)
+                    OriginalImageWidth = (md is AutoNumMetaData_V2 v2) ? v2.OriginalImageWidth : 0,
+                    OriginalImageHeight = (md is AutoNumMetaData_V2 v2x) ? v2x.OriginalImageHeight : 0,
+                    TitleHeight = (md is AutoNumMetaData_V2 v2y) ? v2y.TitleHeight : 0
                 };
+            }
+
+            ApplyRowsFromMetadataBoundariesIfAvailable();
+
+            // Calculate boundaries from detected rows if they don't exist yet
+            // This handles V1-V3 images and edge cases where rows are assigned but boundaries aren't
+            if (CurrentMetadata.RowBoundaries.Count == 0 && Persons.Count > 0)
+            {
+                CalculateBoundariesFromDetectedRows();
             }
 
             // Don't automatically show row boundaries - they'll be restored when user opens the dialog
@@ -171,16 +186,36 @@ namespace AutoNumber.ViewModels
             Trace.WriteLine("InitFromMetadata: MetadataLoadedMessage completed");
         }
 
-        public void BeginRowDefinition(int rowCount)
+        public void BeginRowDefinition(int rowCount, IEnumerable<RowBoundary>? boundaries = null)
         {
             var session = new RowDefinitionSession();
-            session.Initialize(rowCount, ImageWidth, ImageHeight);
+            if (boundaries is not null)
+            {
+                session.Restore(rowCount, ImageWidth, ImageHeight, boundaries);
+            }
+            else
+            {
+                session.Initialize(rowCount, ImageWidth, ImageHeight);
+            }
             RowDefinitionSession = session;
         }
 
         public void ClearRowDefinition()
         {
             RowDefinitionSession = null;
+        }
+
+        public void ResetRowState()
+        {
+            ClearRowDefinition();
+
+            if (CurrentMetadata is null)
+            {
+                return;
+            }
+
+            CurrentMetadata.RowCount = 1;
+            CurrentMetadata.RowBoundaries = [];
         }
 
         public void SyncRowDefinitionToMetadata()
@@ -209,6 +244,91 @@ namespace AutoNumber.ViewModels
             RowDefinitionSession = session;
         }
 
+        private void ApplyRowsFromMetadataBoundariesIfAvailable()
+        {
+            if (CurrentMetadata is null || CurrentMetadata.RowBoundaries.Count == 0 || Persons.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var person in Persons)
+            {
+                var anchor = person.GetRowAnchorPoint();
+                var row = 1;
+                foreach (var boundary in CurrentMetadata.RowBoundaries)
+                {
+                    if (anchor.Y > boundary.GetYAtX(anchor.X, ImageWidth))
+                    {
+                        row++;
+                    }
+                }
+                person.Row = row;
+            }
+        }
+
+        /// <summary>
+        /// Calculate and store row boundaries from the current person row assignments.
+        /// Called after loading metadata where persons may have rows but no boundaries.
+        /// This handles V1-V3 images and edge cases where row assignments exist but boundaries don't.
+        /// </summary>
+        public void CalculateBoundariesFromDetectedRows()
+        {
+            if (CurrentMetadata is null || Persons.Count == 0)
+            {
+                return;
+            }
+
+            // First check if persons have any row assignments
+            var hasAnyRows = Persons.Any(p => p.Row > 0);
+
+            if (!hasAnyRows)
+            {
+                // Edge case: persons with no rows - assign all to row 1
+                foreach (var person in Persons)
+                {
+                    person.Row = 1;
+                }
+            }
+
+            // Group persons by row
+            var groups = Persons
+                .Where(person => person.Row > 0)
+                .GroupBy(person => person.Row)
+                .OrderBy(group => group.Key)
+                .Select(group => new
+                {
+                    Row = group.Key,
+                    MinY = group.Min(person => (double)person.GetRowAnchorPoint().Y),
+                    MaxY = group.Max(person => (double)person.GetRowAnchorPoint().Y)
+                })
+                .ToList();
+
+            // Single row or no rows: no boundaries needed
+            if (groups.Count <= 1)
+            {
+                CurrentMetadata.RowBoundaries = [];
+                CurrentMetadata.RowCount = 1;
+                return;
+            }
+
+            // Multi-row: calculate boundaries between rows
+            var boundaries = new List<RowBoundary>();
+            for (var index = 0; index < groups.Count - 1; index++)
+            {
+                var current = groups[index];
+                var next = groups[index + 1];
+                var boundaryY = (current.MaxY + next.MinY) / 2.0;
+
+                var minAllowed = index == 0 ? 0.0 : boundaries[index - 1].LeftY + 2.0;
+                boundaryY = Math.Clamp(boundaryY, minAllowed, ImageHeight);
+
+                boundaries.Add(new RowBoundary(boundaryY, boundaryY));
+            }
+
+            CurrentMetadata.RowBoundaries = boundaries;
+            CurrentMetadata.RowCount = groups.Count;
+        }
+
         public void UpdateMetadataBeforeSave(LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
         {
             if (CurrentMetadata == null)
@@ -234,6 +354,8 @@ namespace AutoNumber.ViewModels
             CurrentMetadata.NamesFont = new AutoNumFont(nm.FontColor, nm.BackgroundColor, nm.FontFamily.Name, TextLabel.Style.FontSize);
             CurrentMetadata.NamesEnabled = nm.IsEnabled;
             CurrentMetadata.NamesColumnCount = nm.NameTableColumnCount;
+            CurrentMetadata.NamesRowDividersEnabled = nm.ShowRowDividers;
+            CurrentMetadata.NamesRowDividerTemplate = nm.RowDividerTextTemplate;
             CurrentMetadata.ImageId = idm.ImageId;
             CurrentMetadata.ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
             CurrentMetadata.ImageIdEnabled = idm.IsEnabled;
@@ -242,6 +364,13 @@ namespace AutoNumber.ViewModels
             CurrentMetadata.ImageInfoFont = new AutoNumFont(iim.ImageInfoFontColor, iim.BackgroundColor, iim.ImageInfoFontFamily.Name, iim.ImageInfoFontSize);
             CurrentMetadata.ImageInfoEnabled = iim.IsEnabled;
 
+            SyncReconstructionMetadata(tm, iim);
+
+            if (CurrentMetadata is AutoNumMetaData_V3 v3)
+            {
+                SyncSizingMetadata(v3, lm, tm, iim, idm);
+            }
+
             // Update persons
             CurrentMetadata.Persons.Clear();
             foreach (var person in Persons)
@@ -249,14 +378,43 @@ namespace AutoNumber.ViewModels
                 CurrentMetadata.Persons.Add(new AutoNumPerson(person));
             }
 
-            // Row boundaries are synced directly from session if active
-            if (RowDefinitionSession != null)
+            // Sync row boundaries from session if active
+            SyncRowDefinitionToMetadata();
+        }
+
+        private void SyncReconstructionMetadata(TitleManager tm, ImageInfoManager iim)
+        {
+            if (CurrentMetadata is not AutoNumMetaData_V2 v2)
             {
-                CurrentMetadata.RowCount = RowDefinitionSession.RowCount;
-                CurrentMetadata.RowBoundaries = RowDefinitionSession.Boundaries
-                    .Select(b => new RowBoundary(b.LeftY, b.RightY))
-                    .ToList();
+                return;
             }
+
+            v2.OriginalImageWidth = Bitmap?.Width ?? 0;
+            v2.OriginalImageHeight = Bitmap?.Height ?? 0;
+
+            bool hasTopText = (tm.IsEnabled && !string.IsNullOrEmpty(tm.Title))
+                || (iim.IsEnabled && !string.IsNullOrEmpty(iim.ImageInfo));
+            v2.TitleHeight = hasTopText ? Math.Max(0, (int)Math.Round(TitleRegionHeight)) : 0;
+
+            Trace.WriteLine($"UpdateMetadataBeforeSave: synced reconstruction fields width={v2.OriginalImageWidth}, height={v2.OriginalImageHeight}, titleHeight={v2.TitleHeight}, hasTopText={hasTopText}");
+        }
+
+        private static void SyncSizingMetadata(AutoNumMetaData_V3 v3, LabelManager lm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
+        {
+            var baseLabelDiameter = double.IsFinite(lm.BaseLabelDiameter) && lm.BaseLabelDiameter > 0
+                ? lm.BaseLabelDiameter
+                : MarkerLabel.Style.Diameter;
+            var baseLabelFontSize = double.IsFinite(lm.BaseLabelFontSize) && lm.BaseLabelFontSize > 0
+                ? lm.BaseLabelFontSize
+                : MarkerLabel.Style.FontSize;
+
+            v3.BaseLabelDiameter = baseLabelDiameter;
+            v3.BaseLabelFontSize = baseLabelFontSize;
+            v3.LabelScale = SizingModel.SafeScale(MarkerLabel.Style.Diameter, baseLabelDiameter);
+            v3.NameScale = SizingModel.SafeScale(TextLabel.Style.FontSize, baseLabelFontSize);
+            v3.ImageIdScale = SizingModel.SafeScale(idm.FontSize, baseLabelFontSize);
+            v3.TitleScale = SizingModel.SafeScale(tm.TitleFontSize, baseLabelFontSize);
+            v3.ImageInfoScale = SizingModel.SafeScale(iim.ImageInfoFontSize, baseLabelFontSize);
         }
 
         public void ApplyRowDefinition()

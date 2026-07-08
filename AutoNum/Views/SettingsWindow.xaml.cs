@@ -58,4 +58,25 @@ public partial class SettingsWindow : MetroWindow
             }
         }
     }
+
+    private void ResetFaceScaleFactor_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsManager settingsManager)
+        {
+            settingsManager.FaceScaleFactor = 1.2;
+        }
+    }
+
+    private void ResetFaceMinNeighbors_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is SettingsManager settingsManager)
+        {
+            settingsManager.FaceMinNeighbors = 7;
+        }
+    }
+
+    private void RedetectFaces_Click(object sender, RoutedEventArgs e)
+    {
+        _mainVM.LabelManager.RedetectFacesCommand.Execute(null);
+    }
 }

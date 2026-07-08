@@ -109,12 +109,18 @@ namespace AutoNumber.Model
         /// </summary>
         public static Bitmap RestoreFromPatches(this Bitmap composite, AutoNumMetaData_V2 md, List<PatchData> patches)
         {
+            ArgumentNullException.ThrowIfNull(composite);
+            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches START: composite={composite.Width}x{composite.Height}");
+            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches: OriginalImageWidth={md.OriginalImageWidth}, OriginalImageHeight={md.OriginalImageHeight}, TitleHeight={md.TitleHeight}");
+            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches: patches.Count={patches.Count}");
+
             // Composite layout: [title bar (TitleHeight) | original image | footer]
             // Step 1: Paste patches onto composite at their saved coordinates (composite space)
             using (var g = Graphics.FromImage(composite))
             {
                 foreach (var patch in patches)
                 {
+                    System.Diagnostics.Trace.WriteLine($"  Pasting patch at ({patch.X}, {patch.Y}) size={patch.Width}x{patch.Height}");
                     using var pngStream = new MemoryStream(patch.PngBytes);
                     using var patchBmp = new Bitmap(pngStream);
                     g.DrawImage(patchBmp, patch.X, patch.Y, patch.Width, patch.Height);
@@ -123,6 +129,7 @@ namespace AutoNumber.Model
 
             // Step 2: Crop to original image region (skip title at top, footer at bottom)
             var cropRect = new Rectangle(0, md.TitleHeight, md.OriginalImageWidth, md.OriginalImageHeight);
+            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches: cropRect={cropRect}");
             return composite.Clone(cropRect, composite.PixelFormat);
         }
         /// <summary>

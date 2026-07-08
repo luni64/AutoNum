@@ -51,8 +51,9 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            // Clear all persons (labels and names)
+            // Clear all persons (labels and names) and reset row state to one row
             _imageVM.Persons.Clear();
+            _imageVM.ResetRowState();
 
             try
             {
@@ -98,7 +99,7 @@ namespace AutoNumber.ViewModels
             Trace.WriteLine($"RedetectFaces: detected {faces.Count} face(s)");
 
             // Set labels with newly detected faces (scale is preserved as it's not modified by SetLabels)
-            SetLabels(faces);
+            SetLabels(faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
 
             try
             {
@@ -130,7 +131,7 @@ namespace AutoNumber.ViewModels
 
             var faces = FaceDetector.Detect(_imageVM.Bitmap);
             Trace.WriteLine($"RotateImage: detected {faces.Count} face(s) after rotation");
-            SetLabels(faces);
+            SetLabels(faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
 
             try
             {
@@ -212,7 +213,7 @@ namespace AutoNumber.ViewModels
         }
 
         #endregion
-        public void SetLabels(List<Rectangle> faces)
+        public void SetLabels(List<Rectangle> faces, bool assignRows = true)
         {
             BaseLabelDiameter = SizingModel.ComputeBaseLabelDiameter(faces, _imageVM.Bitmap?.Width ?? 0);
 
@@ -222,33 +223,114 @@ namespace AutoNumber.ViewModels
                 _imageVM.Persons.Add(new Person(0, "", labelPos));
             }
 
-            AssignDetectedRows();
+            if (assignRows)
+            {
+                AssignDetectedRows();
+            }
+
             RecalculateBaseLabelFontSize();
             Numerate();
+            CalculateAndStoreRowBoundaries();
         }
 
-        private void AssignDetectedRows()
+        public void AssignDetectedRows()
         {
             if (_imageVM.Persons.Count == 0)
             {
                 return;
             }
 
-            var persons = _imageVM.Persons;
-            double minY = persons.Min(p => p.GetRowAnchorPoint().Y);
-            double maxY = persons.Max(p => p.GetRowAnchorPoint().Y);
-            int nrOfRows = (int)Math.Max(1, (maxY - minY) / (BaseLabelDiameter * 1.25));
-            double delta = (maxY - minY) / nrOfRows;
+            var persons = _imageVM.Persons.ToList();
+            var anchors = persons
+                .Select(person => new { Person = person, Y = (double)person.GetRowAnchorPoint().Y })
+                .ToList();
 
-            for (int row = 0; row < nrOfRows; row++)
+            var minY = anchors.Min(item => item.Y);
+            var maxY = anchors.Max(item => item.Y);
+            var span = Math.Max(0, maxY - minY);
+            var estimatedRowCount = (int)Math.Max(1, span / (BaseLabelDiameter * 1.25));
+
+            if (span <= 0 || estimatedRowCount <= 1)
             {
-                double lower = minY + row * delta;
-                double upper = minY + (row + 1) * delta;
-                foreach (var person in persons.Where(p => p.Label.Y >= lower && p.Label.Y <= upper))
+                foreach (var person in persons)
                 {
-                    person.Row = row + 1;
+                    person.Row = 1;
                 }
+
+                return;
             }
+
+            var delta = span / estimatedRowCount;
+
+            foreach (var item in anchors)
+            {
+                var normalized = (item.Y - minY) / delta;
+                var detectedRow = Math.Clamp((int)Math.Floor(normalized) + 1, 1, estimatedRowCount);
+                item.Person.Row = detectedRow;
+            }
+
+            var rowMap = persons
+                .Select(person => person.Row)
+                .Where(row => row > 0)
+                .Distinct()
+                .OrderBy(row => row)
+                .Select((row, index) => new { row, compactRow = index + 1 })
+                .ToDictionary(item => item.row, item => item.compactRow);
+
+            foreach (var person in persons)
+            {
+                person.Row = rowMap.TryGetValue(person.Row, out var compactRow) ? compactRow : 1;
+            }
+        }
+
+        /// <summary>
+        /// Calculate row boundaries from the currently assigned row numbers and store them in metadata.
+        /// Only creates boundaries for multi-row images (single-row images get empty boundaries).
+        /// </summary>
+        public void CalculateAndStoreRowBoundaries()
+        {
+            if (_imageVM.Persons.Count == 0 || _imageVM.CurrentMetadata is null)
+            {
+                return;
+            }
+
+            // Group persons by row
+            var groups = _imageVM.Persons
+                .Where(person => person.Row > 0)
+                .GroupBy(person => person.Row)
+                .OrderBy(group => group.Key)
+                .Select(group => new
+                {
+                    Row = group.Key,
+                    MinY = group.Min(person => (double)person.GetRowAnchorPoint().Y),
+                    MaxY = group.Max(person => (double)person.GetRowAnchorPoint().Y)
+                })
+                .ToList();
+
+            // Single row or no rows: no boundaries needed
+            if (groups.Count <= 1)
+            {
+                _imageVM.CurrentMetadata.RowBoundaries = [];
+                _imageVM.CurrentMetadata.RowCount = 1;
+                return;
+            }
+
+            // Multi-row: calculate boundaries between rows
+            var boundaries = new List<RowBoundary>();
+            for (var index = 0; index < groups.Count - 1; index++)
+            {
+                var current = groups[index];
+                var next = groups[index + 1];
+                var boundaryY = (current.MaxY + next.MinY) / 2.0;
+
+                var minAllowed = index == 0 ? 0.0 : boundaries[index - 1].LeftY + 2.0;
+                boundaryY = Math.Clamp(boundaryY, minAllowed, _imageVM.ImageHeight);
+
+                boundaries.Add(new RowBoundary(boundaryY, boundaryY));
+            }
+
+            _imageVM.CurrentMetadata.RowBoundaries = boundaries;
+            _imageVM.CurrentMetadata.RowCount = groups.Count;
         }
 
         public LabelManager(ImageVM imageVM)
@@ -263,7 +345,7 @@ namespace AutoNumber.ViewModels
                 MarkerLabel.Style.BackgroundColor = BackgroundColor;
                 MarkerLabel.Style.EdgeColor = EdgeColor;
                 MarkerLabel.Style.FontColor = FontColor;
-                SetLabels(msg.Faces);
+                SetLabels(msg.Faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
             });
 
             WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
@@ -289,6 +371,7 @@ namespace AutoNumber.ViewModels
                             ? v3.BaseLabelFontSize
                             : md.LabelsFont.Size;
                         LabelScale = v3.LabelScale;
+                        Trace.WriteLine($"MetadataLoaded[LabelManager]: V3+ branch baseDiameter={BaseLabelDiameter:F4}, baseFont={BaseLabelFontSize:F4}, labelScale={LabelScale:F4}, visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     }
                     else
                     {
@@ -299,9 +382,11 @@ namespace AutoNumber.ViewModels
                             ? SizingModel.LegacyStoredFontSizeToVisibleSize(md.LabelsFont.Size)
                             : SizingModel.ComputeFittedLabelFontSize(BaseLabelDiameter, _imageVM.Persons);
                         LabelScale = 1.0;
+                        Trace.WriteLine($"MetadataLoaded[LabelManager]: legacy branch labelsSize={md.LabelsSize:F4}, labelsFontStored={md.LabelsFont.Size:F4}, baseDiameter={BaseLabelDiameter:F4}, baseFont={BaseLabelFontSize:F4}, labelScale={LabelScale:F4}, visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     }
 
                     WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
+                    Trace.WriteLine($"MetadataLoaded[LabelManager]: post-refresh visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     Trace.WriteLine("MetadataLoaded[LabelManager]: completed");
                 }
                 catch (Exception ex)

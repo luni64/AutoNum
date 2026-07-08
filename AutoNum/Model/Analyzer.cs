@@ -73,13 +73,24 @@ namespace AutoNumber.Model
                 + GetTextBlockHeight(iim.ImageInfo, iim.ImageInfoFontFamily, iim.ImageInfoFontSize);
         }
 
-        public static double PlacePersonNames(ICollectionView persons, double width, double startY, int columnCount)
+        public static NamePlacementResult PlacePersonNames(
+            ICollectionView persons,
+            double width,
+            double startY,
+            int columnCount,
+            bool includeRowDividers,
+            Func<int, string> rowDividerTextFactory)
         {
             var items = persons.OfType<Person>().ToList();
             if (items.Count == 0)
             {
-                return 0;
+                return new NamePlacementResult(0, []);
             }
+
+            var orderedItems = items
+                .OrderBy(person => person.Row <= 0 ? int.MaxValue : person.Row)
+                .ThenBy(person => person.Label.Number)
+                .ToList();
 
             var fontSize = double.IsFinite(TextLabel.Style.FontSize) && TextLabel.Style.FontSize > 0
                 ? TextLabel.Style.FontSize
@@ -92,26 +103,97 @@ namespace AutoNumber.Model
             var numberColumnWidth = Math.Min(columnWidth, NamesTableLayout.ResolveNumberColumnWidth(columnWidth));
             var contentWidth = Math.Max(1, columnWidth - numberColumnWidth - 2 * options.CellPaddingX);
 
-            var entries = items
-                .Select(person => new NameTableLayoutEntry(
-                    NameText: person.Name.Text ?? string.Empty,
-                    DesiredContentHeight: MeasureWrappedTextHeight(person.Name.Text ?? string.Empty, font, (float)contentWidth)))
+            var entries = new List<NameTableLayoutEntry>();
+            var entryPersons = new List<Person?>();
+            var dividerRowsByEntry = new List<int>();
+
+            var assignedRowGroups = orderedItems
+                .Where(person => person.Row > 0)
+                .GroupBy(person => person.Row)
+                .OrderBy(group => group.Key)
                 .ToList();
 
-            var layout = NameTableLayoutEngine.BuildLayout(entries, options);
-
-            for (var index = 0; index < items.Count; index++)
+            foreach (var rowGroup in assignedRowGroups)
             {
-                var person = items[index];
-                var cell = layout.Cells[index];
-                person.Name.X = cell.X;
-                person.Name.Y = cell.Y;
-                person.Name.W = cell.Width;
-                person.Name.H = cell.Height;
-                person.Name.Visible = true;
+                if (includeRowDividers)
+                {
+                    var dividerText = rowDividerTextFactory(rowGroup.Key);
+                    var dividerHeight = MeasureWrappedTextHeight(dividerText, font, (float)Math.Max(1, options.TotalWidth - 2 * options.CellPaddingX));
+
+                    entries.Add(new NameTableLayoutEntry(dividerText, dividerHeight));
+                    entryPersons.Add(null);
+                    dividerRowsByEntry.Add(rowGroup.Key);
+
+                    for (var filler = 1; filler < options.ColumnCount; filler++)
+                    {
+                        entries.Add(new NameTableLayoutEntry(string.Empty, 0));
+                        entryPersons.Add(null);
+                        dividerRowsByEntry.Add(0);
+                    }
+                }
+
+                foreach (var person in rowGroup.OrderBy(person => person.Label.Number))
+                {
+                    var nameText = person.Name.Text ?? string.Empty;
+                    var nameHeight = MeasureWrappedTextHeight(nameText, font, (float)contentWidth);
+                    entries.Add(new NameTableLayoutEntry(nameText, nameHeight));
+                    entryPersons.Add(person);
+                    dividerRowsByEntry.Add(0);
+                }
+
+                var remainder = entries.Count % options.ColumnCount;
+                if (remainder > 0)
+                {
+                    for (var filler = remainder; filler < options.ColumnCount; filler++)
+                    {
+                        entries.Add(new NameTableLayoutEntry(string.Empty, 0));
+                        entryPersons.Add(null);
+                        dividerRowsByEntry.Add(0);
+                    }
+                }
             }
 
-            return layout.TotalHeight;
+            foreach (var person in orderedItems.Where(person => person.Row <= 0))
+            {
+                var nameText = person.Name.Text ?? string.Empty;
+                var nameHeight = MeasureWrappedTextHeight(nameText, font, (float)contentWidth);
+                entries.Add(new NameTableLayoutEntry(nameText, nameHeight));
+                entryPersons.Add(person);
+                dividerRowsByEntry.Add(0);
+            }
+
+            var layout = NameTableLayoutEngine.BuildLayout(entries, options);
+            var dividerItems = new List<NameListDividerRenderItem>();
+
+            for (var index = 0; index < layout.Cells.Count; index++)
+            {
+                var cell = layout.Cells[index];
+                var person = entryPersons[index];
+
+                if (person is not null)
+                {
+                    person.Name.X = cell.X;
+                    person.Name.Y = cell.Y;
+                    person.Name.W = cell.Width;
+                    person.Name.H = cell.Height;
+                    person.Name.Visible = true;
+                    continue;
+                }
+
+                var row = dividerRowsByEntry[index];
+                if (row > 0)
+                {
+                    dividerItems.Add(new NameListDividerRenderItem(
+                        Row: row,
+                        Text: rowDividerTextFactory(row),
+                        X: 0,
+                        Y: cell.Y,
+                        Width: options.TotalWidth,
+                        Height: cell.Height));
+                }
+            }
+
+            return new NamePlacementResult(layout.TotalHeight, dividerItems);
         }
 
         private static double MeasureWrappedTextHeight(string text, Font font, float maxWidth)

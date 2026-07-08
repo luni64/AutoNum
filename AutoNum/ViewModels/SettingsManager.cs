@@ -36,6 +36,8 @@ public class SettingsManager : BaseViewModel
 
         _faceScaleFactor = ClampDouble(_settings.FaceScaleFactor, 1.05, 2.0);
         _faceMinNeighbors = ClampInt(_settings.FaceMinNeighbors, 1, 20);
+        _faceDetectionEnabled = _settings.FaceDetectionEnabled;
+        _rowDetectionEnabled = _settings.RowDetectionEnabled;
 
         _exportCsvMetadata = _settings.ExportCsvMetadata;
         _exportJsonMetadata = _settings.ExportJsonMetadata;
@@ -289,6 +291,49 @@ public class SettingsManager : BaseViewModel
         }
     }
 
+    public bool FaceDetectionEnabled
+    {
+        get => _faceDetectionEnabled;
+        set
+        {
+            if (_faceDetectionEnabled == value)
+            {
+                return;
+            }
+
+            _faceDetectionEnabled = value;
+            OnPropertyChanged(nameof(FaceDetectionEnabled));
+            OnPropertyChanged(nameof(CanEnableRowDetection));
+
+            if (!_faceDetectionEnabled && RowDetectionEnabled)
+            {
+                RowDetectionEnabled = false;
+                return;
+            }
+
+            SaveSettings();
+        }
+    }
+
+    public bool RowDetectionEnabled
+    {
+        get => _rowDetectionEnabled;
+        set
+        {
+            var clamped = FaceDetectionEnabled && value;
+            if (_rowDetectionEnabled == clamped)
+            {
+                return;
+            }
+
+            _rowDetectionEnabled = clamped;
+            OnPropertyChanged(nameof(RowDetectionEnabled));
+            SaveSettings();
+        }
+    }
+
+    public bool CanEnableRowDetection => FaceDetectionEnabled;
+
     public bool AppendNumSuffixForOriginalSaves
     {
         get => !string.IsNullOrWhiteSpace(_saveFileSuffix);
@@ -402,12 +447,21 @@ public class SettingsManager : BaseViewModel
     /// <summary>
     /// Update the full default formatting value for one element.
     /// </summary>
-    public void UpdateDefaultFormatting(string managerType, double scale, Color fontColor, Color backgroundColor)
+    public void UpdateDefaultFormatting(string managerType, double scale, Color fontColor, Color backgroundColor, Color? edgeColor = null)
     {
         scale = ClampDouble(scale, 0.25, 4.0);
 
         switch (managerType)
         {
+            case nameof(LabelManager):
+                DefaultLabelDiameterScale = scale;
+                DefaultLabelFontColor = fontColor;
+                DefaultLabelBackgroundColor = backgroundColor;
+                if (edgeColor is Color edge)
+                {
+                    DefaultLabelEdgeColor = edge;
+                }
+                break;
             case nameof(TitleManager):
                 DefaultTitleFontScale = scale;
                 DefaultTitleFontColor = fontColor;
@@ -525,6 +579,8 @@ public class SettingsManager : BaseViewModel
         _settings.DefaultImageIdFontBackground = DefaultImageIdBackgroundColor.ToArgb();
         _settings.FaceScaleFactor = FaceScaleFactor;
         _settings.FaceMinNeighbors = FaceMinNeighbors;
+        _settings.FaceDetectionEnabled = FaceDetectionEnabled;
+        _settings.RowDetectionEnabled = RowDetectionEnabled;
         _settings.SaveFileSuffix = SaveFileSuffix;
         _settings.ExportCsvMetadata = ExportCsvMetadata;
         _settings.ExportJsonMetadata = ExportJsonMetadata;
@@ -563,6 +619,8 @@ public class SettingsManager : BaseViewModel
     private Color _defaultImageInfoBackgroundColor;
     private Color _defaultImageIdFontColor;
     private Color _defaultImageIdBackgroundColor;
+    private bool _faceDetectionEnabled = true;
+    private bool _rowDetectionEnabled = true;
     private double _faceScaleFactor;
     private int _faceMinNeighbors;
     private string _saveFileSuffix = "_num";

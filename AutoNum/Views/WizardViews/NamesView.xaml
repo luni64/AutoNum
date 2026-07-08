@@ -77,18 +77,6 @@
                                 </Style>
                             </DataGridTextColumn.ElementStyle>
                         </DataGridTextColumn>
-                        <DataGridTextColumn Header="Row" Binding="{Binding Row, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Width="Auto">
-                            <DataGridTextColumn.ElementStyle>
-                                <Style TargetType="TextBlock">
-                                    <Setter Property="TextAlignment" Value="Center"/>
-                                </Style>
-                            </DataGridTextColumn.ElementStyle>
-                            <DataGridTextColumn.EditingElementStyle>
-                                <Style TargetType="TextBox">
-                                    <Setter Property="TextAlignment" Value="Center"/>
-                                </Style>
-                            </DataGridTextColumn.EditingElementStyle>
-                        </DataGridTextColumn>
                         <DataGridTextColumn Header="Name" Binding="{Binding Name.Text }" Width="*" MinWidth="120"/>
                     </DataGrid.Columns>
                 </DataGrid>

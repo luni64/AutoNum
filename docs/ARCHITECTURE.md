@@ -94,19 +94,20 @@ AutoNum/
 
 ### Open fresh image (no AutoNum metadata)
 1. `FileManager` loads bitmap and applies EXIF orientation.
-2. Faces are detected via `FaceDetector`.
-3. `ImageVM` is initialized; `NewImageOpenedMessage` triggers `LabelManager.SetLabels(...)`.
-4. `LabelManager.SetLabels(...)` initializes persons, computes baseline label diameter, and sets `LabelScale = 1.0` (unscaled).
+2. `ImageVM` is initialized.
+3. If `SettingsManager.FaceDetectionEnabled` is true, fresh-image face detection runs via `FaceDetector` and `NewImageOpenedMessage` triggers `LabelManager.SetLabels(...)`.
+4. `LabelManager.SetLabels(...)` initializes persons, computes baseline label diameter, and optionally assigns rows when `SettingsManager.RowDetectionEnabled` is true.
 5. `SettingsManager.ApplyFreshImageDefaults(...)` ensures all managers start unscaled:
    - All managers (`LabelManager`, `NameManager`, `TitleManager`, `ImageInfoManager`, `ImageIdManager`) have `FontScale = 1.0`
    - Applies saved default toggles for names, title, and image-info visibility
    - Slider positions are all at 0.5 (unscaled baseline)
+   - Fresh-image detection defaults are enabled unless the user changes them in the settings dialog
 
 ### Open saved AutoNum image
 1. Metadata is loaded from either:
    - JPEG EXIF UserComment (`_num.jpg`), or
    - embedded PDF payload zip (`_num.pdf`) via `PdfPayloadStore`.
-2. For JPEG V2/V3 and editable PDF payloads, the clean base image is reconstructed from embedded patches (`AppSegmentIO`/`RestoreFromPatches` for JPEG, payload patches for PDF).
+2. For JPEG V2/V3, the clean base image is reconstructed from embedded patches (`AppSegmentIO`/`RestoreFromPatches`). For editable PDF payloads, the clean base image is read directly from the embedded payload image.
 3. `ImageVM.InitFromMetadata(...)` rebuilds persons and publishes `MetadataLoadedMessage`.
 4. Managers restore styling/toggles/scales/font families from metadata:
    - V3 restores exact sizing anchors/scales
@@ -129,7 +130,7 @@ AutoNum/
 2. Prevent overwrite only for the protected original file path.
 3. Render with `ToNumberedBitmap(...)`, including optional stacked title, image-information, image-ID, and names blocks in order: Title, Information, Image, ID, Names.
 4. Save JPEG bytes, inject APP4 patches, embed metadata as `Version = "V3"` with exact sizing anchors plus relative scales.
-5. Optional PDF export path renders the PDF document and appends a versioned embedded AutoNum payload zip (metadata + composite + patches) for round-trip editing from `_num.pdf`.
+5. Optional PDF export path renders the PDF document and embeds a versioned AutoNum payload zip (`metadata + base image`) as a standard PDF attachment for round-trip editing from `_num.pdf`.
 
 ## Slider & Scale Control Architecture
 
@@ -151,6 +152,7 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 3. Calls `ApplyScale()` when scale changes, which recomputes visible sizes:
    - `visibleFontSize = ResolveSize(baseFontSize, scale)` = `baseFontSize * scale`
    - Updates the corresponding UI style (e.g., `MarkerLabel.Style.FontSize`)
+4. `LabelManager` also acts as the row/label orchestration point for fresh-image detection and manual re-detection, while `RowDefinitionManager` owns row preview/edit mode and row-count transitions.
 
 ### Fresh-Image & Settings Initialization
 - When a fresh image opens, `LabelManager.SetLabels()` sets `LabelScale = 1.0` (always unscaled).
@@ -178,16 +180,18 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
   - "Anwenden" (Apply) button to restore all saved defaults to the current image
   - Per-element "Use as default" buttons in formatting dialogs to save individual element scales
 - Other tabs:
-  - **Erkennung** (Detection): Face detection sensitivity and neighborhood settings
+  - **Erkennung** (Detection): Face detection enable/disable, row detection enable/disable, face-detector tuning (ScaleFactor and MinNeighbors), and a manual "Neu Erkennen" action that re-runs face detection with the current parameters
   - **Speichern** (Save): Save-file naming convention toggle
 - Scope:
   - affects **new fresh-image sessions** and detector/save defaults
+  - detection defaults are enabled by default for new and migrated settings
   - does **not** override per-image values restored from metadata
 
 ## Rendering Notes
 - **Live preview renderer (WPF/XAML):** marker templates in `Marker.xaml` render label circles and names-table rows.
 - **JPG export renderer (GDI+):** `ExtensionMethods` draws final bitmap; label drawing uses supersampled anti-aliased overlay/downsampling for improved small-label quality.
-- **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output; editable payload is embedded separately and is not page-visible.
+- **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output, sets standard PDF document metadata, and embeds editable payload as a non-visible PDF attachment. The numbered image is embedded as **PNG** (not JPEG): JPEG embedding causes QuestPDF to write `/ColorTransform 0` alongside an `ICCBased` colorspace, which confuses Acrobat DC's tile cache and makes the image vanish at 100% zoom on scroll.
+- Save operations use retry/cancel prompting when a target file is locked by another application, allowing the user to close the conflicting program and try again.
 - Names-table row geometry is computed once via `NameTableLayoutEngine` and projected to `TextLabel` row bounds (`X/Y/W/H`) so preview and JPG share the same wrap-aware layout foundation.
 - To minimize drift between renderers, column-width and padding rules are centralized in `NamesTableLayout`; preview uses dedicated converters, JPG uses GDI drawing helpers, and PDF uses the same width resolver.
 - Names-table measurement/rendering paths use pixel-based GDI font units to avoid WPF/GDI point-vs-pixel mismatch.
@@ -196,7 +200,8 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 - **Emgu.CV** — face detection
 - **MahApps.Metro** — WPF shell + dialogs
 - **CommunityToolkit.Mvvm** — messenger only
-- **QuestPDF** — PDF rendering
+- **QuestPDF** — PDF rendering and standards-compliant PDF attachment embedding
+- **PdfPig** — extraction of embedded PDF payload attachments on import
 
 ## Conventions
 - C# 12 / .NET 8

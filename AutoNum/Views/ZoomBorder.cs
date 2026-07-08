@@ -77,6 +77,9 @@ namespace AutoNumber.Views
                 if (markerLabel != null)
                 {
                     mainVM.PictureVM.Persons.Remove(markerLabel.Person);
+                    // Auto-renumber after deletion to keep numbering consistent
+                    // (rows remain unchanged - they're only modified in row mode)
+                    mainVM.LabelManager.Numerate();
                 }
                 else
                 {
@@ -89,54 +92,18 @@ namespace AutoNumber.Views
                     var center = new System.Drawing.PointF((float)(np.X - MarkerLabel.Style.Diameter / 2), (float)(np.Y - MarkerLabel.Style.Diameter / 2));
                     var newPerson = new Person(lastIdx + 1, "", center);
 
-                    // If row definition session is active, assign the correct row and preview color
+                    var row = mainVM.RowDefinitionManager.ResolveRow(newPerson);
+                    newPerson.Row = row;
                     if (mainVM.PictureVM.RowDefinitionSession is not null)
                     {
-                        var row = ResolveRowForPosition(center.Y, mainVM.PictureVM.RowDefinitionSession, mainVM.PictureVM.ImageWidth);
-                        newPerson.Row = row;
                         newPerson.RowPreviewActive = true;
-                        newPerson.RowPreviewColor = GetPreviewColorForRow(row);
+                        newPerson.RowPreviewColor = RowDefinitionSession.GetPreviewColor(row);
                     }
 
                     mainVM.PictureVM.Persons.Add(newPerson);
+                    mainVM.LabelManager.Numerate();
                 }
             }
-        }
-
-        private static int ResolveRowForPosition(double y, RowDefinitionSession session, double imageWidth)
-        {
-            var row = 1;
-            foreach (var boundary in session.Boundaries)
-            {
-                // Assuming we're at the center of the label (approximate x position)
-                var centerX = imageWidth / 2;
-                var boundaryY = GetBoundaryYAtX(boundary, centerX, imageWidth);
-                if (y > boundaryY)
-                {
-                    row++;
-                }
-            }
-            return row;
-        }
-
-        private static double GetBoundaryYAtX(RowBoundary boundary, double x, double imageWidth)
-        {
-            var width = Math.Max(1, imageWidth);
-            var t = Math.Clamp(x / width, 0.0, 1.0);
-            return boundary.LeftY + (boundary.RightY - boundary.LeftY) * t;
-        }
-
-        private static System.Drawing.Color GetPreviewColorForRow(int row)
-        {
-            var palette = new[]
-            {
-                System.Drawing.Color.FromArgb(255, 224, 242, 254),
-                System.Drawing.Color.FromArgb(255, 255, 244, 214),
-                System.Drawing.Color.FromArgb(255, 243, 229, 245),
-                System.Drawing.Color.FromArgb(255, 232, 245, 233)
-            };
-
-            return palette[Math.Max(0, row - 1) % palette.Length];
         }
 
 

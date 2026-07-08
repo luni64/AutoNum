@@ -105,7 +105,7 @@ namespace AutoNumber.Model
             graphics.DrawString(text, font, fg, bounds, format);
         }
 
-        public static void drawNames(List<TextLabel> names, Bitmap bmp, Font font, int offset)
+        public static void drawNames(List<TextLabel> names, IReadOnlyList<NameListDividerRenderItem> rowDividers, Bitmap bmp, Font font, int offset)
         {
             using var g = Graphics.FromImage(bmp);
             applyHighQualityRenderMode(g);
@@ -125,6 +125,24 @@ namespace AutoNumber.Model
                 LineAlignment = StringAlignment.Center,
                 Trimming = StringTrimming.Word
             };
+
+            foreach (var divider in rowDividers)
+            {
+                var dividerRect = new RectangleF(
+                    (float)divider.X,
+                    offset + (float)divider.Y,
+                    (float)divider.Width,
+                    (float)divider.Height);
+
+                g.DrawLine(borderPen, dividerRect.Left, dividerRect.Bottom, dividerRect.Right, dividerRect.Bottom);
+
+                var paddedDividerRect = new RectangleF(
+                    dividerRect.X + NamesTableLayout.BitmapCellPaddingX,
+                    dividerRect.Y,
+                    Math.Max(1, dividerRect.Width - 2 * NamesTableLayout.BitmapCellPaddingX),
+                    dividerRect.Height);
+                g.DrawString(divider.Text, font, textBrush, paddedDividerRect, nameFormat);
+            }
 
             foreach (var name in names)
             {
@@ -269,7 +287,7 @@ namespace AutoNumber.Model
 
                     var fontSize = (float)Math.Max(1d, TextLabel.Style.FontSize);
                     using var font = new Font(nm.FontFamily, fontSize, FontStyle.Regular, GraphicsUnit.Pixel);
-                    drawNames(names, bmpFinal, font, titleHeight);
+                    drawNames(names, nm.RowDividers, bmpFinal, font, titleHeight);
                 }
             }
 

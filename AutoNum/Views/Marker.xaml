@@ -22,6 +22,7 @@
         <is:NameTableNumberColumnWidthConverter x:Key="NameTableNumberColumnWidthConverter"/>
         <is:NameTableNameColumnWidthConverter x:Key="NameTableNameColumnWidthConverter"/>
         <is:RowPreviewFillConverter x:Key="RowPreviewFillConverter"/>
+        <is:RowPreviewEdgeConverter x:Key="RowPreviewEdgeConverter"/>
 
         <DataTemplate DataType="{x:Type vm:MarkerLabel}">
             <Grid 
@@ -30,8 +31,14 @@
 
                 <Ellipse                                    
                     HorizontalAlignment="Center"  VerticalAlignment="Center" Height="{Binding Diameter}" Width="{Binding Diameter}"
-                    Stroke="{Binding EdgeColor, Converter={StaticResource Col2Brush}}"                    
                     StrokeThickness="{Binding StrokeThickness}">
+                    <Ellipse.Stroke>
+                        <MultiBinding Converter="{StaticResource RowPreviewEdgeConverter}">
+                            <Binding Path="Person.RowPreviewActive"/>
+                            <Binding Path="Person.RowPreviewColor" Converter="{StaticResource Col2Brush}"/>
+                            <Binding Path="EdgeColor" Converter="{StaticResource Col2Brush}"/>
+                        </MultiBinding>
+                    </Ellipse.Stroke>
                     <Ellipse.Fill>
                         <MultiBinding Converter="{StaticResource RowPreviewFillConverter}">
                             <Binding Path="Person.RowPreviewActive"/>

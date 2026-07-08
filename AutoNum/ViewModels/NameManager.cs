@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Data;
+using System.Collections.Generic;
 
 namespace AutoNumber.ViewModels
 {
@@ -29,14 +30,22 @@ namespace AutoNumber.ViewModels
             if (_imageVM.Persons.Count == 0)
             {
                 _imageVM.NamesRegionHeight = 0;
+                RowDividers = [];
                 return;
             }
 
             if (IsEnabled)
             {
                 var imageIdOffset = _imageIdManager.ShowImageIdLine ? _imageIdManager.LineHeight : 0;
-                var height = Analyzer.PlacePersonNames(PersonsView, _imageVM.ImageWidth, _imageVM.ImageHeight + imageIdOffset, NameTableColumnCount);
-                _imageVM.NamesRegionHeight = height;
+                var placement = Analyzer.PlacePersonNames(
+                    PersonsView,
+                    _imageVM.ImageWidth,
+                    _imageVM.ImageHeight + imageIdOffset,
+                    NameTableColumnCount,
+                    ShowRowDividers,
+                    FormatRowDividerText);
+                _imageVM.NamesRegionHeight = placement.TotalHeight;
+                RowDividers = placement.Dividers;
             }
             else
             {
@@ -46,6 +55,7 @@ namespace AutoNumber.ViewModels
                 }
 
                 _imageVM.NamesRegionHeight = 0;
+                RowDividers = [];
             }
         }
 
@@ -118,6 +128,39 @@ namespace AutoNumber.ViewModels
             }
         }
 
+        public bool ShowRowDividers
+        {
+            get => _showRowDividers;
+            set
+            {
+                if (_showRowDividers != value)
+                {
+                    SetProperty(ref _showRowDividers, value);
+                    ShowNames();
+                }
+            }
+        }
+
+        public string RowDividerTextTemplate
+        {
+            get => _rowDividerTextTemplate;
+            set
+            {
+                var normalized = string.IsNullOrWhiteSpace(value) ? DefaultRowDividerTextTemplate : value.Trim();
+                if (!string.Equals(_rowDividerTextTemplate, normalized, StringComparison.Ordinal))
+                {
+                    SetProperty(ref _rowDividerTextTemplate, normalized);
+                    ShowNames();
+                }
+            }
+        }
+
+        public IReadOnlyList<NameListDividerRenderItem> RowDividers
+        {
+            get => _rowDividers;
+            private set => SetProperty(ref _rowDividers, value);
+        }
+
         public void Refresh()
         {
             if (PersonsView is IEditableCollectionView ecv)
@@ -165,9 +208,14 @@ namespace AutoNumber.ViewModels
 
                     FontScale = scale;
                     NameTableColumnCount = Math.Clamp(md.NamesColumnCount ?? 1, 1, 4);
+                    ShowRowDividers = md.NamesRowDividersEnabled ?? true;
+                    RowDividerTextTemplate = string.IsNullOrWhiteSpace(md.NamesRowDividerTemplate)
+                        ? DefaultRowDividerTextTemplate
+                        : md.NamesRowDividerTemplate;
                     IsEnabled = _imageVM.Persons.Count > 0 && (md.NamesEnabled ?? true);
                     ShowNames();
 
+                    Trace.WriteLine($"MetadataLoaded[NameManager]: scale={scale:F4}, storedSize={md.NamesFont.Size:F4}, baseLabelStored={md.LabelsFont.Size:F4}, baseLabelRuntime={_labelManager.BaseLabelFontSize:F4}, resolvedFontSize={TextLabel.Style.FontSize:F4}, columns={NameTableColumnCount}, enabled={IsEnabled}");
                     Trace.WriteLine("MetadataLoaded[NameManager]: completed");
                 }
                 catch (Exception ex)
@@ -236,11 +284,36 @@ namespace AutoNumber.ViewModels
             return SizingModel.SafeScale(actualNameFontSize, legacyLabelFontSize);
         }
 
+        public string FormatRowDividerText(int row)
+        {
+            var template = string.IsNullOrWhiteSpace(RowDividerTextTemplate)
+                ? DefaultRowDividerTextTemplate
+                : RowDividerTextTemplate;
+
+            if (template.Contains("{n}", StringComparison.OrdinalIgnoreCase))
+            {
+                return template.Replace("{n}", row.ToString(), StringComparison.OrdinalIgnoreCase);
+            }
+
+            var tokenIndex = template.LastIndexOf('n');
+            if (tokenIndex >= 0)
+            {
+                return template[..tokenIndex] + row + template[(tokenIndex + 1)..];
+            }
+
+            return template;
+        }
+
+        private const string DefaultRowDividerTextTemplate = "Reihe n:";
+
         private readonly ImageVM _imageVM;
         private readonly LabelManager _labelManager;
         private readonly ImageIdManager _imageIdManager;
         private FontFamily _fontFamily = new("Calibri");
         private int _nameTableColumnCount = 1;
+        private bool _showRowDividers = true;
+        private string _rowDividerTextTemplate = DefaultRowDividerTextTemplate;
+        private IReadOnlyList<NameListDividerRenderItem> _rowDividers = [];
     }
 }
 
