@@ -140,6 +140,7 @@ namespace AutoNumber.Model
 
                 MetaData = version switch
                 {
+                    "V5" => JsonSerializer.Deserialize<AutoNumMetaData_V5>(json),
                     "V4" => JsonSerializer.Deserialize<AutoNumMetaData_V4>(json),
                     "V3" => JsonSerializer.Deserialize<AutoNumMetaData_V3>(json),
                     "V2" => JsonSerializer.Deserialize<AutoNumMetaData_V2>(json),

@@ -51,11 +51,7 @@ namespace AutoNumber.ViewModels
 
         public string FullName => Row > 0 ? $"R{Row}: {Label.Number}) {Name.Text}" : $"{Label.Number}) {Name.Text}";
 
-        public PointF GetRowAnchorPoint()
-        {
-            var halfDiameter = Label.Diameter / 2.0;
-            return new PointF((float)(Label.CenterX + halfDiameter), (float)(Label.CenterY + halfDiameter));
-        }
+        public PointF GetRowAnchorPoint() => new((float)Label.CenterX, (float)Label.CenterY);
 
         public override string ToString() => FullName;
 

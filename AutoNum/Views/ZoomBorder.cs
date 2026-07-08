@@ -89,7 +89,7 @@ namespace AutoNumber.Views
                         lastIdx = mainVM.PictureVM.Persons.Max(p => p.Label.Number);
                     }
 
-                    var center = new System.Drawing.PointF((float)(np.X - MarkerLabel.Style.Diameter / 2), (float)(np.Y - MarkerLabel.Style.Diameter / 2));
+                    var center = new System.Drawing.PointF((float)np.X, (float)np.Y);
                     var newPerson = new Person(lastIdx + 1, "", center);
 
                     var row = mainVM.RowDefinitionManager.ResolveRow(newPerson);

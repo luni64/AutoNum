@@ -288,6 +288,12 @@ namespace AutoNumber.Infrastructure
             if (parameterString == null)
                 return DependencyProperty.UnsetValue;
 
+            // RadioButton also fires ConvertBack(false, ...) for the button that just got
+            // unchecked when another one in the group is selected; ignore that or it
+            // immediately resets the bound enum back to the old value.
+            if (value is bool isChecked && !isChecked)
+                return Binding.DoNothing;
+
             return Enum.Parse(targetType, parameterString);
         }
         #endregion

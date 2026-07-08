@@ -75,7 +75,7 @@ namespace AutoNumber.ViewModels
             private set => SetProperty(ref _rowDefinitionSession, value);
         }
 
-        public AutoNumMetaData_V4? CurrentMetadata
+        public AutoNumMetaData_V5? CurrentMetadata
         {
             get => _currentMetadata;
             private set => SetProperty(ref _currentMetadata, value);
@@ -115,26 +115,32 @@ namespace AutoNumber.ViewModels
 
             Persons.Clear();
 
-            var restoredPersons = md.Persons.Select(p => new Person(p.Label.Number, p.Name.Text, new PointF(p.Label.CenterX, p.Label.CenterY))
+            var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95;
+
+            // Pre-V5 files stored each label's position as the circle's top-left corner
+            // rather than its true center; convert using the diameter the file was saved
+            // with so previously-saved images/PDFs render identically after reopening.
+            var centerOffset = md.Version == "V5" ? 0.0 : labelSize / 2.0;
+
+            var restoredPersons = md.Persons.Select(p => new Person(p.Label.Number, p.Name.Text,
+                new PointF(p.Label.CenterX + (float)centerOffset, p.Label.CenterY + (float)centerOffset))
             {
                 Row = p.Row
             });
             Persons.AddRange(restoredPersons);
 
-            var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95;
             LabelDiameter = labelSize;
 
-            // Upgrade older versions to V4 and store as current metadata
-            if (md is AutoNumMetaData_V4 v4)
+            // Upgrade older versions to V5 and store as current metadata
+            if (md is AutoNumMetaData_V5 v5)
             {
-                CurrentMetadata = v4;
+                CurrentMetadata = v5;
             }
             else
             {
-                // Upgrade to V4 - copy all V1/V2/V3 properties into a new V4 instance
-                CurrentMetadata = new AutoNumMetaData_V4
+                // Upgrade to V5 - copy all V1/V2/V3/V4 properties into a new V5 instance
+                CurrentMetadata = new AutoNumMetaData_V5
                 {
-                    Version = "V4",
                     Created = md.Created,
                     Creator = md.Creator,
                     OriginalImage = md.OriginalImage,
@@ -156,8 +162,8 @@ namespace AutoNumber.ViewModels
                     ImageInfoEnabled = md.ImageInfoEnabled,
                     ImageInfo = md.ImageInfo,
                     Persons = md.Persons,
-                    RowCount = 1,
-                    RowBoundaries = [],
+                    RowCount = (md is AutoNumMetaData_V4 v4) ? v4.RowCount : 1,
+                    RowBoundaries = (md is AutoNumMetaData_V4 v4b) ? v4b.RowBoundaries : [],
                     // Preserve V2 properties (original image dimensions)
                     OriginalImageWidth = (md is AutoNumMetaData_V2 v2) ? v2.OriginalImageWidth : 0,
                     OriginalImageHeight = (md is AutoNumMetaData_V2 v2x) ? v2x.OriginalImageHeight : 0,
@@ -331,9 +337,8 @@ namespace AutoNumber.ViewModels
             if (CurrentMetadata == null)
             {
                 // Create fresh metadata if none exists (e.g., new image)
-                CurrentMetadata = new AutoNumMetaData_V4
+                CurrentMetadata = new AutoNumMetaData_V5
                 {
-                    Version = "V4",
                     Created = DateTime.Now,
                     RowCount = 1,
                     RowBoundaries = []
@@ -427,9 +432,8 @@ namespace AutoNumber.ViewModels
             ImageHeight = Bitmap?.Height ?? 0;
 
             // Reset metadata for a fresh image with no embedded metadata
-            CurrentMetadata = new AutoNumMetaData_V4
+            CurrentMetadata = new AutoNumMetaData_V5
             {
-                Version = "V4",
                 RowCount = 1,
                 RowBoundaries = []
             };
@@ -464,6 +468,6 @@ namespace AutoNumber.ViewModels
         private double _namesRegionHeight;
         private double _titleRegionHeight = 300;
         private RowDefinitionSession? _rowDefinitionSession;
-        private AutoNumMetaData_V4? _currentMetadata;
+        private AutoNumMetaData_V5? _currentMetadata;
     }
 }

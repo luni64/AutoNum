@@ -38,6 +38,7 @@ public class SettingsManager : BaseViewModel
         _faceMinNeighbors = ClampInt(_settings.FaceMinNeighbors, 1, 20);
         _faceDetectionEnabled = _settings.FaceDetectionEnabled;
         _rowDetectionEnabled = _settings.RowDetectionEnabled;
+        _faceLabelAnchor = _settings.DefaultFaceLabelAnchor;
 
         _exportCsvMetadata = _settings.ExportCsvMetadata;
         _exportJsonMetadata = _settings.ExportJsonMetadata;
@@ -334,6 +335,20 @@ public class SettingsManager : BaseViewModel
 
     public bool CanEnableRowDetection => FaceDetectionEnabled;
 
+    /// <summary>
+    /// Where a freshly detected face's label is centered, relative to the detected
+    /// face rectangle. Applies only to new detections, never moves existing labels.
+    /// </summary>
+    public FaceLabelAnchor FaceLabelAnchor
+    {
+        get => _faceLabelAnchor;
+        set
+        {
+            SetProperty(ref _faceLabelAnchor, value);
+            SaveSettings();
+        }
+    }
+
     public bool AppendNumSuffixForOriginalSaves
     {
         get => !string.IsNullOrWhiteSpace(_saveFileSuffix);
@@ -581,6 +596,7 @@ public class SettingsManager : BaseViewModel
         _settings.FaceMinNeighbors = FaceMinNeighbors;
         _settings.FaceDetectionEnabled = FaceDetectionEnabled;
         _settings.RowDetectionEnabled = RowDetectionEnabled;
+        _settings.DefaultFaceLabelAnchor = FaceLabelAnchor;
         _settings.SaveFileSuffix = SaveFileSuffix;
         _settings.ExportCsvMetadata = ExportCsvMetadata;
         _settings.ExportJsonMetadata = ExportJsonMetadata;
@@ -623,6 +639,7 @@ public class SettingsManager : BaseViewModel
     private bool _rowDetectionEnabled = true;
     private double _faceScaleFactor;
     private int _faceMinNeighbors;
+    private FaceLabelAnchor _faceLabelAnchor;
     private string _saveFileSuffix = "_num";
     private bool _exportCsvMetadata;
     private bool _exportJsonMetadata;

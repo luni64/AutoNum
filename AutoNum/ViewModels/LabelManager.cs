@@ -217,11 +217,8 @@ namespace AutoNumber.ViewModels
         {
             BaseLabelDiameter = SizingModel.ComputeBaseLabelDiameter(faces, _imageVM.Bitmap?.Width ?? 0);
 
-            var newPersons = faces.Select(face =>
-            {
-                PointF labelPos = new PointF((float)(face.X + face.Width / 2), (float)(face.Y + face.Height * 1.05));
-                return new Person(0, "", labelPos);
-            });
+            var anchor = _mainVM?.SettingsManager.FaceLabelAnchor ?? FaceLabelAnchor.BottomCenter;
+            var newPersons = faces.Select(face => new Person(0, "", ResolveAnchorPosition(face, anchor)));
             _imageVM.Persons.AddRange(newPersons);
 
             if (assignRows)
@@ -232,6 +229,24 @@ namespace AutoNumber.ViewModels
             RecalculateBaseLabelFontSize();
             Numerate();
             CalculateAndStoreRowBoundaries();
+        }
+
+        /// <summary>
+        /// Resolves the label's initial center point within a detected face rectangle
+        /// for the given anchor. BottomCenter keeps the historical slight overshoot
+        /// below the chin; all other anchors sit exactly on the rectangle's fraction point.
+        /// </summary>
+        private static PointF ResolveAnchorPosition(Rectangle face, FaceLabelAnchor anchor)
+        {
+            if (anchor == FaceLabelAnchor.BottomCenter)
+            {
+                return new PointF(face.X + face.Width / 2f, face.Y + face.Height * 1.05f);
+            }
+
+            var (fracX, fracY) = anchor.ToFraction();
+            return new PointF(
+                (float)(face.X + fracX * face.Width),
+                (float)(face.Y + fracY * face.Height));
         }
 
         public void AssignDetectedRows()

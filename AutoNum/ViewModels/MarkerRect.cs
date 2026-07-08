@@ -14,24 +14,42 @@ namespace AutoNumber.ViewModels
         }
 
         private void OnStyleChanged(object? sender, PropertyChangedEventArgs e)
-            => OnPropertyChanged(e.PropertyName!);
+        {
+            OnPropertyChanged(e.PropertyName!);
+
+            // X/Y are derived from Diameter (to keep the circle centered on CenterX/CenterY),
+            // so a size change must also refresh the bound Canvas position.
+            if (e.PropertyName == nameof(LabelStyle.Diameter))
+            {
+                OnPropertyChanged(nameof(X));
+                OnPropertyChanged(nameof(Y));
+            }
+        }
 
         #region properties ------------------------------------------------------
+        /// <summary>
+        /// Canvas.Left equivalent (top-left of the rendered circle), derived from the
+        /// true center (CenterX/CenterY) and the current diameter.
+        /// </summary>
         override public double X
         {
-            get => CenterX + W / 2;
+            get => CenterX - Diameter / 2.0;
             set
             {
-                CenterX = value - W / 2;
+                CenterX = value + Diameter / 2.0;
                 OnPropertyChanged(nameof(X));
             }
         }
+        /// <summary>
+        /// Canvas.Top equivalent (top-left of the rendered circle), derived from the
+        /// true center (CenterX/CenterY) and the current diameter.
+        /// </summary>
         override public double Y
         {
-            get => CenterY + H / 2;
+            get => CenterY - Diameter / 2.0;
             set
             {
-                CenterY = value + H / 2;
+                CenterY = value + Diameter / 2.0;
                 OnPropertyChanged(nameof(Y));
             }
         }

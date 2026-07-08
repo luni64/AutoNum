@@ -35,6 +35,7 @@ public class AppSettings
 
     public double FaceScaleFactor { get; set; } = 1.2;
     public int FaceMinNeighbors { get; set; } = 7;
+    public FaceLabelAnchor DefaultFaceLabelAnchor { get; set; } = FaceLabelAnchor.BottomCenter;
 
     public bool ExportCsvMetadata { get; set; } = true;
     public bool ExportJsonMetadata { get; set; } = true;
@@ -84,7 +85,7 @@ public static class AppSettingsStore
     {
         try
         {
-            settings.SchemaVersion = 6;
+            settings.SchemaVersion = 7;
             Directory.CreateDirectory(SettingsDirectory);
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(SettingsPath, json);
@@ -97,20 +98,25 @@ public static class AppSettingsStore
 
     private static AppSettings CreateDefault() => new()
     {
-        SchemaVersion = 6,
+        SchemaVersion = 7,
         FaceDetectionEnabled = true,
-        RowDetectionEnabled = true
+        RowDetectionEnabled = true,
+        DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter
     };
 
     private static void Migrate(AppSettings settings)
     {
-        if (settings.SchemaVersion >= 6)
+        if (settings.SchemaVersion < 6)
         {
-            return;
+            settings.FaceDetectionEnabled = true;
+            settings.RowDetectionEnabled = true;
+            settings.SchemaVersion = 6;
         }
 
-        settings.FaceDetectionEnabled = true;
-        settings.RowDetectionEnabled = true;
-        settings.SchemaVersion = 6;
+        if (settings.SchemaVersion < 7)
+        {
+            settings.DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter;
+            settings.SchemaVersion = 7;
+        }
     }
 }

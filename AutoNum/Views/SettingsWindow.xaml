@@ -16,6 +16,31 @@
                  ResizeMode="CanResizeWithGrip">
     <mah:MetroWindow.Resources>
         <Infrastructure:ColorConverter x:Key="ColorConverter"/>
+        <Infrastructure:EnumBooleanConverter x:Key="EnumBooleanConverter"/>
+
+        <Style x:Key="FaceAnchorDotStyle" TargetType="RadioButton">
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Ellipse x:Name="Dot"
+                                 Width="18" Height="18"
+                                 Stroke="{DynamicResource MahApps.Brushes.Accent}"
+                                 StrokeThickness="2"
+                                 Fill="Transparent"
+                                 ToolTip="{TemplateBinding ToolTip}"/>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Dot" Property="Fill" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Dot" Property="StrokeThickness" Value="3"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </mah:MetroWindow.Resources>
     <Grid Margin="16" >
         <Grid.RowDefinitions>
@@ -127,6 +152,60 @@
                         <mah:ToggleSwitch IsOn="{Binding FaceDetectionEnabled, Mode=TwoWay}" Content="Gesichtserkennung verwenden" Margin="0,0,0,8"/>
                         <mah:ToggleSwitch IsOn="{Binding RowDetectionEnabled, Mode=TwoWay}" IsEnabled="{Binding CanEnableRowDetection}" Content="Reihenerkennung verwenden" Margin="0,0,0,14"/>
 
+						<TextBlock Text="Position des Labels im Gesicht" Margin="0,25,0,4" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+						<TextBlock TextWrapping="Wrap" Margin="0,0,0,8">
+							Legt fest, an welcher Stelle des erkannten Gesichts das Nummern-Label platziert wird. Wirkt sich nur auf neu erkannte Gesichter aus.
+						</TextBlock>
+						<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,14">
+							<Border Width="150" Height="150"
+									BorderBrush="{DynamicResource MahApps.Brushes.Gray5}"
+									BorderThickness="2">
+								<Grid>
+									<Grid.RowDefinitions>
+										<RowDefinition/>
+										<RowDefinition/>
+										<RowDefinition/>
+									</Grid.RowDefinitions>
+									<Grid.ColumnDefinitions>
+										<ColumnDefinition/>
+										<ColumnDefinition/>
+										<ColumnDefinition/>
+									</Grid.ColumnDefinitions>
+
+									<RadioButton Grid.Row="0" Grid.Column="0" GroupName="FaceAnchor" Style="{StaticResource FaceAnchorDotStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Oben links"
+												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=TopLeft}"/>
+									<RadioButton Grid.Row="0" Grid.Column="1" GroupName="FaceAnchor" Style="{StaticResource FaceAnchorDotStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Oben Mitte"
+												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=TopCenter}"/>
+									<RadioButton Grid.Row="0" Grid.Column="2" GroupName="FaceAnchor" Style="{StaticResource FaceAnchorDotStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Oben rechts"
+												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=TopRight}"/>
+
+									<RadioButton Grid.Row="1" Grid.Column="0" GroupName="FaceAnchor" Style="{StaticResource FaceAnchorDotStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Mitte links"
+												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=MiddleLeft}"/>
+									<RadioButton Grid.Row="1" Grid.Column="1" GroupName="FaceAnchor" Style="{StaticResource FaceAnchorDotStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Mitte"
+												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Center}"/>
+									<RadioButton Grid.Row="1" Grid.Column="2" GroupName="FaceAnchor" Style="{StaticResource FaceAnchorDotStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Mitte rechts"
+												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=MiddleRight}"/>
+
+									<RadioButton Grid.Row="2" Grid.Column="0" GroupName="FaceAnchor" Style="{StaticResource FaceAnchorDotStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Unten links"
+												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=BottomLeft}"/>
+									<RadioButton Grid.Row="2" Grid.Column="1" GroupName="FaceAnchor" Style="{StaticResource FaceAnchorDotStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Unten Mitte (Standard)"
+												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=BottomCenter}"/>
+									<RadioButton Grid.Row="2" Grid.Column="2" GroupName="FaceAnchor" Style="{StaticResource FaceAnchorDotStyle}" HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip="Unten rechts"
+												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=BottomRight}"/>
+								</Grid>
+							</Border>
+
+							<Button Content="Neu Erkennen"
+									Click="RedetectFaces_Click"
+									Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
+									FontSize="13"
+									mah:ControlsHelper.ContentCharacterCasing="Upper"
+									Padding="5"
+									Margin="14,0,0,0"
+									VerticalAlignment="Bottom"
+									HorizontalAlignment="Left"/>
+						</StackPanel>
+
 						<TextBlock TextWrapping="Wrap" Margin="0,25,0,14" FontSize="12">
 						<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
 					Parameter für die Gesichtserkennung
@@ -202,7 +281,7 @@
 								Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
 								FontSize="13"
 								mah:ControlsHelper.ContentCharacterCasing="Upper"
-								Padding="10"
+								Padding="5"
 								Margin="0,6,0,0"
 								HorizontalAlignment="Left"/>
                     </StackPanel>
