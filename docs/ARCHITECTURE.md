@@ -14,9 +14,12 @@ AutoNum/
 │   └── Converters.cs           # WPF  converters (bitmap/color/visibility/etc.)
 ├── Model/                      # Persistence and image-processing helpers
 │   ├── Analyzer.cs             # Text layout and measurement logic
-│   ├── AutoNumMetaData.cs      # Metadata schema + JSON (V1/V2/V3 router)
+│   ├── AutoNumMetaData.cs      # Metadata schema + JSON (V1-V5 router)
 │   ├── AutoNumMetaData_V2.cs   # V2 metadata additions
 │   ├── AutoNumMetaData_V3.cs   # V3 sizing anchors + relative scales
+│   ├── AutoNumMetaData_V4.cs   # V4 persisted row-definition boundaries
+│   ├── AutoNumMetaData_V5.cs   # V5 marker: label CenterX/CenterY are the true center (not top-left)
+│   ├── FaceLabelAnchor.cs      # 3x3 anchor enum + fractional mapping for face-relative label placement
 │   ├── AppSettings.cs          # App-wide settings model + %AppData% JSON store
 │   ├── BitmapExtensions.cs     # EXIF read/write/orientation + patch restore
 │   ├── ExtensionMethods.cs     # Render/export pipeline
@@ -89,6 +92,13 @@ AutoNum/
   - Slider position 0.0 corresponds to `scale = 0.25` (25% of base)
   - Slider position 1.0 corresponds to `scale = 4.0` (400% of base)
 - V3 metadata stores both exact anchors and relative scales so reopen is deterministic while V1/V2 files migrate through legacy size ratios.
+- V5 metadata is a pure version marker: label `CenterX`/`CenterY` are the circle's true center (pre-V5 files stored the top-left corner instead). `ImageVM.InitFromMetadata` migrates pre-V5 positions by offsetting by half the saved label diameter so previously-saved images/PDFs render unchanged after reopening.
+
+### Face-Relative Label Anchor
+- `FaceLabelAnchor` (`Model/FaceLabelAnchor.cs`) is a 3x3-grid enum (Top/Middle/Bottom × Left/Center/Right) controlling where a freshly detected face's label is centered within the detected face rectangle.
+- Applies only to newly created labels (open, redetect, rotate); existing labels are never moved retroactively when the setting changes.
+- Persisted app-wide as `AppSettings.DefaultFaceLabelAnchor` and exposed as `SettingsManager.FaceLabelAnchor`; configured via a 3x3 radio-button grid in the Settings window's **Erkennung** tab, with a **Neu Erkennen** button beside it to re-run detection immediately with the new anchor.
+- `LabelManager.SetLabels` resolves the anchor to a fractional position (`FaceLabelAnchor.ToFraction()`); `BottomCenter` keeps the historical slight overshoot below the chin, all other anchors sit exactly on the rectangle's fraction point.
 
 ## Data Flow
 
@@ -180,7 +190,7 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
   - "Anwenden" (Apply) button to restore all saved defaults to the current image
   - Per-element "Use as default" buttons in formatting dialogs to save individual element scales
 - Other tabs:
-  - **Erkennung** (Detection): Face detection enable/disable, row detection enable/disable, face-detector tuning (ScaleFactor and MinNeighbors), and a manual "Neu Erkennen" action that re-runs face detection with the current parameters
+  - **Erkennung** (Detection): Face detection enable/disable, row detection enable/disable, face-detector tuning (ScaleFactor and MinNeighbors), the face-relative label anchor (3x3 grid, see Face-Relative Label Anchor above), and a manual "Neu Erkennen" action that re-runs face detection with the current parameters
   - **Speichern** (Save): Save-file naming convention toggle
 - Scope:
   - affects **new fresh-image sessions** and detector/save defaults
@@ -188,7 +198,7 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
   - does **not** override per-image values restored from metadata
 
 ## Rendering Notes
-- **Live preview renderer (WPF/XAML):** marker templates in `Marker.xaml` render label circles and names-table rows.
+- **Live preview renderer (WPF/XAML):** marker templates in `Marker.xaml` render label circles and names-table rows. Holding **Ctrl** while dragging a label (`Marker.xaml.cs`) moves all other labels by the same delta, for quick bulk repositioning.
 - **JPG export renderer (GDI+):** `ExtensionMethods` draws final bitmap; label drawing uses supersampled anti-aliased overlay/downsampling for improved small-label quality.
 - **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output, sets standard PDF document metadata, and embeds editable payload as a non-visible PDF attachment. The numbered image is embedded as **PNG** (not JPEG): JPEG embedding causes QuestPDF to write `/ColorTransform 0` alongside an `ICCBased` colorspace, which confuses Acrobat DC's tile cache and makes the image vanish at 100% zoom on scroll.
 - Save operations use retry/cancel prompting when a target file is locked by another application, allowing the user to close the conflicting program and try again.

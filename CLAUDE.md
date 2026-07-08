@@ -27,14 +27,14 @@ The actual project lives under `AutoNum/` (e.g. `AutoNum/ViewModels`, `AutoNum/V
 
 ## Architecture summary
 
-(Full detail in `docs/ARCHITECTURE.md`; keep both in sync.)
+This is a stable, high-level index only — it intentionally omits specifics (version numbers, exact formulas, full class lists) that change often. For those, and for anything you're about to rely on, **read `docs/ARCHITECTURE.md`** — that's the single source of truth; update it (not this list) when architecture changes.
 
-- **MVVM + Messenger**: Views bind only to ViewModels. Cross-VM communication uses `CommunityToolkit.Mvvm.WeakReferenceMessenger` (`NewImageOpenedMessage`, `MetadataLoadedMessage`, `LabelsChangedMessage`).
-- **`MainVM` is the composition root**, owning `ImageVM`, `FileManager`, `LabelManager`, `NameManager`, `TitleManager`, `ImageInfoManager`, `ImageIdManager`, `SettingsManager`.
-- **Scale-factor sizing model**: every text/label manager holds a `FontScale`/`LabelScale` (0.25–4.0, 1.0 = unscaled baseline) plus a computed base size; `ResolveSize(base, scale) = base * scale`. UI sliders map to scale exponentially (`scale = 0.25 * 16^sliderPos`), not linearly.
-- **Metadata versioning**: `AutoNumMetaData` routes between V1–V4 JSON schemas embedded in JPEG EXIF `UserComment` or in a PDF-embedded payload zip (`PdfPayloadStore`). V3+ stores exact sizing anchors and relative scales so reopening is deterministic; V1/V2 migrate via legacy size ratios.
-- **Patch-based restore**: saved JPEGs/PDFs embed pixel patches (regions hidden under labels) via `AppSegmentIO`/JPEG APP4 segments (JPG) or payload patches (PDF), so reopening doesn't require the original source file (see `docs/PATCH_RESTORE_PLAN.md`).
-- **Three renderers must stay visually consistent**: WPF/XAML live preview (`Marker.xaml`), GDI+ JPG export (`ExtensionMethods`, supersampled anti-aliased label drawing), and QuestPDF PDF export (`FileManager.WritePdf`). Names-table geometry is computed once in `NameTableLayoutEngine`/`NamesTableLayout` and shared across all three to avoid drift.
+- **MVVM + Messenger**: Views bind only to ViewModels. Cross-VM communication uses `CommunityToolkit.Mvvm.WeakReferenceMessenger`.
+- **`MainVM` is the composition root**, owning the per-feature managers (`ImageVM`, `FileManager`, `LabelManager`, `NameManager`, `TitleManager`, `ImageInfoManager`, `ImageIdManager`, `SettingsManager`).
+- **Scale-factor sizing model**: text/label managers hold a scale factor plus a computed base size; displayed size is derived from the two. UI sliders map to scale non-linearly.
+- **Versioned metadata**: `AutoNumMetaData` schemas are embedded in JPEG EXIF `UserComment` or in a PDF-embedded payload zip (`PdfPayloadStore`); older versions are migrated on load.
+- **Patch-based restore**: saved JPEGs/PDFs embed pixel patches (regions hidden under labels), so reopening doesn't require the original source file (see `docs/PATCH_RESTORE_PLAN.md`).
+- **Three renderers must stay visually consistent**: WPF/XAML live preview, GDI+ JPG export, and QuestPDF PDF export. Shared layout engines (e.g. names-table geometry) avoid drift between them.
 - **Settings**: app-wide defaults persist to `%AppData%/AutoNum/settings.json` via `SettingsManager`; they seed new/fresh-image sessions and detector defaults but never override per-image values restored from metadata.
 
 ## Coding conventions
