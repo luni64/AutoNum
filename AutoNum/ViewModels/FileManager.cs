@@ -50,6 +50,8 @@ namespace AutoNumber.ViewModels
                     return;
                 }
 
+                var totalSw = Stopwatch.StartNew();
+                var stepSw = Stopwatch.StartNew();
                 Trace.WriteLine($"OpenImage: start '{filename}'");
                 var pvm = parent.PictureVM;
 
@@ -57,27 +59,46 @@ namespace AutoNumber.ViewModels
                 {
                     Trace.WriteLine("OpenImage: detected PDF input");
                     OpenFromPdfFile(filename, pvm);
-                    Trace.WriteLine("OpenImage: PDF import completed");
+                    Trace.WriteLine($"OpenImage: PDF import completed in {totalSw.ElapsedMilliseconds}ms");
                     return;
                 }
 
                 var bitmap = BitmapExtensions.LoadBitmapFromFile(filename);
+                Trace.WriteLine($"OpenImage: LoadBitmapFromFile took {stepSw.ElapsedMilliseconds}ms ({bitmap.Width}x{bitmap.Height})");
+
+                stepSw.Restart();
                 bitmap.ApplyExifOrientation();
+                Trace.WriteLine($"OpenImage: ApplyExifOrientation took {stepSw.ElapsedMilliseconds}ms");
+
+                stepSw.Restart();
                 var metadata = bitmap.GetMetadata();
-                Trace.WriteLine($"OpenImage: metadata version = '{metadata?.Version ?? "none"}'");
+                Trace.WriteLine($"OpenImage: GetMetadata took {stepSw.ElapsedMilliseconds}ms, version = '{metadata?.Version ?? "none"}'");
 
                 if (metadata is null)  // not written by AutoNumber => use as original image
                 {
                     Trace.WriteLine("OpenImage: no AutoNum metadata, running face detection");
+                    stepSw.Restart();
                     var faces = FaceDetector.Detect(bitmap);
+                    Trace.WriteLine($"OpenImage: FaceDetector.Detect took {stepSw.ElapsedMilliseconds}ms");
+
                     pvm.OriginalImageFilename = filename;
                     pvm.CurrentImageFilename = filename;
                     pvm.OriginalPropertyItems = bitmap.PropertyItems;
                     pvm.Bitmap = bitmap;
+
+                    stepSw.Restart();
                     pvm.Init();
+                    Trace.WriteLine($"OpenImage: ImageVM.Init took {stepSw.ElapsedMilliseconds}ms");
+
+                    stepSw.Restart();
                     WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
+                    Trace.WriteLine($"OpenImage: NewImageOpenedMessage handlers took {stepSw.ElapsedMilliseconds}ms");
+
+                    stepSw.Restart();
                     parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
-                    Trace.WriteLine($"OpenImage: fresh image initialized with {faces.Count} detected face(s)");
+                    Trace.WriteLine($"OpenImage: ApplyFreshImageDefaults took {stepSw.ElapsedMilliseconds}ms");
+
+                    Trace.WriteLine($"OpenImage: fresh image initialized with {faces.Count} detected face(s), total {totalSw.ElapsedMilliseconds}ms");
                 }
                 else if (metadata is AutoNumMetaData_V2 v2)
                 {
@@ -88,16 +109,22 @@ namespace AutoNumber.ViewModels
                     if (patches is not null && patches.Count > 0)
                     {
                         Trace.WriteLine($"OpenImage: metadata restore from JPEG APP4 patches ({patches.Count} patch(es))");
+                        stepSw.Restart();
                         var restored = bitmap.RestoreFromPatches(v2, patches);
                         bitmap.Dispose();
+                        Trace.WriteLine($"OpenImage: RestoreFromPatches took {stepSw.ElapsedMilliseconds}ms");
 
                         pvm.OriginalPropertyItems = restored.PropertyItems;
                         pvm.Bitmap = restored;
                         pvm.OriginalImageFilename = string.IsNullOrWhiteSpace(v2.OriginalImage) ? filename : v2.OriginalImage;
                         pvm.CurrentImageFilename = filename;
+
+                        stepSw.Restart();
                         pvm.InitFromMetadata(v2);
+                        Trace.WriteLine($"OpenImage: InitFromMetadata took {stepSw.ElapsedMilliseconds}ms");
+
                         RefreshPreviewAfterMetadataLoad("OpenImage/JPEG");
-                        Trace.WriteLine("OpenImage: metadata restore from JPEG completed");
+                        Trace.WriteLine($"OpenImage: metadata restore from JPEG completed, total {totalSw.ElapsedMilliseconds}ms");
                     }
                     else
                     {
@@ -458,6 +485,8 @@ namespace AutoNumber.ViewModels
 
         private void OpenFromPdfFile(string pdfFilename, ImageVM pvm)
         {
+            var totalSw = Stopwatch.StartNew();
+            var stepSw = Stopwatch.StartNew();
             Trace.WriteLine($"OpenFromPdfFile: reading '{pdfFilename}'");
             var pdfBytes = File.ReadAllBytes(pdfFilename);
             if (!PdfPayloadStore.TryExtractPayload(pdfBytes, out var payloadZipBytes) || payloadZipBytes is null)
@@ -465,14 +494,16 @@ namespace AutoNumber.ViewModels
                 throw new InvalidDataException("Die PDF enthält keine editierbaren AutoNum-Daten.");
             }
 
-            Trace.WriteLine($"OpenFromPdfFile: extracted payload zip ({payloadZipBytes.Length} bytes)");
+            Trace.WriteLine($"OpenFromPdfFile: extracted payload zip ({payloadZipBytes.Length} bytes) in {stepSw.ElapsedMilliseconds}ms");
+            stepSw.Restart();
             if (!PdfPayloadStore.TryReadPayloadZip(payloadZipBytes, out var payload) || payload is null)
             {
                 throw new InvalidDataException("Die eingebetteten AutoNum-Daten in der PDF sind ungültig.");
             }
 
-            Trace.WriteLine($"OpenFromPdfFile: payload metadata version '{payload.Metadata.Version}', patches={payload.Patches.Count}");
+            Trace.WriteLine($"OpenFromPdfFile: payload metadata version '{payload.Metadata.Version}', patches={payload.Patches.Count}, parsed in {stepSw.ElapsedMilliseconds}ms");
 
+            stepSw.Restart();
             using var compositeStream = new MemoryStream(payload.CompositeImageBytes);
             using var compositeSource = new Bitmap(compositeStream);
             using var compositeBitmap = new Bitmap(compositeSource);
@@ -486,6 +517,7 @@ namespace AutoNumber.ViewModels
             {
                 restoredBitmap = new Bitmap(compositeBitmap);
             }
+            Trace.WriteLine($"OpenFromPdfFile: composite decode + RestoreFromPatches took {stepSw.ElapsedMilliseconds}ms");
 
             pvm.OriginalPropertyItems = restoredBitmap.PropertyItems;
             pvm.Bitmap = restoredBitmap;
@@ -493,13 +525,18 @@ namespace AutoNumber.ViewModels
                 ? pdfFilename
                 : payload.Metadata.OriginalImage;
             pvm.CurrentImageFilename = pdfFilename;
+
+            stepSw.Restart();
             pvm.InitFromMetadata(payload.Metadata);
+            Trace.WriteLine($"OpenFromPdfFile: InitFromMetadata took {stepSw.ElapsedMilliseconds}ms");
+
             RefreshPreviewAfterMetadataLoad("OpenFromPdfFile");
-            Trace.WriteLine("OpenFromPdfFile: metadata initialization completed");
+            Trace.WriteLine($"OpenFromPdfFile: metadata initialization completed, total {totalSw.ElapsedMilliseconds}ms");
         }
 
         private async Task openFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm, string currentFilename)
         {
+            var totalSw = Stopwatch.StartNew();
             Trace.WriteLine($"openFromOriginalFile: requested original '{metadata.OriginalImage}'");
 
             if (!File.Exists(metadata.OriginalImage))
@@ -510,15 +547,22 @@ namespace AutoNumber.ViewModels
             }
 
             numberedBitmap.Dispose();
+            var stepSw = Stopwatch.StartNew();
             var originalBitmap = BitmapExtensions.LoadBitmapFromFile(metadata.OriginalImage);
             originalBitmap.ApplyExifOrientation();
+            Trace.WriteLine($"openFromOriginalFile: load + orientation took {stepSw.ElapsedMilliseconds}ms ({originalBitmap.Width}x{originalBitmap.Height})");
+
             pvm.OriginalPropertyItems = originalBitmap.PropertyItems;
             pvm.Bitmap = originalBitmap;
             pvm.OriginalImageFilename = metadata.OriginalImage;
             pvm.CurrentImageFilename = currentFilename;
+
+            stepSw.Restart();
             pvm.InitFromMetadata(metadata);
+            Trace.WriteLine($"openFromOriginalFile: InitFromMetadata took {stepSw.ElapsedMilliseconds}ms");
+
             RefreshPreviewAfterMetadataLoad("openFromOriginalFile");
-            Trace.WriteLine("openFromOriginalFile: metadata initialization completed");
+            Trace.WriteLine($"openFromOriginalFile: metadata initialization completed, total {totalSw.ElapsedMilliseconds}ms");
         }
 
         private async Task<string> AskForOriginalFilename(string orignalFilename)
