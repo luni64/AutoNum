@@ -95,6 +95,17 @@ namespace AutoNumber.Views
                 case NotifyCollectionChangedAction.Reset:
                     ClearMarkers();
                     UnsubscribeAllLabelsFromPositionChanges();
+
+                    foreach (Person person in Page.Persons)
+                    {
+                        AddMarker(person.Label);
+                        AddMarker(person.Name);
+
+                        if (_rowDefinitionSession is not null)
+                        {
+                            person.Label.PropertyChanged += Label_PositionChanged;
+                        }
+                    }
                     break;
             }
 

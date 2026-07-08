@@ -108,6 +108,7 @@ namespace AutoNumber.ViewModels
                         pvm.OriginalImageFilename = string.IsNullOrWhiteSpace(v2.OriginalImage) ? filename : v2.OriginalImage;
                         pvm.CurrentImageFilename = filename;
                         pvm.InitFromMetadata(v2);
+
                         RefreshPreviewAfterMetadataLoad("OpenImage/JPEG");
                         Trace.WriteLine("OpenImage: metadata restore from JPEG completed");
                     }
@@ -714,8 +715,7 @@ namespace AutoNumber.ViewModels
         private void RefreshPreviewAfterMetadataLoad(string source)
         {
             Trace.WriteLine($"RefreshPreviewAfterMetadataLoad: source={source}");
-            parent.NameManager.Refresh();
-            parent.NameManager.ShowNames();
+            parent.NameManager.RefreshAndShowNames();
         }
 
         private SaveFileInfo CreateSaveFileInfo(string fullFilename, string extension, string filter)

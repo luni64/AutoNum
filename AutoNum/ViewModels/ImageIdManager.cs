@@ -101,6 +101,7 @@ public class ImageIdManager : BaseViewModel
 
         WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
         {
+            using var _ = SuspendNotifications();
             try
             {
                 var md = msg.Metadata;

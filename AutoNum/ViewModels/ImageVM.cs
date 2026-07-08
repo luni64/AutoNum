@@ -1,7 +1,6 @@
 using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
@@ -36,7 +35,7 @@ namespace AutoNumber.ViewModels
         private string _currentImageFilename = string.Empty;
 
         public PropertyItem[]? OriginalPropertyItems { get; set; }
-        public ObservableCollection<Person> Persons { get; } = [];
+        public BulkObservableCollection<Person> Persons { get; } = [];
         public double LabelDiameter
         {
             get => _labelDiameter;
@@ -116,13 +115,11 @@ namespace AutoNumber.ViewModels
 
             Persons.Clear();
 
-            foreach (var p in md.Persons)
+            var restoredPersons = md.Persons.Select(p => new Person(p.Label.Number, p.Name.Text, new PointF(p.Label.CenterX, p.Label.CenterY))
             {
-                this.Persons.Add(new Person(p.Label.Number, p.Name.Text, new PointF(p.Label.CenterX, p.Label.CenterY))
-                {
-                    Row = p.Row
-                });
-            }
+                Row = p.Row
+            });
+            Persons.AddRange(restoredPersons);
 
             var labelSize = double.IsFinite(md.LabelsSize) ? md.LabelsSize : md.LabelsFont.Size * 0.95;
             LabelDiameter = labelSize;

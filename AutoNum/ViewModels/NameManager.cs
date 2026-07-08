@@ -25,8 +25,51 @@ namespace AutoNumber.ViewModels
             }
         }
 
+        /// <summary>
+        /// Defers ShowNames() until the outermost scope disposes, so a handler that sets several
+        /// layout-relevant properties as one logical operation (e.g. restoring saved metadata)
+        /// recomputes once instead of once per property. Reentrant.
+        /// </summary>
+        private IDisposable BeginUpdate() => new UpdateScope(this);
+
+        private int _updateDepth;
+        private bool _showNamesPending;
+
+        private sealed class UpdateScope : IDisposable
+        {
+            private readonly NameManager _owner;
+            private bool _disposed;
+
+            public UpdateScope(NameManager owner)
+            {
+                _owner = owner;
+                _owner._updateDepth++;
+            }
+
+            public void Dispose()
+            {
+                if (_disposed)
+                {
+                    return;
+                }
+                _disposed = true;
+
+                if (--_owner._updateDepth == 0 && _owner._showNamesPending)
+                {
+                    _owner._showNamesPending = false;
+                    _owner.ShowNames();
+                }
+            }
+        }
+
         public void ShowNames()
         {
+            if (_updateDepth > 0)
+            {
+                _showNamesPending = true;
+                return;
+            }
+
             if (_imageVM.Persons.Count == 0)
             {
                 _imageVM.NamesRegionHeight = 0;
@@ -172,6 +215,17 @@ namespace AutoNumber.ViewModels
             }
         }
 
+        /// <summary>
+        /// Refresh() can itself trigger a ShowNames() (via PersonsView's Reset notification), so
+        /// calling Refresh() followed by ShowNames() separately recomputes twice. Batches them into one.
+        /// </summary>
+        public void RefreshAndShowNames()
+        {
+            using var _ = BeginUpdate();
+            Refresh();
+            ShowNames();
+        }
+
         public NameManager(ImageVM imageVM, LabelManager labelManager, ImageIdManager imageIdManager)
         {
             _imageVM = imageVM;
@@ -186,6 +240,7 @@ namespace AutoNumber.ViewModels
 
             WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
             {
+                using var _ = BeginUpdate();
                 Refresh();
                 ApplyScale();
                 ShowNames();
@@ -193,6 +248,7 @@ namespace AutoNumber.ViewModels
 
             WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
             {
+                using var _ = BeginUpdate();
                 try
                 {
                     var md = msg.Metadata;
@@ -245,6 +301,13 @@ namespace AutoNumber.ViewModels
                     }
                     break;
                 case NotifyCollectionChangedAction.Reset:
+                    // Reset carries no OldItems/NewItems (e.g. Clear(), or BulkObservableCollection.AddRange),
+                    // so re-sync subscriptions against whatever is currently in the collection.
+                    foreach (Person person in _imageVM.Persons)
+                    {
+                        person.PropertyChanged -= Person_PropertyChanged;
+                        person.PropertyChanged += Person_PropertyChanged;
+                    }
                     break;
 
             }
@@ -259,7 +322,10 @@ namespace AutoNumber.ViewModels
 
         private void ImageIdManager_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            if (e.PropertyName is nameof(ImageIdManager.LineHeight)
+            // Empty/null PropertyName is the "several properties changed at once, assume everything
+            // did" convention raised by SuspendNotifications() after a batched update.
+            if (string.IsNullOrEmpty(e.PropertyName)
+                || e.PropertyName is nameof(ImageIdManager.LineHeight)
                 or nameof(ImageIdManager.ShowImageIdLine)
                 or nameof(ImageIdManager.IsEnabled)
                 or nameof(ImageIdManager.ImageId))

@@ -217,11 +217,12 @@ namespace AutoNumber.ViewModels
         {
             BaseLabelDiameter = SizingModel.ComputeBaseLabelDiameter(faces, _imageVM.Bitmap?.Width ?? 0);
 
-            foreach (var face in faces)
+            var newPersons = faces.Select(face =>
             {
                 PointF labelPos = new PointF((float)(face.X + face.Width / 2), (float)(face.Y + face.Height * 1.05));
-                _imageVM.Persons.Add(new Person(0, "", labelPos));
-            }
+                return new Person(0, "", labelPos);
+            });
+            _imageVM.Persons.AddRange(newPersons);
 
             if (assignRows)
             {
