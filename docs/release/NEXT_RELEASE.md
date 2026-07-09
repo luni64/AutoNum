@@ -2,6 +2,9 @@
 
 ## Features
 
+- **Hovering a name in the Namensliste highlights its label on the image**
+  Moving the mouse over a row in the name list now shows a thick magenta ring (sized relative to the label diameter) around the corresponding numbered label, making it easy to match a name back to a face on group photos. The highlight clears as soon as the mouse leaves the row; tracked via hit-testing on mouse move rather than per-row hover events so fast mouse movement can't leave a stale highlight behind.
+
 - **Face-relative label anchor (Einstellungen → Erkennung)**
   New 3x3-grid control lets you choose where a freshly detected face's label is centered (e.g. top-left, center, bottom-right) instead of always below the chin. Applies only to newly created labels (open/redetect/rotate); existing labels are never moved. A "Neu Erkennen" button sits right beside the control to re-run detection immediately with the new anchor.
 

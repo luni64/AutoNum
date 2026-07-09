@@ -23,20 +23,28 @@
         <is:NameTableNameColumnWidthConverter x:Key="NameTableNameColumnWidthConverter"/>
         <is:RowPreviewFillConverter x:Key="RowPreviewFillConverter"/>
         <is:RowPreviewEdgeConverter x:Key="RowPreviewEdgeConverter"/>
+        <is:SelectedStrokeThicknessConverter x:Key="SelectedStrokeThicknessConverter"/>
 
         <DataTemplate DataType="{x:Type vm:MarkerLabel}">
-            <Grid 
+            <Grid
                 Visibility="{Binding Visible, Converter={StaticResource bool2Vis}}"
                 ToolTip="{Binding Person.Name.Text}" ToolTipService.InitialShowDelay="25">
 
-                <Ellipse                                    
-                    HorizontalAlignment="Center"  VerticalAlignment="Center" Height="{Binding Diameter}" Width="{Binding Diameter}"
-                    StrokeThickness="{Binding StrokeThickness}">
+                <Ellipse
+                    HorizontalAlignment="Center"  VerticalAlignment="Center" Height="{Binding Diameter}" Width="{Binding Diameter}">
+                    <Ellipse.StrokeThickness>
+                        <MultiBinding Converter="{StaticResource SelectedStrokeThicknessConverter}">
+                            <Binding Path="StrokeThickness"/>
+                            <Binding Path="Diameter"/>
+                            <Binding Path="Person.IsSelected"/>
+                        </MultiBinding>
+                    </Ellipse.StrokeThickness>
                     <Ellipse.Stroke>
                         <MultiBinding Converter="{StaticResource RowPreviewEdgeConverter}">
                             <Binding Path="Person.RowPreviewActive"/>
                             <Binding Path="Person.RowPreviewColor" Converter="{StaticResource Col2Brush}"/>
                             <Binding Path="EdgeColor" Converter="{StaticResource Col2Brush}"/>
+                            <Binding Path="Person.IsSelected"/>
                         </MultiBinding>
                     </Ellipse.Stroke>
                     <Ellipse.Fill>
@@ -48,7 +56,7 @@
                     </Ellipse.Fill>
                 </Ellipse>
 
-                <TextBlock x:Name="LabelNumberText"                       
+                <TextBlock x:Name="LabelNumberText"
                     Text="{Binding Person.Label.Number}"
                     FontSize="{Binding FontSize}" FontWeight="Normal" FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
                     Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"    

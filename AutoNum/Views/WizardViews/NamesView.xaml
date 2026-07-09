@@ -65,7 +65,8 @@
                     SelectionMode="Single"
                     HorizontalScrollBarVisibility="Disabled"
                     VerticalScrollBarVisibility="Auto"
-                    ColumnWidth="*">
+                    ColumnWidth="*"
+                    is:PersonHoverHighlight.Enable="True">
 
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="Nr." Binding="{Binding Label.Number}" Width="Auto" IsReadOnly="True">

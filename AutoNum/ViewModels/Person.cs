@@ -49,6 +49,12 @@ namespace AutoNumber.ViewModels
             set => SetProperty(ref _rowPreviewColor, value);
         }
 
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set => SetProperty(ref _isSelected, value);
+        }
+
         public string FullName => Row > 0 ? $"R{Row}: {Label.Number}) {Name.Text}" : $"{Label.Number}) {Name.Text}";
 
         public PointF GetRowAnchorPoint() => new((float)Label.CenterX, (float)Label.CenterY);
@@ -58,5 +64,6 @@ namespace AutoNumber.ViewModels
         private int _row;
         private bool _rowPreviewActive;
         private Color _rowPreviewColor = Color.White;
+        private bool _isSelected;
     }
 }
