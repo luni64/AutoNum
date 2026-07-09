@@ -7,6 +7,7 @@ AutoNum is a WPF desktop application (.NET 8, C# 12) that opens photos, detects 
 
 ```
 AutoNum/
+├── Classifiers/                 # face_detection_yunet_2023mar.onnx (copied to output, PreserveNewest)
 ├── Infrastructure/             # Cross-cutting services/converters/messages
 │   ├── Messages.cs             # WeakReferenceMessenger message types
 │   ├── DialogService.cs        # Open/Save/error dialogs
@@ -190,7 +191,7 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
   - "Anwenden" (Apply) button to restore all saved defaults to the current image
   - Per-element "Use as default" buttons in formatting dialogs to save individual element scales
 - Other tabs:
-  - **Erkennung** (Detection): Face detection enable/disable, row detection enable/disable, face-detector tuning (ScaleFactor and MinNeighbors), the face-relative label anchor (3x3 grid, see Face-Relative Label Anchor above), and a manual "Neu Erkennen" action that re-runs face detection with the current parameters
+  - **Erkennung** (Detection): Face detection enable/disable, row detection enable/disable, the face-relative label anchor (3x3 grid, see Face-Relative Label Anchor above), and a manual "Neu Erkennen" action that re-runs face detection. The detector (YuNet, see External Dependencies) has no user-configurable tuning parameters.
   - **Speichern** (Save): Save-file naming convention toggle
 - Scope:
   - affects **new fresh-image sessions** and detector/save defaults
@@ -207,7 +208,7 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 - Names-table measurement/rendering paths use pixel-based GDI font units to avoid WPF/GDI point-vs-pixel mismatch.
 
 ## External Dependencies
-- **Emgu.CV** — face detection
+- **Emgu.CV** — face detection via `FaceDetectorYN` (YuNet ONNX model, `Classifiers/face_detection_yunet_2023mar.onnx`); fixed score/NMS thresholds, not user-configurable
 - **MahApps.Metro** — WPF shell + dialogs
 - **CommunityToolkit.Mvvm** — messenger only
 - **QuestPDF** — PDF rendering and standards-compliant PDF attachment embedding

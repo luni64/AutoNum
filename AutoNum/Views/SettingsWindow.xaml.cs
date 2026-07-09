@@ -59,14 +59,6 @@ public partial class SettingsWindow : MetroWindow
         }
     }
 
-    private void ResetFaceDetectionScoreThreshold_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is SettingsManager settingsManager)
-        {
-            settingsManager.FaceDetectionScoreThreshold = 0.7;
-        }
-    }
-
     private void RedetectFaces_Click(object sender, RoutedEventArgs e)
     {
         _mainVM.LabelManager.RedetectFacesCommand.Execute(null);

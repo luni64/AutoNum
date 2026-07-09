@@ -6,14 +6,12 @@ namespace AutoNumber.ViewModels
     public static class FaceDetector
     {
         private const string ModelPath = "Classifiers/face_detection_yunet_2023mar.onnx";
+        private const float ScoreThreshold = 0.7f;
         private const float NmsThreshold = 0.3f;
         private const int TopK = 5000;
 
-        static public float ScoreThreshold { get; set; } = 0.7f;
-
         private static FaceDetectorYN? _detector;
         private static Size _detectorInputSize;
-        private static float _detectorScoreThreshold;
 
         static public List<Rectangle> Detect(Bitmap bitmap)
         {
@@ -28,7 +26,7 @@ namespace AutoNumber.ViewModels
 
         private static void EnsureDetector(Size inputSize)
         {
-            if (_detector is not null && _detectorInputSize == inputSize && _detectorScoreThreshold == ScoreThreshold)
+            if (_detector is not null && _detectorInputSize == inputSize)
             {
                 return;
             }
@@ -36,7 +34,6 @@ namespace AutoNumber.ViewModels
             _detector?.Dispose();
             _detector = new FaceDetectorYN(ModelPath, string.Empty, inputSize, ScoreThreshold, NmsThreshold, TopK);
             _detectorInputSize = inputSize;
-            _detectorScoreThreshold = ScoreThreshold;
         }
 
         private static List<Rectangle> ExtractRectangles(Mat faces)

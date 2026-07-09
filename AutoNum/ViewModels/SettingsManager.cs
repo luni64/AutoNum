@@ -34,7 +34,6 @@ public class SettingsManager : BaseViewModel
         _defaultImageIdFontColor = Color.FromArgb(_settings.DefaultImageIdFontForeground);
         _defaultImageIdBackgroundColor = Color.FromArgb(_settings.DefaultImageIdFontBackground);
 
-        _faceDetectionScoreThreshold = ClampDouble(_settings.FaceDetectionScoreThreshold, 0.1, 0.95);
         _faceDetectionEnabled = _settings.FaceDetectionEnabled;
         _rowDetectionEnabled = _settings.RowDetectionEnabled;
         _faceLabelAnchor = _settings.DefaultFaceLabelAnchor;
@@ -42,8 +41,6 @@ public class SettingsManager : BaseViewModel
         _exportCsvMetadata = _settings.ExportCsvMetadata;
         _exportJsonMetadata = _settings.ExportJsonMetadata;
         _saveFileSuffix = _settings.SaveFileSuffix ?? "_num";
-
-        ApplyDetectionDefaults();
     }
 
 
@@ -267,18 +264,6 @@ public class SettingsManager : BaseViewModel
         }
     }
 
-    public double FaceDetectionScoreThreshold
-    {
-        get => _faceDetectionScoreThreshold;
-        set
-        {
-            var clamped = ClampDouble(value, 0.1, 0.95);
-            SetProperty(ref _faceDetectionScoreThreshold, clamped);
-            FaceDetector.ScoreThreshold = (float)clamped;
-            SaveSettings();
-        }
-    }
-
     public bool FaceDetectionEnabled
     {
         get => _faceDetectionEnabled;
@@ -487,11 +472,6 @@ public class SettingsManager : BaseViewModel
         }
     }
 
-    public void ApplyDetectionDefaults()
-    {
-        FaceDetector.ScoreThreshold = (float)FaceDetectionScoreThreshold;
-    }
-
     public void ApplyFreshImageDefaults(LabelManager labelManager, NameManager nameManager, TitleManager titleManager, ImageInfoManager imageInfoManager, ImageIdManager imageIdManager)
     {
         // Fresh images start with stored label defaults, and other elements use their saved defaults
@@ -578,7 +558,6 @@ public class SettingsManager : BaseViewModel
         _settings.DefaultImageInfoFontBackground = DefaultImageInfoBackgroundColor.ToArgb();
         _settings.DefaultImageIdFontForeground = DefaultImageIdFontColor.ToArgb();
         _settings.DefaultImageIdFontBackground = DefaultImageIdBackgroundColor.ToArgb();
-        _settings.FaceDetectionScoreThreshold = FaceDetectionScoreThreshold;
         _settings.FaceDetectionEnabled = FaceDetectionEnabled;
         _settings.RowDetectionEnabled = RowDetectionEnabled;
         _settings.DefaultFaceLabelAnchor = FaceLabelAnchor;
@@ -620,7 +599,6 @@ public class SettingsManager : BaseViewModel
     private Color _defaultImageIdBackgroundColor;
     private bool _faceDetectionEnabled = true;
     private bool _rowDetectionEnabled = true;
-    private double _faceDetectionScoreThreshold;
     private FaceLabelAnchor _faceLabelAnchor;
     private string _saveFileSuffix = "_num";
     private bool _exportCsvMetadata;

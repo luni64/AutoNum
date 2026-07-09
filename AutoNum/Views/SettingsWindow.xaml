@@ -196,44 +196,6 @@
 							</Border>
 						</StackPanel>
 
-						<TextBlock TextWrapping="Wrap" Margin="0,25,0,14" FontSize="12">
-						<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
-					Parameter für die Gesichtserkennung
-					</Run>
-						</TextBlock>
-
-						<TextBlock Text="Erkennungsschwelle" Margin="0,0,0,4" FontWeight="SemiBold"/>
-						<Grid Margin="0,0,0,0">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="180"/>
-								<ColumnDefinition Width="72"/>
-								<ColumnDefinition Width="92"/>
-							</Grid.ColumnDefinitions>
-							<Slider Grid.Column="0"
-									Minimum="0.1"
-									Maximum="0.95"
-									Value="{Binding FaceDetectionScoreThreshold, Mode=TwoWay}"
-									Width="170"
-									HorizontalAlignment="Left"/>
-							<TextBox Grid.Column="1"
-								 Text="{Binding FaceDetectionScoreThreshold, Mode=OneWay, StringFormat={}{0:0.00}}"
-								 IsReadOnly="True"
-								 HorizontalContentAlignment="Right"
-								 Margin="8,0,8,0"
-								 Padding="6,4"/>
-							<Button Grid.Column="2"
-									Content="Standard"
-									Click="ResetFaceDetectionScoreThreshold_Click"
-									Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
-									FontSize="12"
-									mah:ControlsHelper.ContentCharacterCasing="Upper"
-									Padding="8,4"
-									HorizontalAlignment="Left"/>
-						</Grid>
-						<TextBlock TextWrapping="Wrap" Margin="0,4,0,10">
-						   Legt fest, wie sicher die Erkennung sein muss, damit ein Bereich als Gesicht gilt. Niedrigere Werte erkennen mehr Gesichter, auch auf älteren oder unscharfen Fotos, können aber vereinzelt Fehl-Erkennungen verursachen.
-						</TextBlock>
-
 						<Button Content="Neu Erkennen"
 								Click="RedetectFaces_Click"
 								Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
