@@ -8,6 +8,9 @@
 - **Ctrl+drag to move all labels together**
   Holding Ctrl while dragging a label in the preview now moves every other label by the same amount, for quick bulk repositioning after zoom/rotation.
 
+- **Face detection switched from Haar cascade to YuNet (DNN)**
+  Replaced the old `haarcascade_frontalface_default.xml` classifier with OpenCV's YuNet face detector (`FaceDetectorYN`), a small ONNX model that detects faces far more reliably on old/scanned genealogy photos — non-frontal poses, small or blurry faces, and uneven lighting. The "Empfindlichkeit (ScaleFactor)" / "Bestätigungen (MinNeighbors)" sliders in Einstellungen → Erkennung are replaced by a single "Erkennungsschwelle" (score threshold) slider.
+
 ## Bug Fixes
 
 - **EXIF save: build-breaking typo in `BitmapExtensions.cs`**
@@ -18,6 +21,9 @@
 
 - **Switching the face-anchor radio buttons could snap back to the previous selection**
   `EnumBooleanConverter.ConvertBack` now ignores the `false` notification a `RadioButton` fires for the option that just got unchecked, so it no longer immediately resets the bound enum.
+
+- **Duplicate "Neu Erkennen" button in Einstellungen → Erkennung**
+  An earlier reorder of the tab's sections left two copies of the button; removed the extra one.
 
 - **PDF: image vanishes on scroll in Acrobat DC at 100% zoom**
   The image embedded in the PDF was saved as JPEG (`DCTDecode` + `ICCBased` colorspace + `/ColorTransform 0`), a combination that caused Acrobat DC's tile cache to drop the image on re-render at 100% zoom. Fixed by embedding the image as PNG instead, which has no colour-transform ambiguity.

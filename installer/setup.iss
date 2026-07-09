@@ -74,7 +74,7 @@ Source: "{#SourceDir}\*.dll";            DestDir: "{app}"; Flags: ignoreversion 
 ; Runtime configuration files
 Source: "{#SourceDir}\*.json";           DestDir: "{app}"; Flags: ignoreversion
 
-; Haar cascade classifier required for face detection
+; Face detection model required for face detection
 Source: "{#SourceDir}\Classifiers\*";   DestDir: "{app}\Classifiers"; Flags: ignoreversion recursesubdirs createallsubdirs
 
 ; License documentation

@@ -33,8 +33,7 @@ public class AppSettings
     public int DefaultImageIdFontForeground { get; set; } = Color.Black.ToArgb();
     public int DefaultImageIdFontBackground { get; set; } = Color.White.ToArgb();
 
-    public double FaceScaleFactor { get; set; } = 1.2;
-    public int FaceMinNeighbors { get; set; } = 7;
+    public double FaceDetectionScoreThreshold { get; set; } = 0.7;
     public FaceLabelAnchor DefaultFaceLabelAnchor { get; set; } = FaceLabelAnchor.BottomCenter;
 
     public bool ExportCsvMetadata { get; set; } = true;
@@ -85,7 +84,7 @@ public static class AppSettingsStore
     {
         try
         {
-            settings.SchemaVersion = 7;
+            settings.SchemaVersion = 8;
             Directory.CreateDirectory(SettingsDirectory);
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(SettingsPath, json);
@@ -98,10 +97,11 @@ public static class AppSettingsStore
 
     private static AppSettings CreateDefault() => new()
     {
-        SchemaVersion = 7,
+        SchemaVersion = 8,
         FaceDetectionEnabled = true,
         RowDetectionEnabled = true,
-        DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter
+        DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter,
+        FaceDetectionScoreThreshold = 0.7
     };
 
     private static void Migrate(AppSettings settings)
@@ -117,6 +117,12 @@ public static class AppSettingsStore
         {
             settings.DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter;
             settings.SchemaVersion = 7;
+        }
+
+        if (settings.SchemaVersion < 8)
+        {
+            settings.FaceDetectionScoreThreshold = 0.7;
+            settings.SchemaVersion = 8;
         }
     }
 }

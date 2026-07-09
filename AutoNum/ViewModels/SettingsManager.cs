@@ -34,8 +34,7 @@ public class SettingsManager : BaseViewModel
         _defaultImageIdFontColor = Color.FromArgb(_settings.DefaultImageIdFontForeground);
         _defaultImageIdBackgroundColor = Color.FromArgb(_settings.DefaultImageIdFontBackground);
 
-        _faceScaleFactor = ClampDouble(_settings.FaceScaleFactor, 1.05, 2.0);
-        _faceMinNeighbors = ClampInt(_settings.FaceMinNeighbors, 1, 20);
+        _faceDetectionScoreThreshold = ClampDouble(_settings.FaceDetectionScoreThreshold, 0.1, 0.95);
         _faceDetectionEnabled = _settings.FaceDetectionEnabled;
         _rowDetectionEnabled = _settings.RowDetectionEnabled;
         _faceLabelAnchor = _settings.DefaultFaceLabelAnchor;
@@ -268,26 +267,14 @@ public class SettingsManager : BaseViewModel
         }
     }
 
-    public double FaceScaleFactor
+    public double FaceDetectionScoreThreshold
     {
-        get => _faceScaleFactor;
+        get => _faceDetectionScoreThreshold;
         set
         {
-            var clamped = ClampDouble(value, 1.05, 2.0);
-            SetProperty(ref _faceScaleFactor, clamped);
-            FaceDetector.ScaleFactor = clamped;
-            SaveSettings();
-        }
-    }
-
-    public int FaceMinNeighbors
-    {
-        get => _faceMinNeighbors;
-        set
-        {
-            var clamped = ClampInt(value, 1, 20);
-            SetProperty(ref _faceMinNeighbors, clamped);
-            FaceDetector.MinNeighbors = clamped;
+            var clamped = ClampDouble(value, 0.1, 0.95);
+            SetProperty(ref _faceDetectionScoreThreshold, clamped);
+            FaceDetector.ScoreThreshold = (float)clamped;
             SaveSettings();
         }
     }
@@ -502,8 +489,7 @@ public class SettingsManager : BaseViewModel
 
     public void ApplyDetectionDefaults()
     {
-        FaceDetector.ScaleFactor = FaceScaleFactor;
-        FaceDetector.MinNeighbors = FaceMinNeighbors;
+        FaceDetector.ScoreThreshold = (float)FaceDetectionScoreThreshold;
     }
 
     public void ApplyFreshImageDefaults(LabelManager labelManager, NameManager nameManager, TitleManager titleManager, ImageInfoManager imageInfoManager, ImageIdManager imageIdManager)
@@ -592,8 +578,7 @@ public class SettingsManager : BaseViewModel
         _settings.DefaultImageInfoFontBackground = DefaultImageInfoBackgroundColor.ToArgb();
         _settings.DefaultImageIdFontForeground = DefaultImageIdFontColor.ToArgb();
         _settings.DefaultImageIdFontBackground = DefaultImageIdBackgroundColor.ToArgb();
-        _settings.FaceScaleFactor = FaceScaleFactor;
-        _settings.FaceMinNeighbors = FaceMinNeighbors;
+        _settings.FaceDetectionScoreThreshold = FaceDetectionScoreThreshold;
         _settings.FaceDetectionEnabled = FaceDetectionEnabled;
         _settings.RowDetectionEnabled = RowDetectionEnabled;
         _settings.DefaultFaceLabelAnchor = FaceLabelAnchor;
@@ -602,8 +587,6 @@ public class SettingsManager : BaseViewModel
         _settings.ExportJsonMetadata = ExportJsonMetadata;
         AppSettingsStore.Save(_settings);
     }
-
-    private static int ClampInt(int value, int min, int max) => Math.Min(max, Math.Max(min, value));
 
     private static double ClampDouble(double value, double min, double max)
     {
@@ -637,8 +620,7 @@ public class SettingsManager : BaseViewModel
     private Color _defaultImageIdBackgroundColor;
     private bool _faceDetectionEnabled = true;
     private bool _rowDetectionEnabled = true;
-    private double _faceScaleFactor;
-    private int _faceMinNeighbors;
+    private double _faceDetectionScoreThreshold;
     private FaceLabelAnchor _faceLabelAnchor;
     private string _saveFileSuffix = "_num";
     private bool _exportCsvMetadata;

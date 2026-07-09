@@ -29,7 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="Classifiers\haarcascade_frontalface_default.xml">
+    <None Update="Classifiers\face_detection_yunet_2023mar.onnx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

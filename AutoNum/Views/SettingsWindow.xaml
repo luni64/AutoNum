@@ -53,7 +53,7 @@
             TabStripPlacement="Left" 
             mah:HeaderedControlHelper.HeaderFontSize="16" 
             mah:HeaderedControlHelper.HeaderFontWeight="Bold" >
-            <TabItem Header="Formattierung">
+            <TabItem Header="Formatierung">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
                     <StackPanel Margin="12,0">
                         <TextBlock TextWrapping="Wrap" Margin="0,4,0,14" FontSize="14">
@@ -194,16 +194,6 @@
 												 IsChecked="{Binding FaceLabelAnchor, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=BottomRight}"/>
 								</Grid>
 							</Border>
-
-							<Button Content="Neu Erkennen"
-									Click="RedetectFaces_Click"
-									Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
-									FontSize="13"
-									mah:ControlsHelper.ContentCharacterCasing="Upper"
-									Padding="5"
-									Margin="14,0,0,0"
-									VerticalAlignment="Bottom"
-									HorizontalAlignment="Left"/>
 						</StackPanel>
 
 						<TextBlock TextWrapping="Wrap" Margin="0,25,0,14" FontSize="12">
@@ -212,7 +202,7 @@
 					</Run>
 						</TextBlock>
 
-						<TextBlock Text="Empfindlichkeit (ScaleFactor)" Margin="0,0,0,4" FontWeight="SemiBold"/>
+						<TextBlock Text="Erkennungsschwelle" Margin="0,0,0,4" FontWeight="SemiBold"/>
 						<Grid Margin="0,0,0,0">
 							<Grid.ColumnDefinitions>
 								<ColumnDefinition Width="180"/>
@@ -220,52 +210,20 @@
 								<ColumnDefinition Width="92"/>
 							</Grid.ColumnDefinitions>
 							<Slider Grid.Column="0"
-									Minimum="1.05"
-									Maximum="2"
-									Value="{Binding FaceScaleFactor, Mode=TwoWay}"
+									Minimum="0.1"
+									Maximum="0.95"
+									Value="{Binding FaceDetectionScoreThreshold, Mode=TwoWay}"
 									Width="170"
 									HorizontalAlignment="Left"/>
 							<TextBox Grid.Column="1"
-								 Text="{Binding FaceScaleFactor, Mode=OneWay, StringFormat={}{0:0.00}}"
+								 Text="{Binding FaceDetectionScoreThreshold, Mode=OneWay, StringFormat={}{0:0.00}}"
 								 IsReadOnly="True"
 								 HorizontalContentAlignment="Right"
 								 Margin="8,0,8,0"
 								 Padding="6,4"/>
 							<Button Grid.Column="2"
 									Content="Standard"
-									Click="ResetFaceScaleFactor_Click"
-									Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
-									FontSize="12"
-									mah:ControlsHelper.ContentCharacterCasing="Upper"
-									Padding="8,4"
-									HorizontalAlignment="Left"/>
-						</Grid>
-						<TextBlock TextWrapping="Wrap" Margin="0,4,0,8">
-							Mit der Einstellung legen Sie fest, wie stark das Bild bei der Gesichtssuche schrittweise verkleinert wird. Kleinere Werte erkennen oft zuverlässiger, die Erkennung dauert aber länger.
-						</TextBlock>
-
-						<TextBlock Text="Bestätigungen (MinNeighbors)" Margin="0,25,0,4" FontWeight="SemiBold"/>
-						<Grid Margin="0,0,0,0">
-							<Grid.ColumnDefinitions>
-								<ColumnDefinition Width="180"/>
-								<ColumnDefinition Width="72"/>
-								<ColumnDefinition Width="92"/>
-							</Grid.ColumnDefinitions>
-							<Slider Grid.Column="0"
-									Minimum="1"
-									Maximum="20"
-									Value="{Binding FaceMinNeighbors, Mode=TwoWay}"
-									Width="170"
-									HorizontalAlignment="Left"/>
-							<TextBox Grid.Column="1"
-									 Text="{Binding FaceMinNeighbors, Mode=OneWay}"
-									 IsReadOnly="True"
-									 HorizontalContentAlignment="Right"
-									 Margin="8,0,8,0"
-									 Padding="6,4"/>
-							<Button Grid.Column="2"
-									Content="Standard"
-									Click="ResetFaceMinNeighbors_Click"
+									Click="ResetFaceDetectionScoreThreshold_Click"
 									Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
 									FontSize="12"
 									mah:ControlsHelper.ContentCharacterCasing="Upper"
@@ -273,7 +231,7 @@
 									HorizontalAlignment="Left"/>
 						</Grid>
 						<TextBlock TextWrapping="Wrap" Margin="0,4,0,10">
-						   Die Einstellung bestimmt, wie streng ein erkannter Bereich bestätigt werden muss. Höhere Werte reduzieren Fehl-Erkennungen, können aber echte Gesichter übersehen.
+						   Legt fest, wie sicher die Erkennung sein muss, damit ein Bereich als Gesicht gilt. Niedrigere Werte erkennen mehr Gesichter, auch auf älteren oder unscharfen Fotos, können aber vereinzelt Fehl-Erkennungen verursachen.
 						</TextBlock>
 
 						<Button Content="Neu Erkennen"
