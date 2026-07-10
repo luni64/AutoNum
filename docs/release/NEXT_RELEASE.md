@@ -8,6 +8,9 @@
 - **Datei menu replaces the old Öffnen/Speichern buttons and Settings gear**
   The left panel is gone; all file actions now live in a standard Datei menu: Öffnen, Speichern (writes back in place, disabled until the file is no longer the protected original), Speichern unter... (a single dialog offering both JPG and PDF — the format is decided by the extension you pick, not by which filter is highlighted; a new Einstellungen → Export → "Standardformat" setting controls which filter is preselected), and Metadaten exportieren... (on-demand CSV/JSON export via its own dialog, fully independent of the auto-export-alongside-save toggles). Settings moved from a title-bar gear icon into Datei → Einstellungen.... The freed-up left column gives the image preview more room. A new Hilfe menu links to the online manual. Speichern also has a **Strg+S** shortcut.
 
+- **Öffnen remembers the source folder, independent of where you last saved**
+  Batch-numbering a folder full of photos used to mean browsing back to the source folder by hand after every save, since the Öffnen dialog inherited whatever folder Speichern unter... (or a configured output folder) last navigated to. Öffnen now always defaults to the folder the current photo was originally opened from, so it stays put across a whole batch regardless of where saves go.
+
 - **Face-relative label anchor (Einstellungen → Erkennung)**
   New 3x3-grid control lets you choose where a freshly detected face's label is centered (e.g. top-left, center, bottom-right) instead of always below the chin. Applies only to newly created labels (open/redetect/rotate); existing labels are never moved. A "Neu Erkennen" button sits right beside the control to re-run detection immediately with the new anchor.
 

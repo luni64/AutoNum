@@ -19,6 +19,7 @@ namespace AutoNumber.Infrastructure
                         {
                             Filter = vm.Filter,
                             FilterIndex = vm.FilterIndex,
+                            InitialDirectory = vm.InitialDirectory,
                             CheckFileExists = true,
                             ForcePreviewPane = true,
                         };

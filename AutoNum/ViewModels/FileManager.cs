@@ -25,6 +25,7 @@ namespace AutoNumber.ViewModels
     public class OpenFileInfo
     {
         public string? Filename { get; set; }
+        public string? InitialDirectory { get; set; }
         public string? Filter { get; set; }
         public int FilterIndex { get; set; }
 
@@ -721,11 +722,30 @@ namespace AutoNumber.ViewModels
             var info = new OpenFileInfo
             {
                 Filter = "AutoNum Dateien (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif;*.pdf)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif;*.pdf|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|PDF Files (*.pdf)|*.pdf|All Files (*.*)|*.*",
-                FilterIndex = 1, // Sets AutoNum-compatible files as the default filter                
+                FilterIndex = 1, // Sets AutoNum-compatible files as the default filter
+                InitialDirectory = GetLastOpenFolder(),
             };
 
-            filename = parent.DialogService.ShowDialog(info) as string ?? string.Empty;            
+            filename = parent.DialogService.ShowDialog(info) as string ?? string.Empty;
             return  !string.IsNullOrEmpty(filename);
+        }
+
+        /// <summary>
+        /// Folder of the currently loaded photo's original file, so the next Open dialog
+        /// defaults back there — not wherever a subsequent Speichern-unter/custom output
+        /// folder last redirected to, which would otherwise force browsing back manually
+        /// when numbering a whole batch of photos from one source folder.
+        /// </summary>
+        private string? GetLastOpenFolder()
+        {
+            var originalFilename = parent.PictureVM.OriginalImageFilename;
+            if (string.IsNullOrWhiteSpace(originalFilename))
+            {
+                return null;
+            }
+
+            var folder = Path.GetDirectoryName(originalFilename);
+            return !string.IsNullOrEmpty(folder) && Directory.Exists(folder) ? folder : null;
         }
 
         private void RefreshPreviewAfterMetadataLoad(string source)
