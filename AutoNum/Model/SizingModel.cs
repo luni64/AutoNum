@@ -57,13 +57,12 @@ internal static class SizingModel
     // --- Text sizing (image-based, see ComputeBaseTextFontSize) ---
 
     /// <summary>
-    /// Quick (not yet persisted) baseline for Namensliste/Title/Description/Image-ID font
-    /// sizes: this fraction of the image's own diagonal, independent of face detection —
-    /// avoids being skewed by how many/how large the detected faces happen to be, and
-    /// isn't capped by the label-circle-fit constraint LabelFontFitFactor has. Recomputed
-    /// fresh on every open (fresh or reopen) rather than persisted in metadata for now, so
-    /// retuning this can shift the appearance of already-saved images until this gets a
-    /// proper persisted metadata slot the way the label baseline already has.
+    /// Baseline for Namensliste/Title/Description/Image-ID font sizes: this fraction of
+    /// the image's own diagonal, independent of face detection — avoids being skewed by
+    /// how many/how large the detected faces happen to be, and isn't capped by the
+    /// label-circle-fit constraint LabelFontFitFactor has. Only used for fresh images;
+    /// reopened images restore the value in effect at save time
+    /// (AutoNumMetaData_V3.BaseTextFontSize), so retuning this only affects new photos.
     /// </summary>
     public const double TextFontImageFactor = 0.023;
 

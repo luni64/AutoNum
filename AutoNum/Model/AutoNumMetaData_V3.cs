@@ -10,6 +10,7 @@ public class AutoNumMetaData_V3 : AutoNumMetaData_V2
 {
     public double BaseLabelDiameter { get; set; }
     public double BaseLabelFontSize { get; set; }
+    public double BaseTextFontSize { get; set; }
     public double LabelScale { get; set; } = SizingModel.DefaultScale;
     public double NameScale { get; set; } = SizingModel.DefaultScale;
     public double ImageIdScale { get; set; } = SizingModel.DefaultScale;

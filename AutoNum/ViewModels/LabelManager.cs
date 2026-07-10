@@ -381,7 +381,9 @@ namespace AutoNumber.ViewModels
                     FontColor = Color.FromArgb(md.LabelsFont.Foreground);
                     MarkerLabel.Style.FontFamily = FontFamilyResolver.Resolve(md.LabelsFont.Family, MarkerLabel.Style.FontFamily);
 
-                    if (md is AutoNumMetaData_V3 v3 && double.IsFinite(v3.BaseLabelDiameter) && v3.BaseLabelDiameter > 0)
+                    var v3 = md as AutoNumMetaData_V3;
+
+                    if (v3 is not null && double.IsFinite(v3.BaseLabelDiameter) && v3.BaseLabelDiameter > 0)
                     {
                         BaseLabelDiameter = v3.BaseLabelDiameter;
                         BaseLabelFontSize = double.IsFinite(v3.BaseLabelFontSize) && v3.BaseLabelFontSize > 0
@@ -402,9 +404,18 @@ namespace AutoNumber.ViewModels
                         Trace.WriteLine($"MetadataLoaded[LabelManager]: legacy branch labelsSize={md.LabelsSize:F4}, labelsFontStored={md.LabelsFont.Size:F4}, baseDiameter={BaseLabelDiameter:F4}, baseFont={BaseLabelFontSize:F4}, labelScale={LabelScale:F4}, visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     }
 
-                    // Not yet persisted (quick version while still tuning) — recomputed fresh
-                    // from the restored image's dimensions on every reopen.
-                    RecalculateBaseTextFontSize();
+                    if (v3 is not null && double.IsFinite(v3.BaseTextFontSize) && v3.BaseTextFontSize > 0)
+                    {
+                        BaseTextFontSize = v3.BaseTextFontSize;
+                        Trace.WriteLine($"MetadataLoaded[LabelManager]: restored baseTextFont={BaseTextFontSize:F4}");
+                    }
+                    else
+                    {
+                        // Pre-dates BaseTextFontSize persistence (or legacy metadata) — recompute
+                        // fresh from the restored image's dimensions.
+                        RecalculateBaseTextFontSize();
+                        Trace.WriteLine($"MetadataLoaded[LabelManager]: recomputed baseTextFont={BaseTextFontSize:F4} (no stored value)");
+                    }
 
                     WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
                     Trace.WriteLine($"MetadataLoaded[LabelManager]: post-refresh visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");

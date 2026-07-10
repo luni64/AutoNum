@@ -409,14 +409,21 @@ namespace AutoNumber.ViewModels
             var baseLabelFontSize = double.IsFinite(lm.BaseLabelFontSize) && lm.BaseLabelFontSize > 0
                 ? lm.BaseLabelFontSize
                 : MarkerLabel.Style.FontSize;
+            // Namensliste/Title/Description/Image-ID resolve against BaseTextFontSize (not
+            // BaseLabelFontSize) at runtime — their scales below must be relative to the same
+            // base, or re-applying them on reopen would silently produce the wrong font size.
+            var baseTextFontSize = double.IsFinite(lm.BaseTextFontSize) && lm.BaseTextFontSize > 0
+                ? lm.BaseTextFontSize
+                : baseLabelFontSize;
 
             v3.BaseLabelDiameter = baseLabelDiameter;
             v3.BaseLabelFontSize = baseLabelFontSize;
+            v3.BaseTextFontSize = baseTextFontSize;
             v3.LabelScale = SizingModel.SafeScale(MarkerLabel.Style.Diameter, baseLabelDiameter);
-            v3.NameScale = SizingModel.SafeScale(TextLabel.Style.FontSize, baseLabelFontSize);
-            v3.ImageIdScale = SizingModel.SafeScale(idm.FontSize, baseLabelFontSize);
-            v3.TitleScale = SizingModel.SafeScale(tm.TitleFontSize, baseLabelFontSize);
-            v3.ImageInfoScale = SizingModel.SafeScale(iim.ImageInfoFontSize, baseLabelFontSize);
+            v3.NameScale = SizingModel.SafeScale(TextLabel.Style.FontSize, baseTextFontSize);
+            v3.ImageIdScale = SizingModel.SafeScale(idm.FontSize, baseTextFontSize);
+            v3.TitleScale = SizingModel.SafeScale(tm.TitleFontSize, baseTextFontSize);
+            v3.ImageInfoScale = SizingModel.SafeScale(iim.ImageInfoFontSize, baseTextFontSize);
         }
 
         public void ApplyRowDefinition()
