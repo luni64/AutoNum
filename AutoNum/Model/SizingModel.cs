@@ -28,12 +28,6 @@ internal static class SizingModel
 
     #region Tuning constants
 
-    /// <summary>
-    /// Dev-only switch for comparing face-based vs. image-width-based base label sizing
-    /// while retuning the former against the YuNet detector; not exposed in Settings.
-    /// </summary>
-    public static bool UseFaceBasedBaseLabelDiameter { get; set; } = true;
-
     // --- Label sizing (face-based, see ComputeBaseLabelDiameter/ComputeFittedLabelFontSize) ---
 
     /// <summary>Label diameter = this fraction of the average detected face's diagonal.</summary>
@@ -77,11 +71,6 @@ internal static class SizingModel
         // Tends to run large, but is the only option when there's no face data at all
         // (detection disabled, or none found) — kept as-is for now.
         var fallbackDiameter = Math.Max(1, imageWidth / 20.0);
-
-        if (!UseFaceBasedBaseLabelDiameter)
-        {
-            return fallbackDiameter;
-        }
 
         var faceList = faces?.ToList() ?? [];
         if (faceList.Count == 0)
