@@ -132,13 +132,13 @@ public class ImageIdManager : BaseViewModel
 
     private void ApplyScale()
     {
-        var baseLabelFontSize = _labelManager.BaseLabelFontSize;
-        if (baseLabelFontSize <= 0)
+        var baseTextFontSize = _labelManager.BaseTextFontSize;
+        if (baseTextFontSize <= 0)
         {
             return;
         }
 
-        FontSize = SizingModel.ResolveSize(baseLabelFontSize, FontScale);
+        FontSize = SizingModel.ResolveSize(baseTextFontSize, FontScale);
         LineHeight = ShowImageIdLine
             ? Analyzer.GetTextBlockHeight(ImageId, FontFamily, FontSize) + 10
             : 0;

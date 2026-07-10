@@ -14,6 +14,9 @@
 - **Number labels on fresh images are sized from detected face size again**
   With the old Haar-cascade detector, face rectangles were unreliable enough that automatic face-based label sizing was built but never actually enabled — every fresh image was sized purely from image width, regardless of how many people were in it or how large their faces were. Now that YuNet detection is much more consistent, label size is computed from the average diagonal of the detected faces instead, tuned against real photos to look right on both large group shots and close-ups with only a few people: base diameter is 38% of the average face diagonal, capped at 4.5% of the image's own diagonal so a close-up with a couple of large faces doesn't produce oversized labels. Falls back to the previous image-width-based sizing when no faces are detected or face detection is disabled (fixed a related gap where disabling detection left the label size stale from whatever photo was open before).
 
+- **Namensliste/Title/Description/Image-ID font size no longer tied to the label size**
+  These previously shared the exact same 100% baseline as the label numbers, so the face-based label sizing above (and its label-circle-fit constraint) indirectly capped how large this text could get too. They're now sized independently from the image's own diagonal instead, with no such ceiling. Not yet persisted per-image the way label sizing is, so further retuning can still shift already-saved test files' text size on reopen — a proper metadata slot for this is planned once the numbers are settled.
+
 - **Face-relative label anchor (Einstellungen → Erkennung)**
   New 3x3-grid control lets you choose where a freshly detected face's label is centered (e.g. top-left, center, bottom-right) instead of always below the chin. Applies only to newly created labels (open/redetect/rotate); existing labels are never moved. A "Neu Erkennen" button sits right beside the control to re-run detection immediately with the new anchor.
 
@@ -24,6 +27,9 @@
   Replaced the old `haarcascade_frontalface_default.xml` classifier with OpenCV's YuNet face detector (`FaceDetectorYN`), a small ONNX model that detects faces far more reliably on old/scanned genealogy photos — non-frontal poses, small or blurry faces, and uneven lighting. The old "Empfindlichkeit (ScaleFactor)" / "Bestätigungen (MinNeighbors)" sliders in Einstellungen → Erkennung are gone; the new detector's default confidence threshold works well enough that it isn't user-configurable.
 
 ## Bug Fixes
+
+- **Grayscale JPEGs crashed face detection**
+  A grayscale JPEG (single color component) loads via GDI+ as an 8bpp-indexed bitmap, which `Bitmap.ToMat()` converts to a 4-channel (BGRA) `Mat` instead of the expected 3-channel BGR — `FaceDetectorYN.Detect` requires exactly 3 and threw `OpenCV: Number of input channels should be multiple of 3 but got 4`. `FaceDetector` now normalizes any non-3-channel Mat to BGR via `CvtColor` before detecting; normal color JPEGs are unaffected (already 3-channel, no conversion runs).
 
 - **Custom output folder now actually supports relative paths**
   `Einstellungen → Export → Eigenen Ausgabeordner` previously only worked for absolute paths that already existed on disk; a relative value like `AutoNum` silently did nothing, because it was checked against the app's working directory instead of the photo's own folder. It's now resolved as a subfolder next to the source image and created automatically if missing. Also fixed a crash (`ArgumentException` from the native Save dialog) when the relative folder had more than one path segment (e.g. `AutoNum/test`), caused by a stray forward slash reaching `SaveFileDialog.InitialDirectory`.

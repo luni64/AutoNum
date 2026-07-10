@@ -227,6 +227,7 @@ namespace AutoNumber.ViewModels
             }
 
             RecalculateBaseLabelFontSize();
+            RecalculateBaseTextFontSize();
             Numerate();
             CalculateAndStoreRowBoundaries();
         }
@@ -401,6 +402,10 @@ namespace AutoNumber.ViewModels
                         Trace.WriteLine($"MetadataLoaded[LabelManager]: legacy branch labelsSize={md.LabelsSize:F4}, labelsFontStored={md.LabelsFont.Size:F4}, baseDiameter={BaseLabelDiameter:F4}, baseFont={BaseLabelFontSize:F4}, labelScale={LabelScale:F4}, visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     }
 
+                    // Not yet persisted (quick version while still tuning) — recomputed fresh
+                    // from the restored image's dimensions on every reopen.
+                    RecalculateBaseTextFontSize();
+
                     WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
                     Trace.WriteLine($"MetadataLoaded[LabelManager]: post-refresh visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     Trace.WriteLine("MetadataLoaded[LabelManager]: completed");
@@ -416,9 +421,20 @@ namespace AutoNumber.ViewModels
         public double BaseLabelDiameter { get; private set; } = 50;
         public double BaseLabelFontSize { get; private set; } = 12;
 
+        /// <summary>
+        /// 100% baseline for Namensliste/Title/Description/Image-ID (not the label numbers
+        /// themselves, see BaseLabelFontSize). See SizingModel.ComputeBaseTextFontSize.
+        /// </summary>
+        public double BaseTextFontSize { get; private set; } = 12;
+
         private void RecalculateBaseLabelFontSize()
         {
             BaseLabelFontSize = SizingModel.ComputeFittedLabelFontSize(BaseLabelDiameter, _imageVM.Persons);
+        }
+
+        private void RecalculateBaseTextFontSize()
+        {
+            BaseTextFontSize = SizingModel.ComputeBaseTextFontSize(_imageVM.Bitmap?.Width ?? 0, _imageVM.Bitmap?.Height ?? 0);
         }
 
         private void ApplyScale()

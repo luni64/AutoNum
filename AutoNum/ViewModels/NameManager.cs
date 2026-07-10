@@ -336,13 +336,13 @@ namespace AutoNumber.ViewModels
 
         private void ApplyScale()
         {
-            var baseLabelFontSize = _labelManager.BaseLabelFontSize;
-            if (baseLabelFontSize <= 0)
+            var baseTextFontSize = _labelManager.BaseTextFontSize;
+            if (baseTextFontSize <= 0)
             {
                 return;
             }
 
-            TextLabel.Style.FontSize = SizingModel.ResolveSize(baseLabelFontSize, FontScale);
+            TextLabel.Style.FontSize = SizingModel.ResolveSize(baseTextFontSize, FontScale);
         }
 
         private static double ResolveLegacyScale(double actualNameFontSize, double legacyLabelFontSize)

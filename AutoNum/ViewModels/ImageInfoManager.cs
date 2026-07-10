@@ -104,13 +104,13 @@ public class ImageInfoManager : BaseViewModel
 
     private void ApplyScale()
     {
-        var baseLabelFontSize = _labelManager.BaseLabelFontSize;
-        if (baseLabelFontSize <= 0)
+        var baseTextFontSize = _labelManager.BaseTextFontSize;
+        if (baseTextFontSize <= 0)
         {
             return;
         }
 
-        ImageInfoFontSize = SizingModel.ResolveSize(baseLabelFontSize, FontScale);
+        ImageInfoFontSize = SizingModel.ResolveSize(baseTextFontSize, FontScale);
     }
 
     private static double ResolveLegacyScale(double actualInfoFontSize, double legacyLabelFontSize)
