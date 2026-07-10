@@ -39,19 +39,13 @@ This lets you quickly prepare family photos, class pictures, or group shots for 
 
 ## 2. Interface Overview
 
-The window is divided into three areas:
+At the top of the window is the menu bar with the **File** and **Help** menus. Below it, the interface is divided into two areas:
 
-1. **Left: File area**
-   - Open image
-   - Save as JPG
-   - Save as PDF
-   - Quick usage notes
-
-2. **Center: Image preview**
+1. **Left: Image preview**
    - Shows the photo with numbers and additional text.
    - Below it are the action groups **Image** (rotate, zoom) and **Numbering** (row mode, delete all, redetect faces, formatting).
 
-3. **Right: Text and list area**
+2. **Right: Text and list area**
    - Title
    - Description/image information
    - Image ID
@@ -59,29 +53,31 @@ The window is divided into three areas:
 
 Every block on the right has an eye icon to show/hide it and a gear icon to format it.
 
+The **File** menu holds all actions for opening, saving, and exporting (see [Chapter 4](#4-opening-an-image) and [Chapter 9](#9-saving--export)) as well as access to **Settings** (see [Chapter 10](#10-settings)). The **Help** menu links to this manual.
+
 ![Main window – overview](Pictures/02_oberflaeche_gesamt.png)
 
 ---
 
 ## 3. Quick Start
 
-1. **Open an image** (left column).
+1. Choose **File → Open...** and select an image.
 2. Use **Rotate** (button below the preview) to orient the image correctly, if needed.
 3. Faces are detected and numbered automatically.
 4. Fill in the **name list** on the right, matching names to numbers.
 5. Optionally add a title, description, and image ID.
-6. Save the result as **JPG** or **PDF**.
+6. Save the result via **File → Save As...** as **JPG** or **PDF**.
 
 ---
 
 ## 4. Opening an Image
 
-- Click **Open image** on the left.
+- Choose **File → Open...**.
 - Supported formats: JPG, PDF, PNG, TIFF, BMP, GIF.
 - Face detection starts automatically after opening (if enabled in Settings).
 - JPG or PDF files previously saved with AutoNumber can also be opened here – layout, visibility, and font sizes are restored (see [Chapter 9](#9-saving--export)).
 
-![Opening an image](Pictures/04_bild_oeffnen.png)
+![File menu with Open](Pictures/04_bild_oeffnen.png)
 
 ---
 
@@ -202,33 +198,45 @@ Each block can be individually shown/hidden via the eye icon and formatted via t
 
 ## 9. Saving & Export
 
-### 9.1 Saving as JPG
+The **File** menu offers two save commands that behave like in most other applications:
 
-- Saves the result image with numbers and text blocks as a JPG file.
-- Suitable for sharing, printing, and embedding in documents.
-- The original image file is never modified or overwritten.
+### 9.1 Save
 
-### 9.2 Saving as PDF
+- Writes the current edits back to the already-saved/opened file in place, with no dialog.
+- On a freshly opened original photo, **Save** is disabled (greyed out) — this prevents the original from being overwritten by accident. Once the image has been saved once via **Save As...**, or an already-saved file has been reopened, **Save** becomes available.
+- The file format (JPG or PDF) follows the current file and doesn't change when saving.
 
-- Creates a regular PDF file that can be opened with common PDF viewers.
-- The PDF additionally contains invisibly embedded editing data, so it can later be reopened and edited again in AutoNumber (see [9.4](#94-reopening-for-editing)).
+### 9.2 Save As...
+
+- Opens the standard Windows Save dialog. You choose the location and file name freely; the format follows the extension you pick (`.jpg` or `.pdf`).
+- Which format is preselected in the dialog is set in Settings (see [10.4](#104-export), "Default format").
+- The original image file is never modified or overwritten — AutoNumber refuses to save under the original name.
+- Both formats (JPG and PDF) additionally contain invisibly embedded editing data, so the saved file can later be reopened and edited again in AutoNumber (see [9.5](#95-reopening-for-editing)).
 
 ![Example of a saved PDF file](Pictures/09b_pdf_beispiel.png)
 
-### 9.3 File Name When Saving
+### 9.3 Custom Output Folder
 
-In Settings (tab **Export**) you can set a suffix that AutoNumber automatically appends to the file name (default: `_num`), keeping the original and the edited version clearly separated. An existing original is never overwritten.
+In Settings (tab **Export**) you can set a custom output folder that's suggested as the location in the **Save As...** dialog — you can always pick a different location in the dialog, the output folder is only a suggestion.
 
-### 9.4 Reopening for Editing
+- **Absolute path** (e.g. `C:\Photos\Numbered`): must already exist; best set via the "Browse..." button.
+- **Relative path** (e.g. `Numbered` or `Numbered\2024`): used as a subfolder right next to the respective original photo, created automatically if needed — handy if you process photos from several different folders and want the numbered versions collected locally in a subfolder each, rather than all in one fixed folder.
 
-- Already-edited files (JPG, PDF) can be reloaded and edited further at any time via **Open image**.
+### 9.4 File Name When Saving
+
+In Settings (tab **Export**) you can additionally set a suffix that AutoNumber automatically appends to the file name (default: `_num`), keeping the original and the edited version clearly separated. An existing original is never overwritten.
+
+### 9.5 Reopening for Editing
+
+- Already-edited files (JPG, PDF) can be reloaded and edited further at any time via **File → Open...**.
 - Layout, element visibility, font sizes, and name assignments are restored.
+- Since it's no longer the original photo, **Save** is available immediately afterward.
 
 ---
 
 ## 10. Settings
 
-Open **Settings** via the gear icon in the top-right title bar. The dialog is organized into four tabs. Values set here are defaults for new images and never override the values of an already-edited (saved) image.
+Open **Settings** via **File → Settings...**. The dialog is organized into four tabs. Values set here are defaults for new images and never override the values of an already-edited (saved) image.
 
 For most users the built-in defaults work fine – checking Settings is mainly worthwhile if you're processing a series of similar photos and want to set your own default sizes/colors once.
 
@@ -278,9 +286,10 @@ For technically interested users: a detailed explanation of the method is availa
 
 ### 10.4 Export
 
+- **Default format for "Save As":** JPG or PDF — sets which format is preselected in the Save As dialog (see [9.2](#92-save-as)).
 - **Suffix for saved files:** automatically appended to the file name when saving (default: `_num`), e.g. also `revision_01` or empty for no suffix.
+- **Use custom output folder:** suggests a configured folder instead of the photo's own folder in the Save As dialog (absolute or relative — see [9.3](#93-custom-output-folder)).
 - **CSV (Excel) data** / **JSON data:** enables the additional metadata export when saving (see [Chapter 11](#11-csvjson-metadata-export)).
-- **Export now:** generates the CSV/JSON files immediately for the currently open image, without having to save again.
 
 ![Settings – Export tab](Pictures/10d_einstellungen_export.png)
 
@@ -288,7 +297,10 @@ For technically interested users: a detailed explanation of the method is availa
 
 ## 11. CSV/JSON Metadata Export
 
-When saving, you can additionally generate optional metadata files alongside the image/PDF file (Settings → tab **Export**). These files get the same name as the image file, but with the extension `.csv` or `.json`. Clicking **Export now** generates the files immediately for the currently open image.
+There are two ways to get metadata as a separate `.csv` or `.json` file:
+
+- **Automatically when saving:** Enable "CSV (Excel) data" and/or "JSON data" in Settings (tab **Export**). From then on, every **Save** and **Save As...** additionally generates a same-named `.csv` and/or `.json` file alongside the image/PDF file.
+- **On demand, independent of saving:** Choose **File → Export Metadata...**. A Save dialog opens where you choose the location and file name; whether a CSV or JSON file is created follows the extension you pick. This path is independent of the toggles in Settings — handy if, say, you only updated the name list and don't want to re-save the image just for that.
 
 This metadata includes:
 - Title
@@ -304,9 +316,13 @@ Example:
 - The result gives you the **image ID** of the photo that person appears in.
 - Using the associated **number** in the image, you can uniquely identify the person in the photo.
 
-![CSV metadata in Excel](Pictures/11a_csv_export.png)
+<img src="Pictures/11a_csv_export.png" alt="CSV metadata in Excel" width="480">
 
-![JSON metadata](Pictures/11b_json_export.png)
+*The exported CSV file, opened in Excel.*
+
+<img src="Pictures/11b_json_export.png" alt="JSON metadata" width="480">
+
+*The exported JSON file, opened in a text/code editor.*
 
 Note:
 - For plain viewing, printing, or simple sharing, you can also save without metadata export.
@@ -366,6 +382,7 @@ Both options contain the same program version – which one you choose is purely
 | Move all labels together | Ctrl + drag label |
 | Move row boundary | Drag the line |
 | Tilt row boundary | Drag an endpoint |
+| Save | Ctrl+S |
 
 ### 15.2 Version Note
 

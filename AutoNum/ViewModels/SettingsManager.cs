@@ -41,6 +41,11 @@ public class SettingsManager : BaseViewModel
         _exportCsvMetadata = _settings.ExportCsvMetadata;
         _exportJsonMetadata = _settings.ExportJsonMetadata;
         _saveFileSuffix = _settings.SaveFileSuffix ?? "_num";
+
+        _useCustomOutputFolder = _settings.UseCustomOutputFolder;
+        _outputFolder = _settings.OutputFolder ?? string.Empty;
+
+        _defaultSaveFormat = _settings.DefaultSaveFormat;
     }
 
 
@@ -347,13 +352,32 @@ public class SettingsManager : BaseViewModel
         }
     }
 
+    public bool UseCustomOutputFolder
+    {
+        get => _useCustomOutputFolder;
+        set
+        {
+            SetProperty(ref _useCustomOutputFolder, value);
+            SaveSettings();
+        }
+    }
+
+    public string OutputFolder
+    {
+        get => _outputFolder;
+        set
+        {
+            SetProperty(ref _outputFolder, value ?? string.Empty);
+            SaveSettings();
+        }
+    }
+
     public bool ExportCsvMetadata
     {
         get => _exportCsvMetadata;
         set
         {
             SetProperty(ref _exportCsvMetadata, value);
-            OnPropertyChanged(nameof(CanExportNow));
             SaveSettings();
         }
     }
@@ -364,12 +388,23 @@ public class SettingsManager : BaseViewModel
         set
         {
             SetProperty(ref _exportJsonMetadata, value);
-            OnPropertyChanged(nameof(CanExportNow));
             SaveSettings();
         }
     }
 
-    public bool CanExportNow => ExportCsvMetadata || ExportJsonMetadata;
+    /// <summary>
+    /// Which format is preselected in the "Speichern unter..." dialog. The actual
+    /// format used when saving is always decided by the extension the user picks.
+    /// </summary>
+    public SaveFormat DefaultSaveFormat
+    {
+        get => _defaultSaveFormat;
+        set
+        {
+            SetProperty(ref _defaultSaveFormat, value);
+            SaveSettings();
+        }
+    }
 
     private RelayCommand? _readCurrentValuesCommand;
     public RelayCommand ReadCurrentValuesCommand => _readCurrentValuesCommand ??= new RelayCommand(ExecuteReadCurrentValues);
@@ -564,6 +599,9 @@ public class SettingsManager : BaseViewModel
         _settings.SaveFileSuffix = SaveFileSuffix;
         _settings.ExportCsvMetadata = ExportCsvMetadata;
         _settings.ExportJsonMetadata = ExportJsonMetadata;
+        _settings.UseCustomOutputFolder = UseCustomOutputFolder;
+        _settings.OutputFolder = OutputFolder;
+        _settings.DefaultSaveFormat = DefaultSaveFormat;
         AppSettingsStore.Save(_settings);
     }
 
@@ -603,4 +641,7 @@ public class SettingsManager : BaseViewModel
     private string _saveFileSuffix = "_num";
     private bool _exportCsvMetadata;
     private bool _exportJsonMetadata;
+    private bool _useCustomOutputFolder;
+    private string _outputFolder = string.Empty;
+    private SaveFormat _defaultSaveFormat;
 }

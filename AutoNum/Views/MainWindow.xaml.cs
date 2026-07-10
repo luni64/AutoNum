@@ -1,6 +1,7 @@
 ﻿using MahApps.Metro.Controls;
 using AutoNumber.ViewModels;
 using AutoNumber.Views;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
 using MahApps.Metro.Controls.Dialogs;
@@ -41,6 +42,35 @@ namespace AutoNumber
                 Owner = this
             };
             settingsWindow.ShowDialog();
+        }
+
+        private void ExportMetadata_Click(object sender, RoutedEventArgs e)
+        {
+            if (DataContext is not MainVM mainVM)
+            {
+                return;
+            }
+
+            var exportedFile = mainVM.FileManager.ExportMetadataNow();
+            if (!string.IsNullOrEmpty(exportedFile))
+            {
+                MessageBox.Show(this, $"Datei wurde exportiert:\n\n{exportedFile}", "Export erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
+        private void OpenManual_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                Process.Start(new ProcessStartInfo("https://github.com/luni64/AutoNum/blob/main/docs/Manual/HANDBUCH_DE.md")
+                {
+                    UseShellExecute = true
+                });
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"Error opening manual link: {ex}");
+            }
         }
 
         private void ZoomToFit_Click(object sender, RoutedEventArgs e)

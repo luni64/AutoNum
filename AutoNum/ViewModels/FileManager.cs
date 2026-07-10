@@ -90,6 +90,7 @@ namespace AutoNumber.ViewModels
                     }
 
                     parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+                    System.Windows.Input.CommandManager.InvalidateRequerySuggested();
                 }
                 else if (metadata is AutoNumMetaData_V2 v2)
                 {
@@ -139,14 +140,25 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        public RelayCommand SaveJpgCommand => _saveJpgCommand ??= new(ExecuteSaveJpg);
-        public RelayCommand SavePdfCommand => _savePdfCommand ??= new(ExecuteSavePdf);
-        public RelayCommand SaveImageCommand => SaveJpgCommand;
+        private const string SaveAsFilter = "JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PDF Files (*.pdf)|*.pdf";
+        private const string ExportMetadataFilter = "CSV Files (*.csv)|*.csv|JSON Files (*.json)|*.json";
 
-        void ExecuteSaveJpg(object? o)
+        public RelayCommand SaveCommand => _saveCommand ??= new(ExecuteSave, CanExecuteSave);
+        public RelayCommand SaveAsCommand => _saveAsCommand ??= new(ExecuteSaveAs);
+
+        private bool CanExecuteSave(object? o) =>
+            !string.IsNullOrWhiteSpace(parent.PictureVM.CurrentImageFilename)
+            && !IsProtectedOriginalPath(parent.PictureVM.CurrentImageFilename, parent.PictureVM.OriginalImageFilename);
+
+        private void ExecuteSave(object? o) => WriteJpgOrPdf(parent.PictureVM.CurrentImageFilename);
+
+        private void ExecuteSaveAs(object? o)
         {
             var fullFilename = GetCurrentSaveFilename();
-            var saveFileInfo = CreateSaveFileInfo(fullFilename, ".jpg", "JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg");
+            var defaultFormat = parent.SettingsManager.DefaultSaveFormat;
+            var suggestedExtension = defaultFormat == SaveFormat.Pdf ? ".pdf" : ".jpg";
+            var filterIndex = defaultFormat == SaveFormat.Pdf ? 2 : 1;
+            var saveFileInfo = CreateSaveFileInfo(fullFilename, suggestedExtension, SaveAsFilter, filterIndex);
 
             if (parent.DialogService.ShowDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
             {
@@ -156,99 +168,103 @@ namespace AutoNumber.ViewModels
                     return;
                 }
 
-                using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
-                if (result is null)
-                {
-                    return;
-                }
-
-                // Encode bitmap to JPEG in memory, then inject APP4 patch segments
-                using var jpegStream = new MemoryStream();
-                result.Bitmap.Save(jpegStream, DrawingImageFormat.Jpeg);
-                var jpegBytes = jpegStream.ToArray();
-
-                var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
-
-                if (!TryWriteWithRetry(filename, () => File.WriteAllBytes(filename, finalBytes), "JPEG"))
-                {
-                    return;
-                }
-
-                parent.PictureVM.CurrentImageFilename = filename;
-
-                var exportData = BuildExportData();
-                exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
-                WriteMetadataSidecars(filename, exportData, result);
+                WriteJpgOrPdf(filename);
             }
         }
 
-        void ExecuteSavePdf(object? o)
+        private void WriteJpgOrPdf(string filename)
         {
-            var fullFilename = GetCurrentSaveFilename();
-            var saveFileInfo = CreateSaveFileInfo(fullFilename, ".pdf", "PDF Files (*.pdf)|*.pdf");
-
-            if (parent.DialogService.ShowDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
+            var extension = Path.GetExtension(filename);
+            if (string.Equals(extension, ".pdf", StringComparison.OrdinalIgnoreCase))
             {
-                if (IsProtectedOriginalPath(filename, parent.PictureVM.OriginalImageFilename))
-                {
-                    parent.DialogService.ShowDialog("Das Originalbild darf nicht überschrieben werden");
-                    return;
-                }
-
-                using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
-                if (result is null) return;
-
-                var exportData = BuildExportData();
-                exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
-                if (!WritePdf(filename, exportData))
-                {
-                    return;
-                }
-
-                parent.PictureVM.CurrentImageFilename = filename;
-                WriteMetadataSidecars(filename, exportData, result);
+                WritePdfWithSidecars(filename);
             }
-        }
-
-
-        public bool CanExportMetadataNow()
-        {
-            var hasSelection = ExportCsvMetadata || ExportJsonMetadata;
-            var currentFile = GetCurrentSaveFilename();
-            return hasSelection && !string.IsNullOrWhiteSpace(currentFile);
-        }
-
-        public List<string> ExportMetadataNow()
-        {
-            var exportedFiles = new List<string>();
-
-            if (!CanExportMetadataNow())
+            else if (string.Equals(extension, ".jpg", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(extension, ".jpeg", StringComparison.OrdinalIgnoreCase))
             {
-                return exportedFiles;
+                WriteJpg(filename);
+            }
+            else
+            {
+                parent.DialogService.ShowDialog($"Nicht unterstütztes Dateiformat '{extension}'. Bitte '.jpg' oder '.pdf' verwenden.");
+                return;
             }
 
-            var targetFilename = GetCurrentSaveFilename();
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
+        }
+
+        private void WriteJpg(string filename)
+        {
             using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
             if (result is null)
             {
-                return exportedFiles;
+                return;
+            }
+
+            // Encode bitmap to JPEG in memory, then inject APP4 patch segments
+            using var jpegStream = new MemoryStream();
+            result.Bitmap.Save(jpegStream, DrawingImageFormat.Jpeg);
+            var jpegBytes = jpegStream.ToArray();
+
+            var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
+
+            if (!TryWriteWithRetry(filename, () => File.WriteAllBytes(filename, finalBytes), "JPEG"))
+            {
+                return;
+            }
+
+            parent.PictureVM.CurrentImageFilename = filename;
+
+            var exportData = BuildExportData();
+            exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
+            WriteMetadataSidecars(filename, exportData, result);
+        }
+
+        private void WritePdfWithSidecars(string filename)
+        {
+            using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+            if (result is null) return;
+
+            var exportData = BuildExportData();
+            exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
+            if (!WritePdf(filename, exportData))
+            {
+                return;
+            }
+
+            parent.PictureVM.CurrentImageFilename = filename;
+            WriteMetadataSidecars(filename, exportData, result);
+        }
+
+        /// <summary>
+        /// Opens a Save-As-style dialog for a CSV or JSON metadata sidecar, decoupled from the
+        /// ExportCsvMetadata/ExportJsonMetadata auto-export-on-save toggles. Returns the written
+        /// path, or null if the user cancelled or the write failed.
+        /// </summary>
+        public string? ExportMetadataNow()
+        {
+            var fullFilename = GetCurrentSaveFilename();
+            if (string.IsNullOrWhiteSpace(fullFilename))
+            {
+                return null;
+            }
+
+            var saveFileInfo = CreateSaveFileInfo(fullFilename, ".csv", ExportMetadataFilter, 1);
+
+            if (parent.DialogService.ShowDialog(saveFileInfo) is not string filename || string.IsNullOrEmpty(filename))
+            {
+                return null;
             }
 
             var exportData = BuildExportData();
             exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
-            WriteMetadataSidecars(targetFilename, exportData, result);
 
-            if (ExportCsvMetadata)
-            {
-                exportedFiles.Add(Path.ChangeExtension(targetFilename, ".csv"));
-            }
+            var extension = Path.GetExtension(filename);
+            var ok = string.Equals(extension, ".json", StringComparison.OrdinalIgnoreCase)
+                ? TryWriteWithRetry(filename, () => WriteJson(filename, exportData), "JSON")
+                : TryWriteWithRetry(filename, () => WriteCsv(filename, exportData), "CSV");
 
-            if (ExportJsonMetadata)
-            {
-                exportedFiles.Add(Path.ChangeExtension(targetFilename, ".json"));
-            }
-
-            return exportedFiles;
+            return ok ? filename : null;
         }
 
         private SidecarExportData BuildExportData()
@@ -716,11 +732,12 @@ namespace AutoNumber.ViewModels
         {
             Trace.WriteLine($"RefreshPreviewAfterMetadataLoad: source={source}");
             parent.NameManager.RefreshAndShowNames();
+            System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         }
 
-        private SaveFileInfo CreateSaveFileInfo(string fullFilename, string extension, string filter)
+        private SaveFileInfo CreateSaveFileInfo(string fullFilename, string extension, string filter, int filterIndex)
         {
-            var path = Path.GetDirectoryName(fullFilename)!;
+            var sourcePath = Path.GetDirectoryName(fullFilename)!;
             var file = Path.GetFileNameWithoutExtension(fullFilename);
             var isEditingProtectedOriginal = IsProtectedOriginalPath(fullFilename, parent.PictureVM.OriginalImageFilename);
 
@@ -731,8 +748,9 @@ namespace AutoNumber.ViewModels
             return new SaveFileInfo
             {
                 Filename = outputFile,
-                InitialDirectory = path,
+                InitialDirectory = ResolveOutputFolder(sourcePath),
                 Filter = filter,
+                FilterIndex = filterIndex,
             };
         }
 
@@ -741,6 +759,34 @@ namespace AutoNumber.ViewModels
             return !string.IsNullOrWhiteSpace(parent.PictureVM.CurrentImageFilename)
                 ? parent.PictureVM.CurrentImageFilename
                 : parent.PictureVM.OriginalImageFilename;
+        }
+
+        private string ResolveOutputFolder(string sourcePath)
+        {
+            var configuredFolder = parent.SettingsManager.OutputFolder;
+            if (!parent.SettingsManager.UseCustomOutputFolder || string.IsNullOrWhiteSpace(configuredFolder))
+            {
+                return sourcePath;
+            }
+
+            if (Path.IsPathFullyQualified(configuredFolder))
+            {
+                // Absolute paths are set via the Browse button and must already exist.
+                return Directory.Exists(configuredFolder) ? Path.GetFullPath(configuredFolder) : sourcePath;
+            }
+
+            // Relative paths (e.g. "AutoNum" or "AutoNum/test") are a subfolder next to the
+            // source image, created on demand. Path.IsPathFullyQualified (not IsPathRooted) is
+            // required here: a driveless path like "/AutoNum" is "rooted" but not fully
+            // qualified, so it also falls into this relative branch rather than being misread
+            // as absolute. Normalizing to '\' and running through GetFullPath matters because
+            // SaveFileDialog.InitialDirectory (via the shell's IFileDialog) throws
+            // ArgumentException on a mixed-separator path like "C:\Photos\AutoNum/test", even
+            // though Directory.CreateDirectory tolerates it fine.
+            var relativeFolder = configuredFolder.TrimStart('\\', '/').Replace('/', '\\');
+            var resolvedFolder = Path.GetFullPath(Path.Combine(sourcePath, relativeFolder));
+            Directory.CreateDirectory(resolvedFolder);
+            return resolvedFolder;
         }
 
         private static bool IsProtectedOriginalPath(string selectedPath, string protectedOriginalPath)
@@ -757,8 +803,8 @@ namespace AutoNumber.ViewModels
 
         private MainVM parent { get; set; } = parent;
         private RelayCommand? _openImageCommand;
-        private RelayCommand? _saveJpgCommand;
-        private RelayCommand? _savePdfCommand;
+        private RelayCommand? _saveCommand;
+        private RelayCommand? _saveAsCommand;
 
         private sealed class SidecarExportData
         {

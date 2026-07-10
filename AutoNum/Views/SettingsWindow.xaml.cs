@@ -1,5 +1,7 @@
 using AutoNumber.ViewModels;
 using MahApps.Metro.Controls;
+using Microsoft.Win32;
+using System.IO;
 using System.Windows;
 
 namespace AutoNumber.Views;
@@ -46,21 +48,27 @@ public partial class SettingsWindow : MetroWindow
         }
     }
 
-    private void ExportNow_Click(object sender, RoutedEventArgs e)
-    {
-        if (DataContext is SettingsManager)
-        {
-            var exportedFiles = _mainVM.FileManager.ExportMetadataNow();
-            if (exportedFiles.Count > 0)
-            {
-                var message = "Folgende Dateien wurden exportiert:\n\n" + string.Join("\n", exportedFiles);
-                MessageBox.Show(this, message, "Export erfolgreich", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-    }
-
     private void RedetectFaces_Click(object sender, RoutedEventArgs e)
     {
         _mainVM.LabelManager.RedetectFacesCommand.Execute(null);
+    }
+
+    private void BrowseOutputFolder_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SettingsManager settingsManager)
+        {
+            return;
+        }
+
+        var dialog = new OpenFolderDialog
+        {
+            Title = "Ausgabeordner auswählen",
+            InitialDirectory = Directory.Exists(settingsManager.OutputFolder) ? settingsManager.OutputFolder : null,
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            settingsManager.OutputFolder = dialog.FolderName;
+        }
     }
 }

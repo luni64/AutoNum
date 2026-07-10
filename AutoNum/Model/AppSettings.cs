@@ -38,6 +38,11 @@ public class AppSettings
     public bool ExportCsvMetadata { get; set; } = true;
     public bool ExportJsonMetadata { get; set; } = true;
     public string SaveFileSuffix { get; set; } = "_num";
+
+    public bool UseCustomOutputFolder { get; set; } = false;
+    public string OutputFolder { get; set; } = string.Empty;
+
+    public SaveFormat DefaultSaveFormat { get; set; } = SaveFormat.Jpg;
 }
 
 public static class AppSettingsStore
@@ -83,7 +88,7 @@ public static class AppSettingsStore
     {
         try
         {
-            settings.SchemaVersion = 7;
+            settings.SchemaVersion = 8;
             Directory.CreateDirectory(SettingsDirectory);
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(SettingsPath, json);
@@ -96,10 +101,11 @@ public static class AppSettingsStore
 
     private static AppSettings CreateDefault() => new()
     {
-        SchemaVersion = 7,
+        SchemaVersion = 8,
         FaceDetectionEnabled = true,
         RowDetectionEnabled = true,
-        DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter
+        DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter,
+        DefaultSaveFormat = SaveFormat.Jpg
     };
 
     private static void Migrate(AppSettings settings)
@@ -115,6 +121,12 @@ public static class AppSettingsStore
         {
             settings.DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter;
             settings.SchemaVersion = 7;
+        }
+
+        if (settings.SchemaVersion < 8)
+        {
+            settings.DefaultSaveFormat = SaveFormat.Jpg;
+            settings.SchemaVersion = 8;
         }
     }
 }

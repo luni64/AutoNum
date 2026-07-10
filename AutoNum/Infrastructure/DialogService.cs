@@ -18,7 +18,8 @@ namespace AutoNumber.Infrastructure
                         var dialog = new OpenFileDialog
                         {
                             Filter = vm.Filter,
-                            CheckFileExists = true,       
+                            FilterIndex = vm.FilterIndex,
+                            CheckFileExists = true,
                             ForcePreviewPane = true,
                         };
                         if (dialog.ShowDialog() == true)
@@ -36,6 +37,7 @@ namespace AutoNumber.Infrastructure
                             FileName = vm.Filename,
                             InitialDirectory = vm.InitialDirectory,
                             Filter = vm.Filter,
+                            FilterIndex = vm.FilterIndex,
                         };
                         retVal = dialog.ShowDialog() == true ? dialog.FileName : null;
                         break;

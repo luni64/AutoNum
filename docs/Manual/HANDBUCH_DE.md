@@ -37,19 +37,13 @@ So können Sie Familienfotos, Klassenbilder oder Gruppenaufnahmen schnell aufber
 
 ## 2. Oberfläche im Überblick
 
-Die Oberfläche besteht aus drei Bereichen:
+Oben im Fenster befindet sich die Menüleiste mit den Menüs **Datei** und **Hilfe**. Darunter besteht die Oberfläche aus zwei Bereichen:
 
-1. **Links: Datei-Bereich**
-   - Bild öffnen
-   - Als JPG speichern
-   - Als PDF speichern
-   - Kurzhinweise zur Bedienung
-
-2. **Mitte: Bildvorschau**
+1. **Links: Bildvorschau**
    - Hier sehen Sie das Foto mit Nummern und Zusatztexten.
    - Unten befinden sich Aktionsgruppen **Bild** (Drehen, Zoom) und **Nummerierung** (Reihenmodus, Alle löschen, Gesichter neu erkennen, Formatieren).
 
-3. **Rechts: Text- und Listenbereich**
+2. **Rechts: Text- und Listenbereich**
    - Überschrift
    - Beschreibung/Bildinformation
    - Bild-ID
@@ -57,31 +51,31 @@ Die Oberfläche besteht aus drei Bereichen:
 
 Jeder Block rechts hat ein Augen-Symbol zum Ein-/Ausblenden und ein Zahnrad-Symbol zum Formatieren.
 
+Das Menü **Datei** enthält alle Aktionen zum Öffnen, Speichern und Exportieren (siehe [Kapitel 4](#4-bild-öffnen) und [Kapitel 9](#9-speichern--export)) sowie den Zugang zu den **Einstellungen** (siehe [Kapitel 10](#10-einstellungen)). Das Menü **Hilfe** verlinkt auf dieses Handbuch.
+
 ![Hauptfenster – Gesamtansicht](Pictures/02_oberflaeche_gesamt.png)
-<!-- Zeigt: leeres oder gefülltes Hauptfenster, mit Beschriftung/Pfeilen auf die drei Bereiche (Datei-Bereich, Bildvorschau, Text-/Listenbereich) -->
 
 ---
 
 ## 3. Schnellstart
 
-1. **Bild öffnen** (linke Spalte).
+1. **Datei → Öffnen...** wählen und ein Bild auswählen.
 2. Bei Bedarf das Bild mit **Drehen** (Button unter der Vorschau) korrekt ausrichten.
 3. Gesichter werden automatisch erkannt und nummeriert.
 4. In der **Namensliste** rechts die Namen zu den Nummern eintragen.
 5. Optional Überschrift, Beschreibung und Bild-ID ergänzen.
-6. Das Ergebnis als **JPG** oder **PDF** speichern.
+6. Das Ergebnis über **Datei → Speichern unter...** als **JPG** oder **PDF** speichern.
 
 ---
 
 ## 4. Bild öffnen
 
-- Klicken Sie links auf **Bild öffnen**.
+- Wählen Sie **Datei → Öffnen...**.
 - Unterstützte Formate: JPG, PDF, PNG, TIFF, BMP, GIF.
 - Nach dem Öffnen startet die Gesichtserkennung automatisch (sofern in den Einstellungen aktiviert).
 - Bereits mit AutoNumber bearbeitete JPG- oder PDF-Dateien können ebenfalls hier geöffnet werden – Layout, Sichtbarkeit und Schriftgrößen werden dabei wiederhergestellt (siehe [Kapitel 9](#9-speichern--export)).
 
-![Bild öffnen](Pictures/04_bild_oeffnen.png)
-<!-- Zeigt: Datei-Bereich links mit "Bild öffnen"-Button und Format-Hinweis -->
+![Datei-Menü mit Öffnen](Pictures/04_bild_oeffnen.png)
 
 ---
 
@@ -207,34 +201,46 @@ Jeder Block kann separat über das Augen-Symbol ein- oder ausgeblendet und über
 
 ## 9. Speichern & Export
 
-### 9.1 Als JPG speichern
+Das Menü **Datei** bietet zwei Speichern-Befehle, die sich wie in den meisten anderen Programmen verhalten:
 
-- Speichert das Ergebnisbild mit Nummern und Textblöcken als JPG-Datei.
-- Geeignet für Weitergabe, Druck und Einbindung in Dokumente.
-- Die Original-Bilddatei wird unter keinen Umständen verändert oder überschrieben.
+### 9.1 Speichern
 
-### 9.2 Als PDF speichern
+- Schreibt die aktuelle Bearbeitung ohne Dialog direkt in die bereits gespeicherte bzw. geöffnete Datei zurück.
+- Bei einem frisch geöffneten Originalfoto ist **Speichern** deaktiviert (ausgegraut) – so wird verhindert, dass das Original versehentlich überschrieben wird. Sobald das Bild einmal über **Speichern unter...** gespeichert oder eine bereits gespeicherte Datei erneut geöffnet wurde, ist **Speichern** verfügbar.
+- Das Dateiformat (JPG oder PDF) richtet sich nach der aktuellen Datei und ändert sich beim Speichern nicht.
 
-- Erzeugt eine reguläre PDF-Datei, die sich mit gängigen PDF-Programmen öffnen lässt.
-- Die PDF enthält zusätzlich unsichtbar eingebettete Bearbeitungsdaten, sodass sie sich später in AutoNumber erneut öffnen und weiterbearbeiten lässt (siehe [9.4](#94-wieder-öffnen-zur-bearbeitung)).
+### 9.2 Speichern unter...
+
+- Öffnet den Standard-Speichern-Dialog von Windows. Sie wählen Ort und Dateinamen frei; das Format ergibt sich aus der gewählten Dateiendung (`.jpg` oder `.pdf`).
+- Welches Format im Dialog vorausgewählt ist, legen Sie in den Einstellungen fest (siehe [10.4](#104-export), „Standardformat“).
+- Die Original-Bilddatei wird unter keinen Umständen verändert oder überschrieben – ein Speichern unter dem Originalnamen wird von AutoNumber verweigert.
+- In beiden Formaten (JPG und PDF) werden zusätzlich unsichtbar Bearbeitungsdaten eingebettet, sodass sich die gespeicherte Datei später in AutoNumber erneut öffnen und weiterbearbeiten lässt (siehe [9.5](#95-wieder-öffnen-zur-bearbeitung)).
 
 ![Beispiel für eine gespeicherte PDF-Datei](Pictures/09b_pdf_beispiel.png)
 <!-- Zeigt: exportierte PDF-Datei in einem PDF-Betrachter geöffnet -->
 
-### 9.3 Dateiname beim Speichern
+### 9.3 Eigener Ausgabeordner
 
-In den Einstellungen (Tab **Export**) können Sie ein Suffix festlegen, das AutoNumber automatisch an den Dateinamen anhängt (Standard: `_num`), damit Original und bearbeitete Version klar getrennt bleiben. Ein bereits vorhandenes Original wird dabei nie überschrieben.
+In den Einstellungen (Tab **Export**) können Sie einen eigenen Ausgabeordner festlegen, der beim Speichern eines neuen Fotos im Dialog **Speichern unter...** als Ordner vorgeschlagen wird – Sie können im Dialog jederzeit einen anderen Ort wählen, der Ausgabeordner ist nur ein Vorschlag.
 
-### 9.4 Wieder öffnen zur Bearbeitung
+- **Absoluter Pfad** (z. B. `C:\Fotos\Nummeriert`): muss bereits existieren; wählen Sie ihn am besten über den Button „Durchsuchen...“.
+- **Relativer Pfad** (z. B. `Nummeriert` oder `Nummeriert\2024`): wird als Unterordner direkt neben dem jeweiligen Originalfoto verwendet und bei Bedarf automatisch angelegt – praktisch, wenn Sie mehrere Fotos aus verschiedenen Ordnern bearbeiten und die nummerierten Versionen jeweils lokal in einem Unterordner sammeln möchten, statt alle in einem einzigen festen Ordner zu sammeln.
 
-- Bereits bearbeitete Dateien (JPG, PDF) können jederzeit erneut über **Bild öffnen** geladen und weiterbearbeitet werden.
+### 9.4 Dateiname beim Speichern
+
+In den Einstellungen (Tab **Export**) können Sie zusätzlich ein Suffix festlegen, das AutoNumber automatisch an den Dateinamen anhängt (Standard: `_num`), damit Original und bearbeitete Version klar getrennt bleiben. Ein bereits vorhandenes Original wird dabei nie überschrieben.
+
+### 9.5 Wieder öffnen zur Bearbeitung
+
+- Bereits bearbeitete Dateien (JPG, PDF) können jederzeit erneut über **Datei → Öffnen...** geladen und weiterbearbeitet werden.
 - Layout, Sichtbarkeit der Elemente, Schriftgrößen und Namenszuordnung werden dabei wiederhergestellt.
+- Da es sich nicht mehr um das Originalfoto handelt, ist **Speichern** danach sofort verfügbar.
 
 ---
 
 ## 10. Einstellungen
 
-Über das Zahnrad oben rechts in der Titelleiste öffnen Sie die **Einstellungen**. Der Dialog ist in vier Tabs gegliedert. Die hier festgelegten Werte sind Standardwerte für neue Bilder und überschreiben nie die Werte eines bereits bearbeiteten (gespeicherten) Bildes.
+Über **Datei → Einstellungen...** öffnen Sie die **Einstellungen**. Der Dialog ist in vier Tabs gegliedert. Die hier festgelegten Werte sind Standardwerte für neue Bilder und überschreiben nie die Werte eines bereits bearbeiteten (gespeicherten) Bildes.
 
 Für die meisten Nutzer reichen die mitgelieferten Standardwerte aus – ein Blick in die Einstellungen lohnt sich vor allem, wenn Sie viele ähnliche Fotos in Serie bearbeiten und einmalig eigene Standardgrößen/-farben festlegen möchten.
 
@@ -287,18 +293,21 @@ Für Nutzer mit technischem Interesse: eine ausführliche Erklärung des Verfahr
 
 ### 10.4 Export
 
+- **Standardformat für „Speichern unter“:** JPG oder PDF – legt fest, welches Format im Speichern-unter-Dialog vorausgewählt ist (siehe [9.2](#92-speichern-unter)).
 - **Suffix für gespeicherte Dateien:** wird beim Speichern automatisch an den Dateinamen angehängt (Standard: `_num`), z. B. auch `revision_01` oder leer für kein Suffix.
+- **Eigenen Ausgabeordner verwenden:** schlägt beim Speichern unter... einen festgelegten Ordner statt des Fotoordners vor (absolut oder relativ – siehe [9.3](#93-eigener-ausgabeordner)).
 - **CSV (Excel) Daten** / **JSON Daten:** aktiviert den zusätzlichen Metadaten-Export beim Speichern (siehe [Kapitel 11](#11-csvjson-metadaten-export)).
-- **Jetzt exportieren:** erzeugt die CSV-/JSON-Dateien sofort für das aktuell geöffnete Bild, ohne dass dafür neu gespeichert werden muss.
 
 ![Einstellungen – Tab Export](Pictures/10d_einstellungen_export.png)
-<!-- Zeigt: Export-Tab mit Suffix-Feld, CSV-/JSON-Toggles und "Jetzt exportieren"-Button -->
 
 ---
 
 ## 11. CSV/JSON-Metadaten-Export
 
-Beim Speichern können Sie zusätzlich zur Bild-/PDF-Datei optionale Metadaten-Dateien erzeugen (Einstellungen → Tab **Export**). Die Dateien erhalten denselben Namen wie die Bilddatei, jedoch mit der Endung `.csv` bzw. `.json`. Ein Klick auf **Jetzt exportieren** erzeugt die Dateien sofort für das aktuell geöffnete Bild.
+Es gibt zwei Wege, Metadaten als eigene `.csv`- oder `.json`-Datei zu erhalten:
+
+- **Automatisch beim Speichern:** Aktivieren Sie in den Einstellungen (Tab **Export**) „CSV (Excel) Daten“ und/oder „JSON Daten“. Ab dann wird bei jedem **Speichern** und **Speichern unter...** zusätzlich zur Bild-/PDF-Datei automatisch eine gleichnamige `.csv`- bzw. `.json`-Datei erzeugt.
+- **Auf Wunsch, unabhängig vom Speichern:** Wählen Sie **Datei → Metadaten exportieren...**. Es öffnet sich ein Speichern-Dialog, in dem Sie Ort und Dateinamen wählen; ob eine CSV- oder JSON-Datei entsteht, ergibt sich aus der gewählten Dateiendung. Dieser Weg ist unabhängig von den Toggles in den Einstellungen – praktisch, wenn Sie z. B. nur die Namensliste aktualisiert haben und dafür nicht extra das Bild neu speichern möchten.
 
 Diese Metadaten enthalten:
 - Titel
@@ -314,10 +323,14 @@ Beispiel:
 - Als Ergebnis erhalten Sie die **Bild-ID** des Fotos, auf dem die Person vorkommt.
 - Über die zugehörige **Nummer** im Bild können Sie die Person im Foto eindeutig zuordnen.
 
-![CSV-Metadaten in Excel](Pictures/11a_csv_export.png)
+<img src="Pictures/11a_csv_export.png" alt="CSV-Metadaten in Excel" width="480">
+
+*Die exportierte CSV-Datei, geöffnet in Excel.*
 <!-- Zeigt: exportierte CSV-Datei in Excel geöffnet -->
 
-![JSON-Metadaten](Pictures/11b_json_export.png)
+<img src="Pictures/11b_json_export.png" alt="JSON-Metadaten" width="480">
+
+*Die exportierte JSON-Datei, geöffnet in einem Text-/Code-Editor.*
 <!-- Zeigt: exportierte JSON-Datei in einem Text-/Code-Editor -->
 
 Hinweis:
@@ -378,6 +391,7 @@ Beide Varianten enthalten dieselbe Programmversion – welche Sie wählen, ist r
 | Alle Label gemeinsam verschieben | Strg + Label ziehen |
 | Reihengrenze verschieben | Ziehen der Linie |
 | Reihengrenze kippen | Ziehen an einem Endpunkt |
+| Speichern | Strg+S |
 
 ### 15.2 Versionshinweis
 

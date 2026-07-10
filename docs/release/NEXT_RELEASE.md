@@ -5,6 +5,9 @@
 - **Hovering a name in the Namensliste highlights its label on the image**
   Moving the mouse over a row in the name list now shows a thick magenta ring (sized relative to the label diameter) around the corresponding numbered label, making it easy to match a name back to a face on group photos. The highlight clears as soon as the mouse leaves the row; tracked via hit-testing on mouse move rather than per-row hover events so fast mouse movement can't leave a stale highlight behind.
 
+- **Datei menu replaces the old Öffnen/Speichern buttons and Settings gear**
+  The left panel is gone; all file actions now live in a standard Datei menu: Öffnen, Speichern (writes back in place, disabled until the file is no longer the protected original), Speichern unter... (a single dialog offering both JPG and PDF — the format is decided by the extension you pick, not by which filter is highlighted; a new Einstellungen → Export → "Standardformat" setting controls which filter is preselected), and Metadaten exportieren... (on-demand CSV/JSON export via its own dialog, fully independent of the auto-export-alongside-save toggles). Settings moved from a title-bar gear icon into Datei → Einstellungen.... The freed-up left column gives the image preview more room. A new Hilfe menu links to the online manual. Speichern also has a **Strg+S** shortcut.
+
 - **Face-relative label anchor (Einstellungen → Erkennung)**
   New 3x3-grid control lets you choose where a freshly detected face's label is centered (e.g. top-left, center, bottom-right) instead of always below the chin. Applies only to newly created labels (open/redetect/rotate); existing labels are never moved. A "Neu Erkennen" button sits right beside the control to re-run detection immediately with the new anchor.
 
@@ -15,6 +18,9 @@
   Replaced the old `haarcascade_frontalface_default.xml` classifier with OpenCV's YuNet face detector (`FaceDetectorYN`), a small ONNX model that detects faces far more reliably on old/scanned genealogy photos — non-frontal poses, small or blurry faces, and uneven lighting. The old "Empfindlichkeit (ScaleFactor)" / "Bestätigungen (MinNeighbors)" sliders in Einstellungen → Erkennung are gone; the new detector's default confidence threshold works well enough that it isn't user-configurable.
 
 ## Bug Fixes
+
+- **Custom output folder now actually supports relative paths**
+  `Einstellungen → Export → Eigenen Ausgabeordner` previously only worked for absolute paths that already existed on disk; a relative value like `AutoNum` silently did nothing, because it was checked against the app's working directory instead of the photo's own folder. It's now resolved as a subfolder next to the source image and created automatically if missing. Also fixed a crash (`ArgumentException` from the native Save dialog) when the relative folder had more than one path segment (e.g. `AutoNum/test`), caused by a stray forward slash reaching `SaveFileDialog.InitialDirectory`.
 
 - **EXIF save: build-breaking typo in `BitmapExtensions.cs`**
   A stray pasted token after `propItem.Len = jsonBytes.Length;` and a misspelled `GetExecutinsgAssembly()` call broke compilation. Fixed both.

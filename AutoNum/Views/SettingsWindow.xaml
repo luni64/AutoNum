@@ -217,17 +217,48 @@
 							</Run>
 							<LineBreak/>
 							<Run>
-								Beim Speichern eines Bildes kann AutoNumber automatisch ein Suffix an den Dateinamen des exportieren Bildes anhängen.
+								Diese Einstellungen legen fest, wie AutoNumber beim Speichern eines Bildes vorgeht.
 							</Run>
 							<LineBreak/><LineBreak/>
 							<Run FontWeight="SemiBold">
-								Suffix für gespeicherte Dateien
+								Standardformat für "Speichern unter"
+							</Run>
+							<LineBreak/>
+							<Run>
+								Legt fest, welches Format im Dialog "Speichern unter" vorausgewählt ist.
 							</Run>
                         </TextBlock>
 
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                            <RadioButton GroupName="DefaultSaveFormat" Content="JPG" Margin="0,0,20,0"
+                                         IsChecked="{Binding DefaultSaveFormat, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Jpg}"/>
+                            <RadioButton GroupName="DefaultSaveFormat" Content="PDF"
+                                         IsChecked="{Binding DefaultSaveFormat, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Pdf}"/>
+                        </StackPanel>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,4" FontSize="12" FontWeight="SemiBold">
+                            Suffix für gespeicherte Dateien
+                        </TextBlock>
                         <TextBox Text="{Binding SaveFileSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
 								 Padding="6,4" Margin="0,0,0,14"
 								 ToolTip="z.B. '_num', 'revision_01' oder leer für kein Suffix"/>
+
+                        <mah:ToggleSwitch IsOn="{Binding UseCustomOutputFolder}" Content="Eigenen Ausgabeordner verwenden" Margin="0,0,0,8"/>
+
+                        <Grid IsEnabled="{Binding UseCustomOutputFolder}" Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding OutputFolder, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     Padding="6,4" Margin="0,0,8,0"
+                                     VerticalContentAlignment="Center"
+                                     ToolTip="Zielordner für gespeicherte JPG-/PDF-Dateien"/>
+                            <Button Grid.Column="1" Content="Durchsuchen..."
+                                    Click="BrowseOutputFolder_Click"
+                                    Padding="10,4"/>
+                        </Grid>
 
                         <TextBlock TextWrapping="Wrap" Margin="0,8,0,14" FontSize="12">
 							<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
@@ -241,17 +272,6 @@
 
                         <mah:ToggleSwitch IsOn="{Binding ExportCsvMetadata}" Content="CSV (Excel) Daten" Margin="0,0,0,8"/>
                         <mah:ToggleSwitch IsOn="{Binding ExportJsonMetadata}" Content="JSON Daten" Margin="0,0,0,0"/>
-
-                        <Button Content="Jetzt Exportieren"
-								Click="ExportNow_Click"
-								IsEnabled="{Binding CanExportNow}"
-								Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
-								FontSize="13"
-								mah:ControlsHelper.ContentCharacterCasing="Upper"
-								Padding="10"
-								Width="auto"
-								Margin="0,10,0,0"
-								HorizontalAlignment="Left"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

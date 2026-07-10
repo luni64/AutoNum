@@ -51,9 +51,8 @@ AutoNum/
 │   ├── FontManager.xaml/.cs
 │   ├── Marker.xaml/.cs
 │   ├── ZoomBorder.cs
-│   ├── SettingsWindow.xaml/.cs # Modal tabbed settings dialog (gear in title bar)
+│   ├── SettingsWindow.xaml/.cs # Modal tabbed settings dialog (Datei → Einstellungen... in the main menu)
 │   └── WizardViews/
-│       ├── FilesView.xaml
 │       ├── LabelWiz.xaml
 │       ├── NamesView.xaml
 │       ├── ImageInfoView.xaml
@@ -101,6 +100,11 @@ AutoNum/
 - Persisted app-wide as `AppSettings.DefaultFaceLabelAnchor` and exposed as `SettingsManager.FaceLabelAnchor`; configured via a 3x3 radio-button grid in the Settings window's **Erkennung** tab, with a **Neu Erkennen** button beside it to re-run detection immediately with the new anchor.
 - `LabelManager.SetLabels` resolves the anchor to a fractional position (`FaceLabelAnchor.ToFraction()`); `BottomCenter` keeps the historical slight overshoot below the chin, all other anchors sit exactly on the rectangle's fraction point.
 
+### File Menu Commands
+- `MainWindow.xaml` hosts a top `Menu` (Datei: Öffnen/Speichern/Speichern unter/Metadaten exportieren/Einstellungen; Hilfe: Handbuch) instead of the old left-panel buttons — there is no left column in the main grid anymore, and no title-bar gear button (Einstellungen now lives in the Datei menu, `MainWindow.xaml.cs`'s `OpenSettings_Click`).
+- `FileManager.ResolveOutputFolder(sourcePath)` decides the Save-As/Export-metadata dialog's initial directory from `SettingsManager.UseCustomOutputFolder`/`OutputFolder`: an absolute (`Path.IsPathFullyQualified`) folder must already exist (set via the Browse button); a relative folder (e.g. `AutoNum`, or `/AutoNum` — leading separators are trimmed) is created on demand as a subfolder next to the source image. Everything is normalized through `Path.GetFullPath` before being handed to `SaveFileDialog.InitialDirectory`, since the underlying shell API throws on a mixed-separator path (e.g. `C:\Photos\AutoNum/test`) even though `Directory.CreateDirectory` tolerates it.
+- `DialogService.ShowDialog` passes `SaveFileInfo`/`OpenFileInfo.FilterIndex` through to the native dialog's `FilterIndex`, used to preselect the JPG/PDF filter in Save As per `SettingsManager.DefaultSaveFormat`.
+
 ## Data Flow
 
 ### Open fresh image (no AutoNum metadata)
@@ -134,14 +138,14 @@ AutoNum/
 4. Face detection is re-run on the rotated bitmap, then `SetLabels(...)` recreates labels in the rotated coordinate space.
 5. `LabelsChangedMessage` refreshes dependent layout/scale consumers so preview and export stay consistent.
 
-### Save image
-1. `FileManager` proposes output name:
-   - protected original + setting enabled => suggest `_num`
-   - otherwise suggest current filename
-2. Prevent overwrite only for the protected original file path.
-3. Render with `ToNumberedBitmap(...)`, including optional stacked title, image-information, image-ID, and names blocks in order: Title, Information, Image, ID, Names.
-4. Save JPEG bytes, inject APP4 patches, embed metadata as `Version = "V3"` with exact sizing anchors plus relative scales.
-5. Optional PDF export path renders the PDF document and embeds a versioned AutoNum payload zip (`metadata + base image`) as a standard PDF attachment for round-trip editing from `_num.pdf`.
+### Save / Save As / Export Metadata (Datei menu)
+All three are `FileManager` commands/methods bound directly from `MainWindow.xaml`'s `Menu` (no left-panel buttons; see Key Design Patterns → File Menu Commands below):
+1. **Speichern** (`SaveCommand`) writes back to `ImageVM.CurrentImageFilename` in place, no dialog. `CanExecute` is `!IsProtectedOriginalPath(CurrentImageFilename, OriginalImageFilename)` — disabled until the current file is no longer the protected original (i.e. until the first Save As), re-evaluated via `CommandManager.InvalidateRequerySuggested()` after every open/save.
+2. **Speichern unter...** (`SaveAsCommand`) shows a single Save dialog with a combined JPEG+PDF filter (`SettingsManager.DefaultSaveFormat` only controls which filter is preselected); the actual format written is decided from the extension of the path the user picks/types.
+3. Both dispatch to `FileManager.WriteJpgOrPdf(filename)`, which routes to `WriteJpg`/`WritePdfWithSidecars` by extension, updates `CurrentImageFilename`, and writes CSV/JSON sidecars per `ExportCsvMetadata`/`ExportJsonMetadata` (auto-export-alongside-save toggles).
+4. **Metadaten exportieren...** (`FileManager.ExportMetadataNow()`) is a separate on-demand action: its own Save dialog (CSV/JSON filter, format by extension), fully decoupled from the `ExportCsvMetadata`/`ExportJsonMetadata` toggles above — those only govern what rides along with Save/Save As, never whether this menu item works.
+5. Rendering: `ToNumberedBitmap(...)` composites optional stacked title, image-information, image-ID, and names blocks (order: Title, Information, Image, ID, Names). JPEG path injects APP4 patches and embeds `Version = "V3"` metadata; PDF path embeds a versioned AutoNum payload zip (`metadata + base image`) as a standard PDF attachment for round-trip editing from `_num.pdf`.
+6. Prevent overwrite only for the protected original file path (`IsProtectedOriginalPath`), checked after the Save As dialog returns.
 
 ## Slider & Scale Control Architecture
 
@@ -183,16 +187,12 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 
 ## Settings Architecture
 - App-wide defaults are persisted in `%AppData%/AutoNum/settings.json`.
-- `SettingsManager` exposes bindable settings in `SettingsWindow` (modal dialog opened from a title-bar gear command).
-- **Schriften (Fonts) tab** allows users to configure:
-  - Explanatory text describing how the app determines base font size from image resolution, and that slider values are factors relative to this base
-  - Scale factor sliders for title, description (image info), image-ID, and names fonts (0.25–4.0 range via exponential mapping)
-  - Percentage display next to each slider showing the current scale factor (100% = base size)
-  - "Anwenden" (Apply) button to restore all saved defaults to the current image
-  - Per-element "Use as default" buttons in formatting dialogs to save individual element scales
-- Other tabs:
+- `SettingsManager` exposes bindable settings in `SettingsWindow` (modal dialog opened via Datei → Einstellungen... in the main menu, `MainWindow.xaml.cs`'s `OpenSettings_Click`).
+- Four tabs:
+  - **Formatierung**: scale factor sliders for numbers, title, description (image info), image-ID, and names fonts (0.25–4.0 range via exponential mapping), plus colors; "Auf das aktuelle Bild anwenden" restores all saved defaults to the current image; per-element "Use as default" buttons in formatting dialogs save individual element scales.
+  - **Sichtbarkeit**: default show/hide toggles for title, description, image-ID, and names list on newly opened images; "Anwenden" applies them to the current image.
   - **Erkennung** (Detection): Face detection enable/disable, row detection enable/disable, the face-relative label anchor (3x3 grid, see Face-Relative Label Anchor above), and a manual "Neu Erkennen" action that re-runs face detection. The detector (YuNet, see External Dependencies) has no user-configurable tuning parameters.
-  - **Speichern** (Save): Save-file naming convention toggle
+  - **Export**: save-file suffix (`SaveFileSuffix`), custom output folder (`UseCustomOutputFolder`/`OutputFolder`, absolute or relative — see File Menu Commands above), CSV/JSON auto-export-alongside-save toggles (`ExportCsvMetadata`/`ExportJsonMetadata`), and `DefaultSaveFormat` (JPG/PDF radio buttons controlling which filter is preselected in the Speichern-unter dialog).
 - Scope:
   - affects **new fresh-image sessions** and detector/save defaults
   - detection defaults are enabled by default for new and migrated settings
