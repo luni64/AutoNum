@@ -88,6 +88,10 @@ namespace AutoNumber.ViewModels
                     else
                     {
                         Trace.WriteLine("OpenImage: no AutoNum metadata, face detection disabled");
+                        // No faces to report, but LabelManager still needs this to (re)compute
+                        // BaseLabelDiameter for the new image via the fallback formula — otherwise
+                        // it would keep whatever diameter was left over from a previous photo.
+                        WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage([]));
                     }
 
                     parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);

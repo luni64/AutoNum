@@ -11,6 +11,9 @@
 - **Öffnen remembers the source folder, independent of where you last saved**
   Batch-numbering a folder full of photos used to mean browsing back to the source folder by hand after every save, since the Öffnen dialog inherited whatever folder Speichern unter... (or a configured output folder) last navigated to. Öffnen now always defaults to the folder the current photo was originally opened from, so it stays put across a whole batch regardless of where saves go.
 
+- **Number labels on fresh images are sized from detected face size again**
+  With the old Haar-cascade detector, face rectangles were unreliable enough that automatic face-based label sizing was built but never actually enabled — every fresh image was sized purely from image width, regardless of how many people were in it or how large their faces were. Now that YuNet detection is much more consistent, label size is computed from the average diagonal of the detected faces instead, tuned against real photos to look right on both large group shots and close-ups with only a few people: base diameter is 38% of the average face diagonal, capped at 4.5% of the image's own diagonal so a close-up with a couple of large faces doesn't produce oversized labels. Falls back to the previous image-width-based sizing when no faces are detected or face detection is disabled (fixed a related gap where disabling detection left the label size stale from whatever photo was open before).
+
 - **Face-relative label anchor (Einstellungen → Erkennung)**
   New 3x3-grid control lets you choose where a freshly detected face's label is centered (e.g. top-left, center, bottom-right) instead of always below the chin. Applies only to newly created labels (open/redetect/rotate); existing labels are never moved. A "Neu Erkennen" button sits right beside the control to re-run detection immediately with the new anchor.
 

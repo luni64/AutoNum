@@ -215,7 +215,7 @@ namespace AutoNumber.ViewModels
         #endregion
         public void SetLabels(List<Rectangle> faces, bool assignRows = true)
         {
-            BaseLabelDiameter = SizingModel.ComputeBaseLabelDiameter(faces, _imageVM.Bitmap?.Width ?? 0);
+            BaseLabelDiameter = SizingModel.ComputeBaseLabelDiameter(faces, _imageVM.Bitmap?.Width ?? 0, _imageVM.Bitmap?.Height ?? 0);
 
             var anchor = _mainVM?.SettingsManager.FaceLabelAnchor ?? FaceLabelAnchor.BottomCenter;
             var newPersons = faces.Select(face => new Person(0, "", ResolveAnchorPosition(face, anchor)));
