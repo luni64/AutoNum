@@ -319,9 +319,9 @@ namespace AutoNumber.ViewModels
             CurrentMetadata.ImageId = idm.ImageId;
             CurrentMetadata.ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
             CurrentMetadata.ImageIdEnabled = idm.IsEnabled;
-            CurrentMetadata.TitleFont = new AutoNumFont(tm.TitleFontColor, tm.BackgroundColor, tm.TitleFontFamily.Name, tm.TitleFontSize);
+            CurrentMetadata.TitleFont = new AutoNumFont(tm.FontColor, tm.BackgroundColor, tm.FontFamily.Name, tm.FontSize);
             CurrentMetadata.TitleEnabled = tm.IsEnabled;
-            CurrentMetadata.ImageInfoFont = new AutoNumFont(iim.ImageInfoFontColor, iim.BackgroundColor, iim.ImageInfoFontFamily.Name, iim.ImageInfoFontSize);
+            CurrentMetadata.ImageInfoFont = new AutoNumFont(iim.FontColor, iim.BackgroundColor, iim.FontFamily.Name, iim.FontSize);
             CurrentMetadata.ImageInfoEnabled = iim.IsEnabled;
 
             SyncReconstructionMetadata(tm, iim);
@@ -380,8 +380,8 @@ namespace AutoNumber.ViewModels
             v3.LabelScale = SizingModel.SafeScale(MarkerLabel.Style.Diameter, baseLabelDiameter);
             v3.NameScale = SizingModel.SafeScale(TextLabel.Style.FontSize, baseTextFontSize);
             v3.ImageIdScale = SizingModel.SafeScale(idm.FontSize, baseTextFontSize);
-            v3.TitleScale = SizingModel.SafeScale(tm.TitleFontSize, baseTextFontSize);
-            v3.ImageInfoScale = SizingModel.SafeScale(iim.ImageInfoFontSize, baseTextFontSize);
+            v3.TitleScale = SizingModel.SafeScale(tm.FontSize, baseTextFontSize);
+            v3.ImageInfoScale = SizingModel.SafeScale(iim.FontSize, baseTextFontSize);
         }
 
         public void ApplyRowDefinition()

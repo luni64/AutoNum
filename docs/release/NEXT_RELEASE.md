@@ -26,10 +26,19 @@
 - **Much smarter automatic row detection**
   The old row detection sliced the image into equal-height horizontal bands (guessing the row count from the label size), which fell apart on real group photos: unevenly spaced rows, tilted camera, children between adults, and seated vs. standing rows produced far too many rows with boundaries cutting through the middle of them. The new algorithm (`Model/RowClusterer.cs`) grows rows locally out of neighbouring labels (the way OCR segments text lines), merges what no straight boundary could separate anyway, and fits **slanted, parallel row boundaries** that follow the photo's tilt — the boundary lines you see in row mode now start out matching the actual rows. On the test photos this cut detected row counts from 7–9 nonsense rows down to the 3–4 rows a person would actually count. Rows are still resolved from the boundaries, so dragging a label across a boundary or editing boundaries in row mode fine-tunes the result exactly as before.
 
+- **Einstellungen dialog now has OK/Abbrechen**
+  The settings dialog previously applied and persisted every change immediately (a slider drag wrote settings.json dozens of times per second) and only offered "Schliessen". It is now transactional: OK saves everything once, Abbrechen (or ✕/Esc) discards all changes made in the dialog. The "Anwenden" buttons still apply the currently edited values to the open image directly. "Als Standard übernehmen" in the formatting dialogs saves immediately, as before.
+
+- **Warning instead of silent fallback when the output folder is unusable**
+  If the configured absolute output folder no longer exists (or a relative subfolder can't be created), the Save dialog used to silently fall back to the image's folder. A message now explains what happened and where to fix it.
+
 - **Face detection switched from Haar cascade to YuNet (DNN)**
   Replaced the old `haarcascade_frontalface_default.xml` classifier with OpenCV's YuNet face detector (`FaceDetectorYN`), a small ONNX model that detects faces far more reliably on old/scanned genealogy photos — non-frontal poses, small or blurry faces, and uneven lighting. The old "Empfindlichkeit (ScaleFactor)" / "Bestätigungen (MinNeighbors)" sliders in Einstellungen → Erkennung are gone; the new detector's default confidence threshold works well enough that it isn't user-configurable.
 
 ## Bug Fixes
+
+- **Opening and rotating large photos is noticeably faster**
+  The preview conversion round-tripped the whole photo through a PNG encode/decode (seconds of pointless compression on big scans); it now copies the pixels directly (15x faster even on medium images, pixel-identical output).
 
 - **Saving large scans no longer briefly allocates huge amounts of memory**
   The JPG/PDF export drew the number labels into a 3x-supersampled copy of the *entire* image (9x the photo's pixel count — ~700 MB for a 20 MP scan, an out-of-memory risk). Labels are now supersampled individually in a small tile and scaled into place, with identical visual quality.
@@ -39,6 +48,9 @@
 
 - **Saving with no image loaded now says so**
   Speichern/Speichern unter with no renderable image silently did nothing; now an error dialog explains it.
+
+- **Save As no longer re-appends the relative output folder on every save**
+  With a relative output folder configured (e.g. `autonum`), the first save of a fresh image correctly suggests a subfolder next to the original — but every further "Speichern unter..." resolved the setting again relative to the *current* file and suggested `autonum\autonum\...`, one level deeper each time. The output-folder redirection now applies only to the first save of a fresh image; afterwards Save As suggests the folder the numbered file is already in.
 
 - **Errors while opening an image are no longer silently swallowed**
   A leftover catch from the old Haar-cascade detector ("no faces found" used to arrive as an exception) discarded any `InvalidOperationException` thrown anywhere in the open pipeline — metadata parsing, patch restore, PDF import — with no message to the user. Such failures now surface through the normal error dialog.

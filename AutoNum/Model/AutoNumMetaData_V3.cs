@@ -38,7 +38,7 @@ public class AutoNumMetaData_V3 : AutoNumMetaData_V2
         LabelScale = SizingModel.SafeScale(MarkerLabel.Style.Diameter, BaseLabelDiameter);
         NameScale = SizingModel.SafeScale(TextLabel.Style.FontSize, BaseLabelFontSize);
         ImageIdScale = SizingModel.SafeScale(idm.FontSize, BaseLabelFontSize);
-        TitleScale = SizingModel.SafeScale(tm.TitleFontSize, BaseLabelFontSize);
-        ImageInfoScale = SizingModel.SafeScale(iim.ImageInfoFontSize, BaseLabelFontSize);
+        TitleScale = SizingModel.SafeScale(tm.FontSize, BaseLabelFontSize);
+        ImageInfoScale = SizingModel.SafeScale(iim.FontSize, BaseLabelFontSize);
     }
 }

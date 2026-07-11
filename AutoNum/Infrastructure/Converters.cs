@@ -14,29 +14,64 @@ namespace AutoNumber.Infrastructure
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            if (value is System.Drawing.Bitmap bitmap)
+            if (value is not System.Drawing.Bitmap bitmap)
             {
-                if (bitmap == null) return null;                
-
-                using (var memoryStream = new MemoryStream())
-                {
-                    // Save the Bitmap to the stream
-                    bitmap.Save(memoryStream, ImageFormat.Png);
-                    memoryStream.Position = 0;
-
-                    // Create a BitmapImage from the stream
-                    var bitmapImage = new BitmapImage();
-                    bitmapImage.BeginInit();
-                    bitmapImage.StreamSource = memoryStream;
-                    bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
-                    bitmapImage.EndInit();
-                    bitmapImage.Freeze(); // Freeze to make it cross-thread accessible
-
-                    return bitmapImage;
-                }               
+                return null;
             }
-            return null;
+
+            // Copy the raw pixel buffer straight across (LockBits -> BitmapSource.Create).
+            // The previous implementation round-tripped the whole photo through a PNG
+            // encode/decode, i.e. seconds of Deflate compression per open/rotate on large
+            // scans, only to immediately throw the compressed form away.
+            var wpfFormat = MapPixelFormat(bitmap.PixelFormat);
+            if (wpfFormat is System.Windows.Media.PixelFormat format)
+            {
+                var rect = new System.Drawing.Rectangle(0, 0, bitmap.Width, bitmap.Height);
+                var data = bitmap.LockBits(rect, ImageLockMode.ReadOnly, bitmap.PixelFormat);
+                try
+                {
+                    var source = BitmapSource.Create(
+                        bitmap.Width, bitmap.Height,
+                        bitmap.HorizontalResolution, bitmap.VerticalResolution,
+                        format, null,
+                        data.Scan0, data.Stride * bitmap.Height, data.Stride);
+                    source.Freeze(); // cross-thread accessible, and detaches from the GDI buffer
+                    return source;
+                }
+                finally
+                {
+                    bitmap.UnlockBits(data);
+                }
+            }
+
+            // Fallback for pixel formats without a 1:1 WPF equivalent (e.g. indexed): the old
+            // PNG round-trip, correct for everything even if slow.
+            using var memoryStream = new MemoryStream();
+            bitmap.Save(memoryStream, ImageFormat.Png);
+            memoryStream.Position = 0;
+
+            var bitmapImage = new BitmapImage();
+            bitmapImage.BeginInit();
+            bitmapImage.StreamSource = memoryStream;
+            bitmapImage.CacheOption = BitmapCacheOption.OnLoad;
+            bitmapImage.EndInit();
+            bitmapImage.Freeze();
+            return bitmapImage;
         }
+
+        /// <summary>
+        /// GDI+ formats that map 1:1 onto a WPF pixel format (both are BGR byte order).
+        /// Everything the app produces lands here: JPEG decode yields 24bpp RGB, composited
+        /// and PNG-restored bitmaps 32bpp (P)ARGB.
+        /// </summary>
+        private static System.Windows.Media.PixelFormat? MapPixelFormat(System.Drawing.Imaging.PixelFormat format) => format switch
+        {
+            System.Drawing.Imaging.PixelFormat.Format24bppRgb => PixelFormats.Bgr24,
+            System.Drawing.Imaging.PixelFormat.Format32bppRgb => PixelFormats.Bgr32,
+            System.Drawing.Imaging.PixelFormat.Format32bppArgb => PixelFormats.Bgra32,
+            System.Drawing.Imaging.PixelFormat.Format32bppPArgb => PixelFormats.Pbgra32,
+            _ => null
+        };
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {

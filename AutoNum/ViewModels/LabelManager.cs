@@ -143,6 +143,37 @@ namespace AutoNumber.ViewModels
             }
         }
 
+        /// <summary>
+        /// Adds a manually placed person with its label centered at the given image position
+        /// (right-click on an empty spot). The row is resolved from the active row session or
+        /// the stored boundaries, and numbering is refreshed.
+        /// </summary>
+        public void AddPersonAt(PointF center)
+        {
+            var nextNumber = _imageVM.Persons.Count > 0
+                ? _imageVM.Persons.Max(p => p.Label.Number) + 1
+                : 1;
+
+            var person = new Person(nextNumber, "", center);
+            person.Row = _mainVM?.RowDefinitionManager.ResolveRow(person) ?? 1;
+
+            if (_imageVM.RowDefinitionSession is not null)
+            {
+                person.RowPreviewActive = true;
+                person.RowPreviewColor = RowDefinitionSession.GetPreviewColor(person.Row);
+            }
+
+            _imageVM.Persons.Add(person);
+            Numerate();
+        }
+
+        /// <summary>Removes a single person (right-click on its label) and renumbers.</summary>
+        public void RemovePerson(Person person)
+        {
+            _imageVM.Persons.Remove(person);
+            Numerate();
+        }
+
         private async Task<bool> ConfirmDeleteNamesIfNeededAsync()
         {
             var hasNames = _imageVM.Persons.Any(p => !string.IsNullOrEmpty(p.Name.Text));

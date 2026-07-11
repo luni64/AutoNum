@@ -114,9 +114,9 @@ namespace AutoNumber.Model
             ImageId = idm.ImageId;
             ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
             ImageIdEnabled = idm.IsEnabled;
-            TitleFont = new AutoNumFont(tm.TitleFontColor, tm.BackgroundColor, tm.TitleFontFamily.Name, tm.TitleFontSize);
+            TitleFont = new AutoNumFont(tm.FontColor, tm.BackgroundColor, tm.FontFamily.Name, tm.FontSize);
             TitleEnabled = tm.IsEnabled;
-            ImageInfoFont = new AutoNumFont(iim.ImageInfoFontColor, iim.BackgroundColor, iim.ImageInfoFontFamily.Name, iim.ImageInfoFontSize);
+            ImageInfoFont = new AutoNumFont(iim.FontColor, iim.BackgroundColor, iim.FontFamily.Name, iim.FontSize);
             ImageInfoEnabled = iim.IsEnabled;
 
             foreach (var person in model.Persons)

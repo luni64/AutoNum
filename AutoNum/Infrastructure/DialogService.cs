@@ -1,5 +1,4 @@
 using Microsoft.Win32;
-using AutoNumber.ViewModels;
 using System.IO;
 using System.Linq;
 using System.Windows;
@@ -9,48 +8,39 @@ namespace AutoNumber.Infrastructure
 {
     internal class DialogService : IDialogService
     {
-        public object? ShowDialog(object viewModel)
+        public string? ShowOpenFileDialog(FileDialogInfo info)
         {
-            object? retVal = null;
-            switch (viewModel)
+            var dialog = new OpenFileDialog
             {
-                case OpenFileInfo:
-                    {
-                        var vm = (OpenFileInfo)viewModel;
-                        var dialog = new OpenFileDialog
-                        {
-                            Filter = vm.Filter,
-                            FilterIndex = vm.FilterIndex,
-                            InitialDirectory = vm.InitialDirectory,
-                            CheckFileExists = true,
-                            ForcePreviewPane = true,
-                        };
-                        if (dialog.ShowDialog() == true)
-                        {
-                            retVal = dialog.FileName;
-                        }
-                        break;
-                    }
+                Filter = info.Filter,
+                FilterIndex = info.FilterIndex,
+                InitialDirectory = info.InitialDirectory,
+                CheckFileExists = true,
+                ForcePreviewPane = true,
+            };
+            return dialog.ShowDialog() == true ? dialog.FileName : null;
+        }
 
-                case SaveFileInfo:
-                    {
-                        var vm = (SaveFileInfo)viewModel;
-                        var dialog = new SaveFileDialog
-                        {
-                            FileName = vm.Filename,
-                            InitialDirectory = vm.InitialDirectory,
-                            Filter = vm.Filter,
-                            FilterIndex = vm.FilterIndex,
-                        };
-                        retVal = dialog.ShowDialog() == true ? dialog.FileName : null;
-                        break;
-                    }
+        public string? ShowSaveFileDialog(FileDialogInfo info)
+        {
+            var dialog = new SaveFileDialog
+            {
+                FileName = info.Filename,
+                InitialDirectory = info.InitialDirectory,
+                Filter = info.Filter,
+                FilterIndex = info.FilterIndex,
+            };
+            return dialog.ShowDialog() == true ? dialog.FileName : null;
+        }
 
-                case string errorMsg:
-                    MessageBox.Show(errorMsg, "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
-                    break;
-            }
-            return retVal;
+        public void ShowError(string message)
+        {
+            MessageBox.Show(message, "Fehler", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+
+        public void ShowWarning(string message)
+        {
+            MessageBox.Show(message, "Hinweis", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
 
         public bool ShowSaveRetryDialog(string operationName, string filename, string details)

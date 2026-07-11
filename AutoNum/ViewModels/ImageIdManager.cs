@@ -1,24 +1,9 @@
-using AutoNumber.Infrastructure;
 using AutoNumber.Model;
-using CommunityToolkit.Mvvm.Messaging;
-using System.Diagnostics;
-using System.Drawing;
 
 namespace AutoNumber.ViewModels;
 
-public class ImageIdManager : BaseViewModel
+public class ImageIdManager(LabelManager labelManager) : TextElementManagerBase(labelManager)
 {
-    public bool IsEnabled
-    {
-        get => _isEnabled;
-        set
-        {
-            SetProperty(ref _isEnabled, value);
-            ApplyScale();
-            OnPropertyChanged(nameof(ShowImageIdLine));
-        }
-    }
-
     public string ImageId
     {
         get => _imageId;
@@ -30,130 +15,48 @@ public class ImageIdManager : BaseViewModel
         }
     }
 
+    public override bool IsEnabled
+    {
+        get => base.IsEnabled;
+        set
+        {
+            base.IsEnabled = value;
+            ApplyScale();
+            OnPropertyChanged(nameof(ShowImageIdLine));
+        }
+    }
+
     public bool ShowImageIdLine => IsEnabled && !string.IsNullOrWhiteSpace(ImageId);
 
-    public Color FontColor
-    {
-        get => _fontColor;
-        set => SetProperty(ref _fontColor, value);
-    }
-
-    public Color BackgroundColor
-    {
-        get => _backgroundColor;
-        set => SetProperty(ref _backgroundColor, value);
-    }
-
-    public FontFamily FontFamily
-    {
-        get => _fontFamily;
-        set
-        {
-            if (_fontFamily == value)
-            {
-                return;
-            }
-
-            SetProperty(ref _fontFamily, value);
-            ApplyScale();
-        }
-    }
-
-    public double FontSize
-    {
-        get => _fontSize;
-        private set => SetProperty(ref _fontSize, value);
-    }
-
-    /// <summary>
-    /// Font scale factor (0.25–4.0). Model property that drives actual font size.
-    /// </summary>
-    public double FontScale
-    {
-        get => _fontScale;
-        set
-        {
-            var clamped = Math.Clamp(value, 0.25, 4.0);
-            if (_fontScale != clamped)
-            {
-                _fontScale = clamped;
-                ApplyScale();
-                OnPropertyChanged();
-            }
-        }
-    }
-
+    /// <summary>Rendered height of the image-ID banner line (0 when hidden).</summary>
     public double LineHeight
     {
         get => _lineHeight;
         private set => SetProperty(ref _lineHeight, value);
     }
 
-    public ImageIdManager(LabelManager labelManager)
+    protected override void OnAppearanceChanged()
     {
-        _labelManager = labelManager;
-        FontScale = 1.0;
-
-        WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
-        {
-            ApplyScale();
-        });
-
-        WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
-        {
-            using var _ = SuspendNotifications();
-            try
-            {
-                var md = msg.Metadata;
-                Trace.WriteLine($"MetadataLoaded[ImageIdManager]: start version={md.Version}, hasImageId={!string.IsNullOrWhiteSpace(md.ImageId)}");
-
-                ImageId = md.ImageId;
-                IsEnabled = md.ImageIdEnabled ?? !string.IsNullOrWhiteSpace(md.ImageId);
-                BackgroundColor = Color.FromArgb(md.ImageIdFont.Background);
-                FontColor = Color.FromArgb(md.ImageIdFont.Foreground);
-                FontFamily = FontFamilyResolver.Resolve(md.ImageIdFont.Family, FontFamily);
-
-                var scale = md is AutoNumMetaData_V3 v3
-                    ? v3.ImageIdScale
-                    : ResolveLegacyScale(md.ImageIdFont.Size > 0 ? md.ImageIdFont.Size : md.NamesFont.Size, md.LabelsFont.Size);
-
-                FontScale = scale;
-
-                Trace.WriteLine($"MetadataLoaded[ImageIdManager]: scale={scale:F4}, storedSize={md.ImageIdFont.Size:F4}, baseLabelStored={md.LabelsFont.Size:F4}, baseLabelRuntime={_labelManager.BaseLabelFontSize:F4}, resolvedFontSize={FontSize:F4}, lineHeight={LineHeight:F2}, enabled={IsEnabled}");
-                Trace.WriteLine("MetadataLoaded[ImageIdManager]: completed");
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"MetadataLoaded[ImageIdManager]: failed - {ex}");
-                throw;
-            }
-        });
-    }
-
-    private void ApplyScale()
-    {
-        var baseTextFontSize = _labelManager.BaseTextFontSize;
-        if (baseTextFontSize <= 0)
-        {
-            return;
-        }
-
-        FontSize = SizingModel.ResolveSize(baseTextFontSize, FontScale);
         LineHeight = ShowImageIdLine
             ? Analyzer.GetTextBlockHeight(ImageId, FontFamily, FontSize) + 10
             : 0;
     }
 
-    private static double ResolveLegacyScale(double actualIdFontSize, double legacyLabelFontSize)
-        => SizingModel.SafeScale(actualIdFontSize, legacyLabelFontSize);
+    protected override AutoNumFont MetadataFont(AutoNumMetaData_V1 md) => md.ImageIdFont;
 
-    private readonly LabelManager _labelManager;
-    private bool _isEnabled;
+    protected override double MetadataScale(AutoNumMetaData_V3 v3) => v3.ImageIdScale;
+
+    // Legacy files may predate a stored image-ID font size; fall back to the names font.
+    protected override double LegacyStoredFontSize(AutoNumMetaData_V1 md) =>
+        md.ImageIdFont.Size > 0 ? md.ImageIdFont.Size : md.NamesFont.Size;
+
+    protected override void RestoreElementState(AutoNumMetaData_V1 md)
+    {
+        using var _ = SuspendNotifications();
+        ImageId = md.ImageId;
+        IsEnabled = md.ImageIdEnabled ?? !string.IsNullOrWhiteSpace(md.ImageId);
+    }
+
     private string _imageId = string.Empty;
-    private Color _fontColor = Color.Black;
-    private Color _backgroundColor = Color.White;
-    private FontFamily _fontFamily = new("Calibri");
-    private double _fontSize = 1;
-    private double _fontScale = 1.0;
     private double _lineHeight;
 }

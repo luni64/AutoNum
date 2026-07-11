@@ -129,8 +129,8 @@ public partial class TextFormatDialog : MetroWindow
         var (currentScale, fontColor, backgroundColor, edgeColor) = _manager switch
         {
             LabelManager lm => (lm.LabelScale, lm.FontColor, lm.BackgroundColor, (System.Drawing.Color?)lm.EdgeColor),
-            TitleManager tm => (tm.FontScale, tm.TitleFontColor, tm.BackgroundColor, (System.Drawing.Color?)null),
-            ImageInfoManager iim => (iim.FontScale, iim.ImageInfoFontColor, iim.BackgroundColor, (System.Drawing.Color?)null),
+            TitleManager tm => (tm.FontScale, tm.FontColor, tm.BackgroundColor, (System.Drawing.Color?)null),
+            ImageInfoManager iim => (iim.FontScale, iim.FontColor, iim.BackgroundColor, (System.Drawing.Color?)null),
             ImageIdManager idm => (idm.FontScale, idm.FontColor, idm.BackgroundColor, (System.Drawing.Color?)null),
             NameManager nm => (nm.FontScale, nm.FontColor, nm.BackgroundColor, (System.Drawing.Color?)null),
             _ => (1.0, System.Drawing.Color.Black, System.Drawing.Color.White, (System.Drawing.Color?)null)
@@ -146,6 +146,10 @@ public partial class TextFormatDialog : MetroWindow
             {
                 mainVM.SettingsManager.FaceLabelAnchor = labelManager.FaceLabelAnchor;
             }
+
+            // Setters no longer persist automatically — this button is one of the explicit
+            // "the user wants this on disk" moments (the other is the settings dialog's OK).
+            mainVM.SettingsManager.Save();
 
             MessageBox.Show("Die Einstellung wurde als Standardwert übernommen.", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
         }

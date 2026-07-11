@@ -44,39 +44,39 @@
 
                         <TextBlock Text="Nummern" Margin="0,0,0,4" FontWeight="SemiBold"/>
                         <view:FontManager
-							SelectedScale="{Binding DefaultLabelDiameterScale, Mode=TwoWay}"
-							FontColor="{Binding DefaultLabelFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
-							BackgroundColor="{Binding DefaultLabelBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
-							EdgeColor="{Binding DefaultLabelEdgeColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							SelectedScale="{Binding Labels.Scale, Mode=TwoWay}"
+							FontColor="{Binding Labels.FontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding Labels.BackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							EdgeColor="{Binding Labels.EdgeColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							ShowEdgeColor="True"
 							Margin="0,0,0,14"/>
 
                         <TextBlock Text="Titel" Margin="0,0,0,4" FontWeight="SemiBold"/>
                         <view:FontManager
-							SelectedScale="{Binding DefaultTitleFontScale, Mode=TwoWay}"
-							FontColor="{Binding DefaultTitleFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
-							BackgroundColor="{Binding DefaultTitleBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							SelectedScale="{Binding Title.Scale, Mode=TwoWay}"
+							FontColor="{Binding Title.FontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding Title.BackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							Margin="0,0,0,14"/>
 
                         <TextBlock Text="Beschreibung" Margin="0,0,0,4" FontWeight="SemiBold"/>
                         <view:FontManager
-							SelectedScale="{Binding DefaultImageInfoFontScale, Mode=TwoWay}"
-							FontColor="{Binding DefaultImageInfoFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
-							BackgroundColor="{Binding DefaultImageInfoBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							SelectedScale="{Binding ImageInfo.Scale, Mode=TwoWay}"
+							FontColor="{Binding ImageInfo.FontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding ImageInfo.BackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							Margin="0,0,0,14"/>
 
                         <TextBlock Text="Bild-ID" Margin="0,0,0,4" FontWeight="SemiBold"/>
                         <view:FontManager
-							SelectedScale="{Binding DefaultImageIdFontScale, Mode=TwoWay}"
-							FontColor="{Binding DefaultImageIdFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
-							BackgroundColor="{Binding DefaultImageIdBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							SelectedScale="{Binding ImageId.Scale, Mode=TwoWay}"
+							FontColor="{Binding ImageId.FontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding ImageId.BackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							Margin="0,0,0,14"/>
 
                         <TextBlock Text="Namensliste" Margin="0,0,0,4" FontWeight="SemiBold"/>
                         <view:FontManager
-							SelectedScale="{Binding DefaultNamesFontScale, Mode=TwoWay}"
-							FontColor="{Binding DefaultNamesFontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
-							BackgroundColor="{Binding DefaultNamesBackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							SelectedScale="{Binding Names.Scale, Mode=TwoWay}"
+							FontColor="{Binding Names.FontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
+							BackgroundColor="{Binding Names.BackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							Margin="0,0,0,14"/>
 
                         <Button
@@ -102,10 +102,10 @@
 							Lege fest, welche Elemente bei neu geladenen Bildern standardmäßig sichtbar sein sollen. Diese Einstellungen beeinflussen nur neue Bilder und können pro Bild weiterhin individuell angepasst werden.
                         </TextBlock>
 
-                        <mah:ToggleSwitch IsOn="{Binding DefaultTitleEnabled}" Content="Titel anzeigen" Margin="0,0,0,10"/>
-                        <mah:ToggleSwitch IsOn="{Binding DefaultImageInfoEnabled}" Content="Beschreibung anzeigen" Margin="0,0,0,10"/>
-                        <mah:ToggleSwitch IsOn="{Binding DefaultImageIdEnabled}" Content="Bild-ID anzeigen" Margin="0,0,0,10"/>
-                        <mah:ToggleSwitch IsOn="{Binding DefaultNamesEnabled}" Content="Namensliste anzeigen"/>
+                        <mah:ToggleSwitch IsOn="{Binding Title.Enabled}" Content="Titel anzeigen" Margin="0,0,0,10"/>
+                        <mah:ToggleSwitch IsOn="{Binding ImageInfo.Enabled}" Content="Beschreibung anzeigen" Margin="0,0,0,10"/>
+                        <mah:ToggleSwitch IsOn="{Binding ImageId.Enabled}" Content="Bild-ID anzeigen" Margin="0,0,0,10"/>
+                        <mah:ToggleSwitch IsOn="{Binding Names.Enabled}" Content="Namensliste anzeigen"/>
 
                         <Button Content="Anwenden" Padding="8,4" Margin="0,12,0,0" Click="ApplyVisibility_Click" />
                     </StackPanel>
@@ -209,9 +209,20 @@
         </TabControl>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button
-				Content="Schliessen"
-				Click="Close_Click"
+				Content="OK"
+				Click="Ok_Click"
+				IsDefault="True"
 				Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
+				FontSize="13"
+				mah:ControlsHelper.ContentCharacterCasing="Upper"
+				Padding="10"
+				Width="110"
+				Margin="0,0,8,0"/>
+            <Button
+				Content="Abbrechen"
+				Click="Cancel_Click"
+				IsCancel="True"
+				Style="{StaticResource MahApps.Styles.Button.Square}"
 				FontSize="13"
 				mah:ControlsHelper.ContentCharacterCasing="Upper"
 				Padding="10"

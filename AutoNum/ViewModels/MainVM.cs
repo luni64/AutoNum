@@ -5,18 +5,7 @@ namespace AutoNumber.ViewModels
 {
     public class MainVM : BaseViewModel
     {
-        public IDialogCoordinator DialogCoordinator 
-        { 
-            get => _dialogCoordinator;
-            set
-            {
-                _dialogCoordinator = value;
-                // Set dialog coordinator in LabelManager after it's available
-                LabelManager._dialogCoordinator = value;
-                LabelManager._mainVM = this;
-            }
-        }
-        private IDialogCoordinator _dialogCoordinator = null!;
+        public IDialogCoordinator DialogCoordinator { get; }
 
         public FileManager FileManager { get; }
         public NameManager NameManager { get; }
@@ -56,6 +45,14 @@ namespace AutoNumber.ViewModels
             ImageInfoManager = new ImageInfoManager(LabelManager);
             SettingsManager = new SettingsManager();
             FileManager = new FileManager(this);
+
+            // MahApps' coordinator is a stateless singleton; the window only has to register
+            // itself via DialogParticipation.Register in XAML. Wiring it (and the back-reference)
+            // here removes the old temporal coupling where MainWindow's constructor had to
+            // remember to assign DialogCoordinator right after creating the VM.
+            DialogCoordinator = MahApps.Metro.Controls.Dialogs.DialogCoordinator.Instance;
+            LabelManager._dialogCoordinator = DialogCoordinator;
+            LabelManager._mainVM = this;
         }
     }
 }

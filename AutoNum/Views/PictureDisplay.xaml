@@ -77,9 +77,9 @@
                         VerticalAlignment="Center"
                         TextAlignment="Center"
                         TextWrapping="Wrap"
-                        FontFamily="{Binding TitleFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
-                        FontSize="{Binding TitleFontSize}"
-                        Foreground="{Binding TitleFontColor, Converter={StaticResource Col2Brush}}"
+                        FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                        FontSize="{Binding FontSize}"
+                        Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"
                         Padding="0,4"/>
                 </Border>
                 <Border DataContext="{Binding ImageInfoManager}"
@@ -93,9 +93,9 @@
                         VerticalAlignment="Center"
                         TextAlignment="Left"
                         TextWrapping="Wrap"
-                        FontFamily="{Binding ImageInfoFontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
-                        FontSize="{Binding ImageInfoFontSize}"
-                        Foreground="{Binding ImageInfoFontColor, Converter={StaticResource Col2Brush}}"
+                        FontFamily="{Binding FontFamily, Converter={StaticResource DrawingFontFamilyToMediaFontFamily}, Mode=OneWay}"
+                        FontSize="{Binding FontSize}"
+                        Foreground="{Binding FontColor, Converter={StaticResource Col2Brush}}"
                         Padding="8,4,8,4"/>
                 </Border>
             </StackPanel>

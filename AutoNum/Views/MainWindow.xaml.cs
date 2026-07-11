@@ -4,7 +4,6 @@ using AutoNumber.Views;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
-using MahApps.Metro.Controls.Dialogs;
 
 namespace AutoNumber
 {
@@ -19,7 +18,6 @@ namespace AutoNumber
         {
             InitializeComponent();
             this.DataContext = mainVM;
-          mainVM.DialogCoordinator  =   DialogCoordinator.Instance;
         }
 
         private void Border_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -93,8 +91,8 @@ namespace AutoNumber
             TextFormatDialog? dialog = e.Parameter switch
             {
                 LabelManager manager => new TextFormatDialog(manager, "Etiketten formatieren", nameof(LabelManager.FontColor), nameof(LabelManager.BackgroundColor), nameof(LabelManager.LabelScale)),
-                TitleManager manager => new TextFormatDialog(manager, "Überschrift formatieren", nameof(TitleManager.TitleFontColor), nameof(TitleManager.BackgroundColor), nameof(TitleManager.FontScale)),
-                ImageInfoManager manager => new TextFormatDialog(manager, "Bildinformation formatieren", nameof(ImageInfoManager.ImageInfoFontColor), nameof(ImageInfoManager.BackgroundColor), nameof(ImageInfoManager.FontScale)),
+                TitleManager manager => new TextFormatDialog(manager, "Überschrift formatieren", nameof(TitleManager.FontColor), nameof(TitleManager.BackgroundColor), nameof(TitleManager.FontScale)),
+                ImageInfoManager manager => new TextFormatDialog(manager, "Bildinformation formatieren", nameof(ImageInfoManager.FontColor), nameof(ImageInfoManager.BackgroundColor), nameof(ImageInfoManager.FontScale)),
                 ImageIdManager manager => new TextFormatDialog(manager, "Bild-ID formatieren", nameof(ImageIdManager.FontColor), nameof(ImageIdManager.BackgroundColor), nameof(ImageIdManager.FontScale)),
                 NameManager manager => new TextFormatDialog(manager, "Namensliste formatieren", nameof(NameManager.FontColor), nameof(NameManager.BackgroundColor), nameof(NameManager.FontScale)),
                 _ => null

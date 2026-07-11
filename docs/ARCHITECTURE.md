@@ -45,8 +45,10 @@ AutoNum/
 │   ├── TitleManager.cs         # Title behavior and styling
 │   ├── ImageInfoManager.cs     # Secondary image-information banner behavior and styling
 │   ├── ImageIdManager.cs       # Image ID behavior and styling
+│   ├── TextElementManagerBase.cs # Shared base of Title/ImageInfo/ImageId managers (scale/colors/metadata restore)
 │   ├── RowBoundaryMath.cs      # Shared row-resolve + midline-boundary geometry (single source)
-│   ├── SettingsManager.cs      # App-wide defaults (persisted settings)
+│   ├── SettingsManager.cs      # App-wide defaults (persisted settings, OK/Cancel transaction)
+│   ├── ElementDefaults.cs      # Per-element formatting defaults bound by the settings dialog
 │   ├── FaceDetector.cs         # Static OpenCV detector configuration/execution
 │   ├── Person.cs, MarkerVM.cs, MarkerLabel.cs, TextLabel.cs
 │   └── LabelStyle.cs, TextStyle.cs
@@ -203,7 +205,8 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 
 ## Settings Architecture
 - App-wide defaults are persisted in `%AppData%/AutoNum/settings.json`.
-- `SettingsManager` exposes bindable settings in `SettingsWindow` (modal dialog opened via Datei → Einstellungen... in the main menu, `MainWindow.xaml.cs`'s `OpenSettings_Click`).
+- `SettingsManager` exposes bindable settings in `SettingsWindow` (modal dialog opened via Datei → Einstellungen... in the main menu, `MainWindow.xaml.cs`'s `OpenSettings_Click`). Per-element formatting defaults (scale/colors/visibility) live in five `ElementDefaults` sub-viewmodels (`Labels`/`Title`/`ImageInfo`/`ImageId`/`Names`); scalar settings (detection, export, output folder) are plain properties. The flat `AppSettings` JSON schema is unchanged — `SettingsManager` maps records ↔ flat fields on load/save.
+- **Persistence is intent-driven, never automatic.** Property setters only mutate memory; `Save()` runs at exactly two user actions: the settings dialog's **OK** and the format dialogs' **"Als Standard übernehmen"**. The settings dialog is transactional (`BeginEdit`/`CommitEdit`/`CancelEdit`): it edits the live `SettingsManager` (so "Auf das aktuelle Bild anwenden" sees the edited values), OK commits + saves once, Abbrechen/✕/Esc restore the snapshot and write nothing. Note the one asymmetry: "Anwenden" changes applied to the *image* during the dialog are not rolled back by Abbrechen — only the defaults are.
 - Four tabs:
   - **Formatierung**: scale factor sliders for numbers, title, description (image info), image-ID, and names fonts (0.25–4.0 range via exponential mapping), plus colors; "Auf das aktuelle Bild anwenden" restores all saved defaults to the current image; per-element "Use as default" buttons in formatting dialogs save individual element scales.
   - **Sichtbarkeit**: default show/hide toggles for title, description, image-ID, and names list on newly opened images; "Anwenden" applies them to the current image.
@@ -223,6 +226,14 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 - Names-table row geometry is computed once via `NameTableLayoutEngine` and projected to `TextLabel` row bounds (`X/Y/W/H`) so preview and JPG share the same wrap-aware layout foundation.
 - To minimize drift between renderers, column-width and padding rules are centralized in `NamesTableLayout`; preview uses dedicated converters, JPG uses GDI drawing helpers, and PDF uses the same width resolver.
 - Names-table measurement/rendering paths use pixel-based GDI font units to avoid WPF/GDI point-vs-pixel mismatch.
+
+## Accepted Design Quirks
+
+Reviewed and deliberately kept (see `docs/CODE_REVIEW_2026-07-11.md`):
+
+- **Static shared styles** (`MarkerLabel.Style`, `TextLabel.Style`): all labels/name cells share one mutable static style object with weak-event notification. Fine for a strictly single-document app; would have to become per-document state if AutoNum ever opens multiple images at once.
+- **Hand-rolled marker management in `PictureDisplay`**: markers are created in code-behind with programmatic bindings instead of an `ItemsControl` + `DataTemplate`s. A declarative rewrite would shrink the code but is the riskiest refactor in the codebase; postponed until there's a functional reason to touch it.
+- **`ZoomBorder`** keeps the generic naming of the well-known pan/zoom snippet it is based on ("child" etc.); it is self-contained view plumbing.
 
 ## External Dependencies
 - **Emgu.CV** — face detection via `FaceDetectorYN` (YuNet ONNX model, `Classifiers/face_detection_yunet_2023mar.onnx`); fixed score/NMS thresholds, not user-configurable

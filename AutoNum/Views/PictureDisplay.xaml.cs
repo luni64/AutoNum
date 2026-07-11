@@ -1,4 +1,5 @@
-﻿using AutoNumber.ViewModels;
+﻿using AutoNumber.Infrastructure;
+using AutoNumber.ViewModels;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.ComponentModel;
@@ -752,12 +753,12 @@ namespace AutoNumber.Views
                 return;
             }
 
-            if (FindParent<Button>(e.OriginalSource as DependencyObject) is not null)
+            if (VisualTreeHelpers.FindAncestor<Button>(e.OriginalSource as DependencyObject) is not null)
             {
                 return;
             }
 
-            var taggedElement = FindParent<FrameworkElement>(e.OriginalSource as DependencyObject);
+            var taggedElement = VisualTreeHelpers.FindAncestor<FrameworkElement>(e.OriginalSource as DependencyObject);
             if (taggedElement?.Tag is int)
             {
                 return;
@@ -876,22 +877,6 @@ namespace AutoNumber.Views
             }
 
             e.Handled = true;
-        }
-
-        private static T? FindParent<T>(DependencyObject? element) where T : class
-        {
-            var current = element;
-            while (current is not null)
-            {
-                if (current is T candidate)
-                {
-                    return candidate;
-                }
-
-                current = VisualTreeHelper.GetParent(current);
-            }
-
-            return null;
         }
 
         private void TopTextPanel_SizeChanged(object sender, SizeChangedEventArgs e)

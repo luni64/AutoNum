@@ -1,7 +1,5 @@
 ﻿using System.ComponentModel;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
-using System.Windows.Input;
 
 namespace AutoNumber.ViewModels
 {
@@ -71,38 +69,5 @@ namespace AutoNumber.ViewModels
         }
 
         #endregion
-
-
-        public class RelayCommand(Action<object?> execute, Predicate<object?>? canExecute) : ICommand
-        {
-            #region Fields
-            readonly Action<object?> _execute = execute ?? throw new ArgumentNullException(nameof(execute));
-            readonly Predicate<object?>? _canExecute = canExecute;
-            #endregion // Fields
-
-            #region Constructors
-
-            public RelayCommand(Action<object?> execute)
-                : this(execute, null)
-            {
-            }
-            #endregion // Constructors
-
-            #region ICommand Members
-
-            [DebuggerStepThrough]
-            public bool CanExecute(object? parameter) => _canExecute == null || _canExecute(parameter);
-            public event EventHandler? CanExecuteChanged
-            {
-                add { CommandManager.RequerySuggested += value; }
-                remove { CommandManager.RequerySuggested -= value; }
-            }
-            public void Execute(object? parameter)
-            {
-                _execute(parameter);
-            }
-
-            #endregion // ICommand Members
-        }
     }
 }

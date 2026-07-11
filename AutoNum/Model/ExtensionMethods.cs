@@ -269,8 +269,8 @@ namespace AutoNumber.Model
 
             if (hasTopText)
             {
-                var titleBlockHeight = hasTitle ? Analyzer.GetTextBlockHeight(tm.Title, tm.TitleFontFamily, tm.TitleFontSize) : 0;
-                var infoBlockHeight = hasImageInfo ? Analyzer.GetTextBlockHeight(iim.ImageInfo, iim.ImageInfoFontFamily, iim.ImageInfoFontSize) : 0;
+                var titleBlockHeight = hasTitle ? Analyzer.GetTextBlockHeight(tm.Title, tm.FontFamily, tm.FontSize) : 0;
+                var infoBlockHeight = hasImageInfo ? Analyzer.GetTextBlockHeight(iim.ImageInfo, iim.FontFamily, iim.FontSize) : 0;
                 var totalMeasuredHeight = Math.Max(1, titleBlockHeight + infoBlockHeight);
                 float currentTop = 0;
 
@@ -280,7 +280,7 @@ namespace AutoNumber.Model
                         ? (float)Math.Round(titleHeight * (titleBlockHeight / totalMeasuredHeight))
                         : titleHeight;
                     var titleBounds = new RectangleF(0, currentTop, bmpFinal.Width, blockHeight);
-                    drawTopTextBlock(g, tm.Title, tm.TitleFontFamily, tm.TitleFontSize.toGdiFontSize(g), tm.BackgroundColor, tm.TitleFontColor, titleBounds);
+                    drawTopTextBlock(g, tm.Title, tm.FontFamily, tm.FontSize.toGdiFontSize(g), tm.BackgroundColor, tm.FontColor, titleBounds);
                     currentTop += blockHeight;
                 }
 
@@ -288,7 +288,7 @@ namespace AutoNumber.Model
                 {
                     var remainingHeight = Math.Max(0, titleHeight - currentTop);
                     var infoBounds = new RectangleF(0, currentTop, bmpFinal.Width, remainingHeight);
-                    drawTopTextBlock(g, iim.ImageInfo, iim.ImageInfoFontFamily, iim.ImageInfoFontSize.toGdiFontSize(g), iim.BackgroundColor, iim.ImageInfoFontColor, infoBounds);
+                    drawTopTextBlock(g, iim.ImageInfo, iim.FontFamily, iim.FontSize.toGdiFontSize(g), iim.BackgroundColor, iim.FontColor, infoBounds);
                 }
             }
             if (hasFooter)

@@ -3,6 +3,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using AutoNumber.Infrastructure;
 using AutoNumber.ViewModels;
 
 namespace AutoNumber.Views
@@ -79,7 +80,7 @@ namespace AutoNumber.Views
         private void MarkerContent_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             oldMousePosition = e.GetPosition(Parent as FrameworkElement);
-            dragMainVM = DataContext is MarkerLabel ? FindParentWithDataContext<MainVM>(this) : null;
+            dragMainVM = DataContext is MarkerLabel ? VisualTreeHelpers.FindAncestorDataContext<MainVM>(this) : null;
 
             MarkerContent.CaptureMouse();
             e.Handled = true;
@@ -137,7 +138,7 @@ namespace AutoNumber.Views
 
             if (DataContext is MarkerLabel markerLabel)
             {
-                var mainVM = FindParentWithDataContext<MainVM>(this);
+                var mainVM = VisualTreeHelpers.FindAncestorDataContext<MainVM>(this);
                 if (mainVM?.PictureVM.RowDefinitionSession is not null)
                 {
                     markerLabel.Person.Row = mainVM.PictureVM.RowDefinitionSession.ResolveRow(markerLabel.Person);
@@ -146,22 +147,6 @@ namespace AutoNumber.Views
             }
 
             e.Handled = true;
-        }
-
-        private static T? FindParentWithDataContext<T>(DependencyObject element) where T : class
-        {
-            var current = element;
-            while (current is not null)
-            {
-                if (current is FrameworkElement fe && fe.DataContext is T dataContext)
-                {
-                    return dataContext;
-                }
-
-                current = VisualTreeHelper.GetParent(current);
-            }
-
-            return default;
         }
 
         #endregion

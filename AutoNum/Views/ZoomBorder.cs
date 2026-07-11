@@ -1,4 +1,5 @@
-﻿using AutoNumber.Model;
+﻿using AutoNumber.Infrastructure;
+using AutoNumber.Model;
 using AutoNumber.ViewModels;
 using System;
 using System.Linq;
@@ -60,64 +61,29 @@ namespace AutoNumber.Views
             }
         }
 
+        // Right-click on a label deletes its person, right-click on an empty spot adds one.
+        // Hit-testing/coordinate transformation is view work; the actual add/remove logic
+        // (row resolution, numbering) lives in LabelManager.
         private void ZoomBorder_PreviewMouseRightButtonDown(object sender, MouseButtonEventArgs e)
         {
+            if (DataContext is not MainVM mainVM)
+            {
+                return;
+            }
+
             Point clickPosition = e.GetPosition(this);
+            var clickedElement = (UIElement)this.InputHitTest(clickPosition);
+            var markerLabel = VisualTreeHelpers.FindAncestorDataContext<MarkerLabel>(clickedElement);
 
-            var c = this.child as Canvas;
-            var t = this.TransformToVisual(c);
-            var np = t.Transform(clickPosition);
-
-            UIElement clickedElement = (UIElement)this.InputHitTest(clickPosition);
-
-            var markerLabel = FindParentWithDataContext<MarkerLabel>(clickedElement);
-
-            if (DataContext is MainVM mainVM)
+            if (markerLabel is not null)
             {
-                if (markerLabel != null)
-                {
-                    mainVM.PictureVM.Persons.Remove(markerLabel.Person);
-                    // Auto-renumber after deletion to keep numbering consistent
-                    // (rows remain unchanged - they're only modified in row mode)
-                    mainVM.LabelManager.Numerate();
-                }
-                else
-                {
-                    int lastIdx = 0;                
-                    if (mainVM.PictureVM.Persons.Any())
-                    {
-                        lastIdx = mainVM.PictureVM.Persons.Max(p => p.Label.Number);
-                    }
-
-                    var center = new System.Drawing.PointF((float)np.X, (float)np.Y);
-                    var newPerson = new Person(lastIdx + 1, "", center);
-
-                    var row = mainVM.RowDefinitionManager.ResolveRow(newPerson);
-                    newPerson.Row = row;
-                    if (mainVM.PictureVM.RowDefinitionSession is not null)
-                    {
-                        newPerson.RowPreviewActive = true;
-                        newPerson.RowPreviewColor = RowDefinitionSession.GetPreviewColor(row);
-                    }
-
-                    mainVM.PictureVM.Persons.Add(newPerson);
-                    mainVM.LabelManager.Numerate();
-                }
+                mainVM.LabelManager.RemovePerson(markerLabel.Person);
             }
-        }
-
-
-        private T? FindParentWithDataContext<T>(DependencyObject element) where T : class
-        {
-            while (element != null)
+            else
             {
-                if (element is FrameworkElement fe && fe.DataContext is T dataContext)
-                {
-                    return dataContext;
-                }
-                element = VisualTreeHelper.GetParent(element);
+                var canvasPosition = this.TransformToVisual(this.child as Canvas).Transform(clickPosition);
+                mainVM.LabelManager.AddPersonAt(new System.Drawing.PointF((float)canvasPosition.X, (float)canvasPosition.Y));
             }
-            return default(T);
         }
 
         public void Reset()

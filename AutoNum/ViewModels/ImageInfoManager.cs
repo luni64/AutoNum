@@ -1,12 +1,8 @@
-using AutoNumber.Infrastructure;
 using AutoNumber.Model;
-using CommunityToolkit.Mvvm.Messaging;
-using System.Diagnostics;
-using System.Drawing;
 
 namespace AutoNumber.ViewModels;
 
-public class ImageInfoManager : BaseViewModel
+public class ImageInfoManager(LabelManager labelManager) : TextElementManagerBase(labelManager)
 {
     public string ImageInfo
     {
@@ -14,116 +10,15 @@ public class ImageInfoManager : BaseViewModel
         set => SetProperty(ref _imageInfo, value);
     }
 
-    public bool IsEnabled
+    protected override AutoNumFont MetadataFont(AutoNumMetaData_V1 md) => md.ImageInfoFont;
+
+    protected override double MetadataScale(AutoNumMetaData_V3 v3) => v3.ImageInfoScale;
+
+    protected override void RestoreElementState(AutoNumMetaData_V1 md)
     {
-        get => _isEnabled;
-        set => SetProperty(ref _isEnabled, value);
+        ImageInfo = md.ImageInfo ?? string.Empty;
+        IsEnabled = md.ImageInfoEnabled ?? !string.IsNullOrEmpty(md.ImageInfo);
     }
 
-    /// <summary>
-    /// Font scale factor (0.25–4.0). Model property that drives actual font size.
-    /// </summary>
-    public double FontScale
-    {
-        get => _fontScale;
-        set
-        {
-            var clamped = Math.Clamp(value, 0.25, 4.0);
-            if (_fontScale != clamped)
-            {
-                _fontScale = clamped;
-                ApplyScale();
-                OnPropertyChanged();
-            }
-        }
-    }
-
-    public double ImageInfoFontSize
-    {
-        get => _fontSize;
-        private set => SetProperty(ref _fontSize, value);
-    }
-
-    public Color ImageInfoFontColor
-    {
-        get => _fontColor;
-        set => SetProperty(ref _fontColor, value);
-    }
-
-    public FontFamily ImageInfoFontFamily
-    {
-        get => _imageInfoFontFamily;
-        set => SetProperty(ref _imageInfoFontFamily, value);
-    }
-
-    public Color BackgroundColor
-    {
-        get => _backgroundColor;
-        set => SetProperty(ref _backgroundColor, value);
-    }
-
-    public ImageInfoManager(LabelManager labelManager)
-    {
-        _labelManager = labelManager;
-        FontScale = 1.0;
-
-        WeakReferenceMessenger.Default.Register<LabelsChangedMessage>(this, (r, msg) =>
-        {
-            ApplyScale();
-        });
-
-        WeakReferenceMessenger.Default.Register<MetadataLoadedMessage>(this, (r, msg) =>
-        {
-            try
-            {
-                var md = msg.Metadata;
-                Trace.WriteLine($"MetadataLoaded[ImageInfoManager]: start version={md.Version}, infoLength={md.ImageInfo?.Length ?? 0}");
-
-                BackgroundColor = Color.FromArgb(md.ImageInfoFont.Background);
-                ImageInfoFontColor = Color.FromArgb(md.ImageInfoFont.Foreground);
-                ImageInfoFontFamily = FontFamilyResolver.Resolve(md.ImageInfoFont.Family, ImageInfoFontFamily);
-
-                var scale = md is AutoNumMetaData_V3 v3
-                    ? v3.ImageInfoScale
-                    : ResolveLegacyScale(md.ImageInfoFont.Size, md.LabelsFont.Size);
-
-                FontScale = scale;
-                ImageInfo = md.ImageInfo ?? string.Empty;
-                IsEnabled = md.ImageInfoEnabled ?? !string.IsNullOrEmpty(md.ImageInfo);
-
-                Trace.WriteLine($"MetadataLoaded[ImageInfoManager]: scale={scale:F4}, storedSize={md.ImageInfoFont.Size:F4}, baseLabelStored={md.LabelsFont.Size:F4}, baseLabelRuntime={_labelManager.BaseLabelFontSize:F4}, resolvedFontSize={ImageInfoFontSize:F4}, enabled={IsEnabled}");
-                Trace.WriteLine("MetadataLoaded[ImageInfoManager]: completed");
-            }
-            catch (Exception ex)
-            {
-                Trace.WriteLine($"MetadataLoaded[ImageInfoManager]: failed - {ex}");
-                throw;
-            }
-        });
-    }
-
-    private void ApplyScale()
-    {
-        var baseTextFontSize = _labelManager.BaseTextFontSize;
-        if (baseTextFontSize <= 0)
-        {
-            return;
-        }
-
-        ImageInfoFontSize = SizingModel.ResolveSize(baseTextFontSize, FontScale);
-    }
-
-    private static double ResolveLegacyScale(double actualInfoFontSize, double legacyLabelFontSize)
-    {
-        return SizingModel.SafeScale(actualInfoFontSize, legacyLabelFontSize);
-    }
-
-    private readonly LabelManager _labelManager;
-    private bool _isEnabled;
-    private double _fontScale = 1.0;
     private string _imageInfo = string.Empty;
-    private Color _fontColor = Color.Black;
-    private double _fontSize = 1;
-    private Color _backgroundColor = Color.White;
-    private FontFamily _imageInfoFontFamily = new("Calibri");
 }

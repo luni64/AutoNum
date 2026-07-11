@@ -9,16 +9,41 @@ namespace AutoNumber.Views;
 public partial class SettingsWindow : MetroWindow
 {
     private readonly MainVM _mainVM;
+    private bool _committed;
 
     public SettingsWindow(SettingsManager settingsManager, MainVM mainVM)
     {
         _mainVM = mainVM;
         InitializeComponent();
         DataContext = settingsManager;
+
+        // The dialog edits the live SettingsManager (so the "Anwenden" buttons see the edited
+        // values), inside an edit transaction: OK commits + saves once, everything else
+        // (Abbrechen, ✕, Alt+F4) restores the snapshot and writes nothing.
+        settingsManager.BeginEdit();
+        Closing += (_, _) =>
+        {
+            if (!_committed)
+            {
+                settingsManager.CancelEdit();
+            }
+        };
     }
 
-    private void Close_Click(object sender, RoutedEventArgs e)
+    private void Ok_Click(object sender, RoutedEventArgs e)
     {
+        if (DataContext is SettingsManager settingsManager)
+        {
+            settingsManager.CommitEdit();
+            _committed = true;
+        }
+
+        Close();
+    }
+
+    private void Cancel_Click(object sender, RoutedEventArgs e)
+    {
+        // The Closing handler performs the actual CancelEdit rollback.
         Close();
     }
 

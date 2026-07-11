@@ -15,27 +15,11 @@ using System.Collections.Generic;
 
 namespace AutoNumber.ViewModels
 {
-    public class OpenFileInfo
+    public class FileManager(MainVM mainVM) : BaseViewModel
     {
-        public string? Filename { get; set; }
-        public string? InitialDirectory { get; set; }
-        public string? Filter { get; set; }
-        public int FilterIndex { get; set; }
+        public bool ExportCsvMetadata => _mainVM.SettingsManager.ExportCsvMetadata;
 
-    }
-    public class SaveFileInfo
-    {
-        public string? Filename { get; set; }
-        public string? InitialDirectory { get; set; }
-        public string? Filter { get; set; }
-        public int FilterIndex { get; set; }
-    }
-
-    public class FileManager(MainVM parent) : BaseViewModel
-    {
-        public bool ExportCsvMetadata => parent.SettingsManager.ExportCsvMetadata;
-
-        public bool ExportJsonMetadata => parent.SettingsManager.ExportJsonMetadata;
+        public bool ExportJsonMetadata => _mainVM.SettingsManager.ExportJsonMetadata;
 
         public RelayCommand OpenImageCommand => _openImageCommand ??= new(ExecuteOpenImage);
         async void ExecuteOpenImage(object? o)
@@ -48,7 +32,7 @@ namespace AutoNumber.ViewModels
                 }
 
                 Trace.WriteLine($"OpenImage: start '{filename}'");
-                var pvm = parent.PictureVM;
+                var pvm = _mainVM.PictureVM;
 
                 if (string.Equals(Path.GetExtension(filename), ".pdf", StringComparison.OrdinalIgnoreCase))
                 {
@@ -71,7 +55,7 @@ namespace AutoNumber.ViewModels
                     pvm.Bitmap = bitmap;
                     pvm.Init();
 
-                    if (parent.SettingsManager.FaceDetectionEnabled)
+                    if (_mainVM.SettingsManager.FaceDetectionEnabled)
                     {
                         Trace.WriteLine("OpenImage: no AutoNum metadata, running face detection");
                         var faces = FaceDetector.Detect(bitmap);
@@ -87,7 +71,7 @@ namespace AutoNumber.ViewModels
                         WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage([]));
                     }
 
-                    parent.SettingsManager.ApplyFreshImageDefaults(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+                    _mainVM.SettingsManager.ApplyFreshImageDefaults(_mainVM.LabelManager, _mainVM.NameManager, _mainVM.TitleManager, _mainVM.ImageInfoManager, _mainVM.ImageIdManager);
                     System.Windows.Input.CommandManager.InvalidateRequerySuggested();
                 }
                 else if (metadata is AutoNumMetaData_V2 v2)
@@ -114,13 +98,13 @@ namespace AutoNumber.ViewModels
                     else
                     {
                         // V2 without patches — fall back to V1 original-file flow
-                        await openFromOriginalFile(bitmap, metadata, pvm, filename);
+                        await OpenFromOriginalFile(bitmap, metadata, pvm, filename);
                     }
                 }
                 else
                 {
                     // V1: needs the original file on disk
-                    await openFromOriginalFile(bitmap, metadata, pvm, filename);
+                    await OpenFromOriginalFile(bitmap, metadata, pvm, filename);
                 }
             }
             catch (Exception ex)
@@ -128,7 +112,7 @@ namespace AutoNumber.ViewModels
                 Trace.WriteLine($"Error opening image: {ex}");
                 try
                 {
-                    await parent.DialogCoordinator!.ShowMessageAsync(parent, "Fehler", $"Fehler beim Öffnen des Bildes: {ex.Message}");
+                    await _mainVM.DialogCoordinator!.ShowMessageAsync(_mainVM, "Fehler", $"Fehler beim Öffnen des Bildes: {ex.Message}");
                 }
                 catch (Exception dlgEx)
                 {
@@ -144,24 +128,24 @@ namespace AutoNumber.ViewModels
         public RelayCommand SaveAsCommand => _saveAsCommand ??= new(ExecuteSaveAs);
 
         private bool CanExecuteSave(object? o) =>
-            !string.IsNullOrWhiteSpace(parent.PictureVM.CurrentImageFilename)
-            && !IsProtectedOriginalPath(parent.PictureVM.CurrentImageFilename, parent.PictureVM.OriginalImageFilename);
+            !string.IsNullOrWhiteSpace(_mainVM.PictureVM.CurrentImageFilename)
+            && !IsProtectedOriginalPath(_mainVM.PictureVM.CurrentImageFilename, _mainVM.PictureVM.OriginalImageFilename);
 
-        private void ExecuteSave(object? o) => WriteJpgOrPdf(parent.PictureVM.CurrentImageFilename);
+        private void ExecuteSave(object? o) => WriteJpgOrPdf(_mainVM.PictureVM.CurrentImageFilename);
 
         private void ExecuteSaveAs(object? o)
         {
             var fullFilename = GetCurrentSaveFilename();
-            var defaultFormat = parent.SettingsManager.DefaultSaveFormat;
+            var defaultFormat = _mainVM.SettingsManager.DefaultSaveFormat;
             var suggestedExtension = defaultFormat == SaveFormat.Pdf ? ".pdf" : ".jpg";
             var filterIndex = defaultFormat == SaveFormat.Pdf ? 2 : 1;
             var saveFileInfo = CreateSaveFileInfo(fullFilename, suggestedExtension, SaveAsFilter, filterIndex);
 
-            if (parent.DialogService.ShowDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
+            if (_mainVM.DialogService.ShowSaveFileDialog(saveFileInfo) is string filename && !string.IsNullOrEmpty(filename))
             {
-                if (IsProtectedOriginalPath(filename, parent.PictureVM.OriginalImageFilename))
+                if (IsProtectedOriginalPath(filename, _mainVM.PictureVM.OriginalImageFilename))
                 {
-                    parent.DialogService.ShowDialog("Das Originalbild darf nicht überschrieben werden");
+                    _mainVM.DialogService.ShowError("Das Originalbild darf nicht überschrieben werden");
                     return;
                 }
 
@@ -183,7 +167,7 @@ namespace AutoNumber.ViewModels
             }
             else
             {
-                parent.DialogService.ShowDialog($"Nicht unterstütztes Dateiformat '{extension}'. Bitte '.jpg' oder '.pdf' verwenden.");
+                _mainVM.DialogService.ShowError($"Nicht unterstütztes Dateiformat '{extension}'. Bitte '.jpg' oder '.pdf' verwenden.");
                 return;
             }
 
@@ -192,10 +176,10 @@ namespace AutoNumber.ViewModels
 
         private void WriteJpg(string filename)
         {
-            using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+            using var result = _mainVM.PictureVM.ToNumberedBitmap(_mainVM.LabelManager, _mainVM.NameManager, _mainVM.TitleManager, _mainVM.ImageInfoManager, _mainVM.ImageIdManager);
             if (result is null)
             {
-                parent.DialogService.ShowDialog("Speichern nicht möglich — es ist kein Bild geladen.");
+                _mainVM.DialogService.ShowError("Speichern nicht möglich — es ist kein Bild geladen.");
                 return;
             }
 
@@ -211,7 +195,7 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            parent.PictureVM.CurrentImageFilename = filename;
+            _mainVM.PictureVM.CurrentImageFilename = filename;
 
             var exportData = BuildExportData();
             exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
@@ -220,10 +204,10 @@ namespace AutoNumber.ViewModels
 
         private void WritePdfWithSidecars(string filename)
         {
-            using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
+            using var result = _mainVM.PictureVM.ToNumberedBitmap(_mainVM.LabelManager, _mainVM.NameManager, _mainVM.TitleManager, _mainVM.ImageInfoManager, _mainVM.ImageIdManager);
             if (result is null)
             {
-                parent.DialogService.ShowDialog("Speichern nicht möglich — es ist kein Bild geladen.");
+                _mainVM.DialogService.ShowError("Speichern nicht möglich — es ist kein Bild geladen.");
                 return;
             }
 
@@ -234,7 +218,7 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            parent.PictureVM.CurrentImageFilename = filename;
+            _mainVM.PictureVM.CurrentImageFilename = filename;
             WriteMetadataSidecars(filename, exportData, result);
         }
 
@@ -253,7 +237,7 @@ namespace AutoNumber.ViewModels
 
             var saveFileInfo = CreateSaveFileInfo(fullFilename, ".csv", ExportMetadataFilter, 1);
 
-            if (parent.DialogService.ShowDialog(saveFileInfo) is not string filename || string.IsNullOrEmpty(filename))
+            if (_mainVM.DialogService.ShowSaveFileDialog(saveFileInfo) is not string filename || string.IsNullOrEmpty(filename))
             {
                 return null;
             }
@@ -271,7 +255,7 @@ namespace AutoNumber.ViewModels
 
         private SidecarExportData BuildExportData()
         {
-            var persons = parent.PictureVM.Persons
+            var persons = _mainVM.PictureVM.Persons
                 .OrderBy(p => p.Label.Number)
                 .Select(p => new SidecarPerson
                 {
@@ -283,9 +267,9 @@ namespace AutoNumber.ViewModels
 
             return new SidecarExportData
             {
-                Title = parent.TitleManager.Title ?? string.Empty,
-                Description = parent.ImageInfoManager.ImageInfo ?? string.Empty,
-                Id = parent.ImageIdManager.ImageId ?? string.Empty,
+                Title = _mainVM.TitleManager.Title ?? string.Empty,
+                Description = _mainVM.ImageInfoManager.ImageInfo ?? string.Empty,
+                Id = _mainVM.ImageIdManager.ImageId ?? string.Empty,
                 Persons = persons
             };
         }
@@ -352,7 +336,7 @@ namespace AutoNumber.ViewModels
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
-                    if (!parent.DialogService.ShowSaveRetryDialog(operationName, filename, ex.Message))
+                    if (!_mainVM.DialogService.ShowSaveRetryDialog(operationName, filename, ex.Message))
                     {
                         return false;
                     }
@@ -375,7 +359,7 @@ namespace AutoNumber.ViewModels
         private bool WritePdf(string filename, SidecarExportData exportData)
         {
             byte[]? photoBytes = null;
-            using (var photoWithLabels = parent.PictureVM.ToPhotoWithLabelsBitmap())
+            using (var photoWithLabels = _mainVM.PictureVM.ToPhotoWithLabelsBitmap())
             {
                 if (photoWithLabels is not null)
                 {
@@ -388,21 +372,21 @@ namespace AutoNumber.ViewModels
             var pdfBytes = PdfReportRenderer.Render(
                 exportData,
                 photoBytes,
-                parent.NameManager.NameTableColumnCount,
-                parent.NameManager.ShowRowDividers,
-                parent.NameManager.FormatRowDividerText);
+                _mainVM.NameManager.NameTableColumnCount,
+                _mainVM.NameManager.ShowRowDividers,
+                _mainVM.NameManager.FormatRowDividerText);
 
             // Update existing metadata with latest runtime values, then use it
-            parent.PictureVM.UpdateMetadataBeforeSave(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
-            var metadata = parent.PictureVM.CurrentMetadata!;
+            _mainVM.PictureVM.UpdateMetadataBeforeSave(_mainVM.LabelManager, _mainVM.NameManager, _mainVM.TitleManager, _mainVM.ImageInfoManager, _mainVM.ImageIdManager);
+            var metadata = _mainVM.PictureVM.CurrentMetadata!;
 
-            if (parent.PictureVM.Bitmap is null)
+            if (_mainVM.PictureVM.Bitmap is null)
             {
                 throw new InvalidOperationException("Die Basisgrafik für den PDF-Export ist nicht verfügbar.");
             }
 
             using var baseImageStream = new MemoryStream();
-            parent.PictureVM.Bitmap.Save(baseImageStream, DrawingImageFormat.Jpeg);
+            _mainVM.PictureVM.Bitmap.Save(baseImageStream, DrawingImageFormat.Jpeg);
 
             var payloadZip = PdfPayloadStore.CreatePayloadZip(new PdfPayloadData
             {
@@ -452,7 +436,7 @@ namespace AutoNumber.ViewModels
             Trace.WriteLine("OpenFromPdfFile: metadata initialization completed");
         }
 
-        private async Task openFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm, string currentFilename)
+        private async Task OpenFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm, string currentFilename)
         {
             Trace.WriteLine($"openFromOriginalFile: requested original '{metadata.OriginalImage}'");
 
@@ -491,7 +475,7 @@ namespace AutoNumber.ViewModels
                 }
             };
 
-            var result = await parent.DialogCoordinator.ShowMessageAsync(parent,
+            var result = await _mainVM.DialogCoordinator.ShowMessageAsync(_mainVM,
                 "Original Bild nicht gefunden!",
                 $"Sie haben versucht, ein von AutoNumber erstelltes Bild zu öffnen. Um dieses weiter bearbeiten zu können, " +
                 $"wird das Originalbild benötigt. AutoNumber konnte dieses Bild nicht finden. " +
@@ -505,15 +489,15 @@ namespace AutoNumber.ViewModels
         }
         private bool GetFilename(out string filename)
         {
-            var info = new OpenFileInfo
+            var info = new FileDialogInfo
             {
                 Filter = "AutoNum Dateien (*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif;*.pdf)|*.bmp;*.png;*.tif;*.tiff;*.jpg;*.jpeg;*.gif;*.pdf|JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PNG Files (*.png)|*.png|TIFF Files (*.tif;*.tiff)|*.tif;*.tiff|GIF Files (*.gif)|*.gif|PDF Files (*.pdf)|*.pdf|All Files (*.*)|*.*",
                 FilterIndex = 1, // Sets AutoNum-compatible files as the default filter
                 InitialDirectory = GetLastOpenFolder(),
             };
 
-            filename = parent.DialogService.ShowDialog(info) as string ?? string.Empty;
-            return  !string.IsNullOrEmpty(filename);
+            filename = _mainVM.DialogService.ShowOpenFileDialog(info) ?? string.Empty;
+            return !string.IsNullOrEmpty(filename);
         }
 
         /// <summary>
@@ -524,7 +508,7 @@ namespace AutoNumber.ViewModels
         /// </summary>
         private string? GetLastOpenFolder()
         {
-            var originalFilename = parent.PictureVM.OriginalImageFilename;
+            var originalFilename = _mainVM.PictureVM.OriginalImageFilename;
             if (string.IsNullOrWhiteSpace(originalFilename))
             {
                 return null;
@@ -537,24 +521,32 @@ namespace AutoNumber.ViewModels
         private void RefreshPreviewAfterMetadataLoad(string source)
         {
             Trace.WriteLine($"RefreshPreviewAfterMetadataLoad: source={source}");
-            parent.NameManager.RefreshAndShowNames();
+            _mainVM.NameManager.RefreshAndShowNames();
             System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         }
 
-        private SaveFileInfo CreateSaveFileInfo(string fullFilename, string extension, string filter, int filterIndex)
+        private FileDialogInfo CreateSaveFileInfo(string fullFilename, string extension, string filter, int filterIndex)
         {
             var sourcePath = Path.GetDirectoryName(fullFilename)!;
             var file = Path.GetFileNameWithoutExtension(fullFilename);
-            var isEditingProtectedOriginal = IsProtectedOriginalPath(fullFilename, parent.PictureVM.OriginalImageFilename);
+            var isEditingProtectedOriginal = IsProtectedOriginalPath(fullFilename, _mainVM.PictureVM.OriginalImageFilename);
 
-            var outputFile = isEditingProtectedOriginal && !string.IsNullOrWhiteSpace(parent.SettingsManager.SaveFileSuffix)
-                ? file + parent.SettingsManager.SaveFileSuffix + extension
+            var outputFile = isEditingProtectedOriginal && !string.IsNullOrWhiteSpace(_mainVM.SettingsManager.SaveFileSuffix)
+                ? file + _mainVM.SettingsManager.SaveFileSuffix + extension
                 : file + extension;
 
-            return new SaveFileInfo
+            // The configured output folder redirects only the FIRST save of a fresh image, i.e.
+            // while the current file is still the protected original — which is also the only
+            // time sourcePath is the originals folder that a relative output folder (e.g.
+            // "autonum") is meant to be relative to. Once a numbered file exists, Save As just
+            // suggests that file's own folder; re-resolving would append the relative folder
+            // again on every Save As ("...\autonum\autonum\...").
+            var initialDirectory = isEditingProtectedOriginal ? ResolveOutputFolder(sourcePath) : sourcePath;
+
+            return new FileDialogInfo
             {
                 Filename = outputFile,
-                InitialDirectory = ResolveOutputFolder(sourcePath),
+                InitialDirectory = initialDirectory,
                 Filter = filter,
                 FilterIndex = filterIndex,
             };
@@ -562,15 +554,15 @@ namespace AutoNumber.ViewModels
 
         private string GetCurrentSaveFilename()
         {
-            return !string.IsNullOrWhiteSpace(parent.PictureVM.CurrentImageFilename)
-                ? parent.PictureVM.CurrentImageFilename
-                : parent.PictureVM.OriginalImageFilename;
+            return !string.IsNullOrWhiteSpace(_mainVM.PictureVM.CurrentImageFilename)
+                ? _mainVM.PictureVM.CurrentImageFilename
+                : _mainVM.PictureVM.OriginalImageFilename;
         }
 
         private string ResolveOutputFolder(string sourcePath)
         {
-            var configuredFolder = parent.SettingsManager.OutputFolder;
-            if (!parent.SettingsManager.UseCustomOutputFolder || string.IsNullOrWhiteSpace(configuredFolder))
+            var configuredFolder = _mainVM.SettingsManager.OutputFolder;
+            if (!_mainVM.SettingsManager.UseCustomOutputFolder || string.IsNullOrWhiteSpace(configuredFolder))
             {
                 return sourcePath;
             }
@@ -578,7 +570,16 @@ namespace AutoNumber.ViewModels
             if (Path.IsPathFullyQualified(configuredFolder))
             {
                 // Absolute paths are set via the Browse button and must already exist.
-                return Directory.Exists(configuredFolder) ? Path.GetFullPath(configuredFolder) : sourcePath;
+                if (Directory.Exists(configuredFolder))
+                {
+                    return Path.GetFullPath(configuredFolder);
+                }
+
+                _mainVM.DialogService.ShowWarning(
+                    $"Der eingestellte Ausgabeordner\n\n{configuredFolder}\n\nexistiert nicht. " +
+                    "Es wird stattdessen der Ordner des Bildes vorgeschlagen.\n\n" +
+                    "Der Ausgabeordner kann unter Datei → Einstellungen → Export angepasst werden.");
+                return sourcePath;
             }
 
             // Relative paths (e.g. "AutoNum" or "AutoNum/test") are a subfolder next to the
@@ -590,9 +591,20 @@ namespace AutoNumber.ViewModels
             // ArgumentException on a mixed-separator path like "C:\Photos\AutoNum/test", even
             // though Directory.CreateDirectory tolerates it fine.
             var relativeFolder = configuredFolder.TrimStart('\\', '/').Replace('/', '\\');
-            var resolvedFolder = Path.GetFullPath(Path.Combine(sourcePath, relativeFolder));
-            Directory.CreateDirectory(resolvedFolder);
-            return resolvedFolder;
+            try
+            {
+                var resolvedFolder = Path.GetFullPath(Path.Combine(sourcePath, relativeFolder));
+                Directory.CreateDirectory(resolvedFolder);
+                return resolvedFolder;
+            }
+            catch (Exception ex)
+            {
+                Trace.WriteLine($"ResolveOutputFolder: could not create '{relativeFolder}' under '{sourcePath}': {ex}");
+                _mainVM.DialogService.ShowWarning(
+                    $"Der Unterordner \"{configuredFolder}\" konnte nicht angelegt werden ({ex.Message}). " +
+                    "Es wird stattdessen der Ordner des Bildes vorgeschlagen.");
+                return sourcePath;
+            }
         }
 
         private static bool IsProtectedOriginalPath(string selectedPath, string protectedOriginalPath)
@@ -607,7 +619,7 @@ namespace AutoNumber.ViewModels
             return string.Equals(selectedFullPath, protectedFullPath, StringComparison.OrdinalIgnoreCase);
         }
 
-        private MainVM parent { get; set; } = parent;
+        private readonly MainVM _mainVM = mainVM;
         private RelayCommand? _openImageCommand;
         private RelayCommand? _saveCommand;
         private RelayCommand? _saveAsCommand;
