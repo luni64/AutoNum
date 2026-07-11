@@ -130,7 +130,6 @@ namespace AutoNumber.ViewModels
                     await openFromOriginalFile(bitmap, metadata, pvm, filename);
                 }
             }
-            catch (InvalidOperationException) { Trace.WriteLine("No faces found"); }
             catch (Exception ex)
             {
                 Trace.WriteLine($"Error opening image: {ex}");

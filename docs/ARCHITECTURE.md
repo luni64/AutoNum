@@ -45,21 +45,22 @@ AutoNum/
 │   ├── ImageIdManager.cs       # Image ID behavior and styling
 │   ├── SettingsManager.cs      # App-wide defaults (persisted settings)
 │   ├── FaceDetector.cs         # Static OpenCV detector configuration/execution
-│   ├── Person.cs, MarkerVM.cs, MarkerRect.cs, TextLabel.cs
+│   ├── Person.cs, MarkerVM.cs, MarkerLabel.cs, TextLabel.cs
 │   └── LabelStyle.cs, TextStyle.cs
 ├── Views/
 │   ├── MainWindow.xaml/.cs
 │   ├── PictureDisplay.xaml/.cs
 │   ├── FontManager.xaml/.cs
+│   ├── FaceAnchorPicker.xaml/.cs
 │   ├── Marker.xaml/.cs
 │   ├── ZoomBorder.cs
 │   ├── SettingsWindow.xaml/.cs # Modal tabbed settings dialog (Datei → Einstellungen... in the main menu)
-│   └── WizardViews/
-│       ├── LabelWiz.xaml
+│   ├── TextFormatDialog.xaml/.cs # Per-element formatting dialog (labels/title/description/ID/names)
+│   └── Panels/                 # Resource dictionaries for the right-column panels
 │       ├── NamesView.xaml
 │       ├── ImageInfoView.xaml
 │       ├── ImageIdView.xaml
-│       └── TiltleView.xaml
+│       └── TitleView.xaml
 └── docs/release/
     ├── NEXT_RELEASE.md
     ├── CHANGELOG.md
@@ -168,10 +169,9 @@ All three are `FileManager` commands/methods bound directly from `MainWindow.xam
 - Slider in XAML is bound two-way to `SelectedScale` through `SliderToScaleConverter`:
   - Forward (VIEW → MODEL): slider position (0–1) → scale (0.25–4.0) via UI-layer slider mapping (`SliderScaleMapping`)
   - Reverse (MODEL → VIEW): scale (0.25–4.0) → slider position (0–1) via UI-layer slider mapping (`SliderScaleMapping`)
-- Used in three contexts:
-  1. **Main window label wizard** (`LabelWiz.xaml`): binds `SelectedScale` to `LabelManager.LabelScale`
-  2. **Text-format dialogs** (`TextFormatDialog.xaml.cs`): dynamically binds `SelectedScale` to whichever manager is open (TitleManager, ImageInfoManager, ImageIdManager, NameManager)
-  3. **Settings window** (`SettingsWindow.xaml.cs`): binds to app-wide default scales
+- Used in two contexts:
+  1. **Text-format dialogs** (`TextFormatDialog.xaml.cs`): dynamically binds `SelectedScale` to whichever manager is open (LabelManager, TitleManager, ImageInfoManager, ImageIdManager, NameManager)
+  2. **Settings window** (`SettingsWindow.xaml.cs`): binds to app-wide default scales
 
 ### Scale Propagation
 Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfoManager, ImageIdManager) follows the same pattern:

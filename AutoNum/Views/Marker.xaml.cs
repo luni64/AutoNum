@@ -8,7 +8,7 @@ using AutoNumber.ViewModels;
 namespace AutoNumber.Views
 {
     /// <summary>
-    /// Interaktionslogik für Bookmark.xaml
+    /// Interaction logic for Marker.xaml
     /// </summary>
     public partial class Marker : UserControl
     {
@@ -20,22 +20,11 @@ namespace AutoNumber.Views
             Canvas.SetLeft(this, 0);
             Canvas.SetTop(this, 0);
 
-            if (markerVM is MarkerLabel)
-                doLock(false);
-            else 
-                doLock(true);
+            // Number labels are draggable, name-table cells are not.
+            SetDragLocked(markerVM is not MarkerLabel);
 
-            markerVM.PropertyChanged += Dc_PropertyChanged;
+            markerVM.PropertyChanged += MarkerVM_PropertyChanged;
         }
-
-        public string Text
-        {
-            get { return (string)GetValue(TextProperty); }
-            set { SetValue(TextProperty, value); }
-        }
-
-        public static readonly DependencyProperty TextProperty =
-            DependencyProperty.Register("Text", typeof(string), typeof(Marker), new PropertyMetadata(""));
 
         public double W
         {
@@ -55,29 +44,29 @@ namespace AutoNumber.Views
 
 
 
-        void doLock(bool locked)
+        void SetDragLocked(bool locked)
         {
             if (locked)
             {
-                MarkerUI.PreviewMouseDown -= imgArr_PreviewMouseDown;
-                MarkerUI.PreviewMouseMove -= imgArr_PreviewMouseMove;
-                MarkerUI.PreviewMouseUp -= imgArr_PreviewMouseUp;
+                MarkerContent.PreviewMouseDown -= MarkerContent_PreviewMouseDown;
+                MarkerContent.PreviewMouseMove -= MarkerContent_PreviewMouseMove;
+                MarkerContent.PreviewMouseUp -= MarkerContent_PreviewMouseUp;
             }
             else
             {
-                MarkerUI.PreviewMouseDown += imgArr_PreviewMouseDown;
-                MarkerUI.PreviewMouseMove += imgArr_PreviewMouseMove;
-                MarkerUI.PreviewMouseUp += imgArr_PreviewMouseUp;
+                MarkerContent.PreviewMouseDown += MarkerContent_PreviewMouseDown;
+                MarkerContent.PreviewMouseMove += MarkerContent_PreviewMouseMove;
+                MarkerContent.PreviewMouseUp += MarkerContent_PreviewMouseUp;
             }
         }
 
-        private void Dc_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        private void MarkerVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (sender is MarkerVM vm)
             {
-                if (e.PropertyName == "IsLocked")
+                if (e.PropertyName == nameof(MarkerVM.IsLocked))
                 {
-                    doLock(vm.IsLocked);
+                    SetDragLocked(vm.IsLocked);
                 }
             }
         }
@@ -87,16 +76,16 @@ namespace AutoNumber.Views
         Point? oldMousePosition;
         MainVM? dragMainVM;
 
-        private void imgArr_PreviewMouseDown(object sender, MouseButtonEventArgs e)
+        private void MarkerContent_PreviewMouseDown(object sender, MouseButtonEventArgs e)
         {
             oldMousePosition = e.GetPosition(Parent as FrameworkElement);
             dragMainVM = DataContext is MarkerLabel ? FindParentWithDataContext<MainVM>(this) : null;
 
-            MarkerUI.CaptureMouse();
+            MarkerContent.CaptureMouse();
             e.Handled = true;
         }
 
-        private void imgArr_PreviewMouseMove(object sender, MouseEventArgs e)
+        private void MarkerContent_PreviewMouseMove(object sender, MouseEventArgs e)
         {
             if (oldMousePosition != null && e.LeftButton == MouseButtonState.Pressed)
             {
@@ -140,11 +129,11 @@ namespace AutoNumber.Views
             }
         }
 
-        private void imgArr_PreviewMouseUp(object sender, MouseButtonEventArgs e)
+        private void MarkerContent_PreviewMouseUp(object sender, MouseButtonEventArgs e)
         {
             oldMousePosition = null;
             dragMainVM = null;
-            MarkerUI.ReleaseMouseCapture();
+            MarkerContent.ReleaseMouseCapture();
 
             if (DataContext is MarkerLabel markerLabel)
             {

@@ -60,13 +60,8 @@ namespace AutoNumber.ViewModels
             set
             {
                 SetProperty(ref _nr, value);
-                Person.OnPropertyChanged("FullName");
+                Person.OnPropertyChanged(nameof(Person.FullName));
             }
-        }
-        public string? Name
-        {
-            get => _name == "" ? null : _name;
-            set => SetProperty(ref _name, value);
         }
 
         public double CenterX
@@ -93,11 +88,10 @@ namespace AutoNumber.ViewModels
 
         #endregion
 
-        public override string ToString() => $"LB: {Number}-{Name}";
+        public override string ToString() => $"LB: {Number}";
 
         #region private fields -----------------------------------------------
         private int _nr;
-        private string? _name;
         private double _centerX;
         private double _centerY;
         #endregion

@@ -19,11 +19,7 @@ dotnet publish AutoNum\AutoNumber.csproj -c Release   # produces build for the i
 
 There is no automated test project — verification is manual (run the app and exercise the UI flow).
 
-Building the installer (after a Release publish): open `installer\setup.iss` in Inno Setup, or `ISCC.exe installer\setup.iss`. Requires Inno Setup 6 plus `installer\CodeDependencies.iss` (from InnoDependencyInstaller) which is not checked in. See `installer/README.md`. Bump the version in `installer\setup.iss` before building.
-
-## Repository layout gotcha
-
-The actual project lives under `AutoNum/` (e.g. `AutoNum/ViewModels`, `AutoNum/Views`, `AutoNum/AutoNumber.csproj`). There are also stray top-level `ViewModels/` and `Views/` directories at the repo root containing a handful of stale, tracked files (e.g. an empty `ViewModels/LabelManager.cs`) — these are leftovers, not part of the build. Always work under `AutoNum/`.
+Building the installer (after a Release publish): open `installer\setup.iss` in Inno Setup, or `ISCC.exe installer\setup.iss`. Requires Inno Setup 6 plus `installer\CodeDependencies.iss` (from InnoDependencyInstaller, checked in). See `installer/README.md`. Before building, bump the version in `installer\setup.iss` **and** the `<Version>` property in `AutoNum\AutoNumber.csproj` (the window title reads it from the assembly).
 
 ## Architecture summary
 

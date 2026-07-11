@@ -29,9 +29,14 @@ namespace AutoNumber.ViewModels
         public ImageVM PictureVM { get; }
 
         public IDialogService DialogService { get; }
+
+        /// <summary>App name + version from the csproj's Version property — the single source.</summary>
+        private static readonly string AppTitle =
+            $"AutoNumber V{System.Reflection.Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?"}";
+
         public string Title => string.IsNullOrEmpty(PictureVM.CurrentImageFilename)
-            ? "AutoNumber V2.3.0"
-            : $"AutoNumber V2.3.0  —  {System.IO.Path.GetFileName(PictureVM.CurrentImageFilename)}";
+            ? AppTitle
+            : $"{AppTitle}  —  {System.IO.Path.GetFileName(PictureVM.CurrentImageFilename)}";
 
         public MainVM(IDialogService DialogService)
         {

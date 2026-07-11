@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
-using System.Linq.Expressions;
 using System.Runtime.CompilerServices;
 using System.Windows.Input;
 
@@ -21,20 +20,6 @@ namespace AutoNumber.ViewModels
             }
         }
 
-        protected void SetProperty<T, TProperty>(T obj, Expression<Func<T, TProperty>> propertySelector, TProperty value, [CallerMemberName] string name = "")
-        {
-             var propertyInfo = (propertySelector.Body as MemberExpression)?.Member as System.Reflection.PropertyInfo;
-            if (propertyInfo != null)
-            {
-                TProperty? field = (TProperty?)(propertyInfo.GetValue(obj));
-
-                if (!EqualityComparer<TProperty>.Default.Equals(field, value))
-                {
-                    propertyInfo.SetValue(obj, value);
-                    OnPropertyChanged(name);
-                }
-            }
-        }
         public void OnPropertyChanged([CallerMemberName] string name = "")
         {
             if (_notificationSuspendDepth > 0)
@@ -119,42 +104,5 @@ namespace AutoNumber.ViewModels
 
             #endregion // ICommand Members
         }
-
-        public class AsyncCommand(Func<Task> execute, Func<bool> canExecute) : ICommand
-        {
-            private readonly Func<Task> _execute = execute;
-            private readonly Func<bool> _canExecute = canExecute;
-            private bool _isExecuting;
-
-            public AsyncCommand(Func<Task> execute) : this(execute, () => true)
-            {
-            }
-
-            public bool CanExecute(object? parameter)
-            {
-                return !(_isExecuting && _canExecute());
-            }
-
-            public event EventHandler? CanExecuteChanged;
-
-            public async void Execute(object? parameter)
-            {
-                _isExecuting = true;
-                OnCanExecuteChanged();
-                try
-                {
-                    await _execute();
-                }
-                finally
-                {
-                    _isExecuting = false;
-                    OnCanExecuteChanged();
-                }
-            }
-
-            protected virtual void OnCanExecuteChanged() => CanExecuteChanged?.Invoke(this, new EventArgs());
-        }
-
-
     }
 }

@@ -5,10 +5,8 @@ using System.Globalization;
 using System.IO;
 using System.Windows;
 using System.Windows.Data;
-using System.Windows.Markup;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-//using System.Windows.Media.Imaging;
 
 namespace AutoNumber.Infrastructure
 {
@@ -109,99 +107,6 @@ namespace AutoNumber.Infrastructure
     }
 
 
-    public class BoolToObjectConverter : MarkupExtension, IValueConverter
-    {
-        //public PackIconBase checkedIcon { get; set; } = new PackIconModern() {Kind = PackIconModernKind.Creditcard };
-        //public PackIconBase uncheckedIcon { get; set; } = new PackIconModern() { Kind = PackIconModernKind.Coupon };
-        public object? checkedIcon { get; set; }
-        public object? uncheckedIcon { get; set; }
-
-        public override object ProvideValue(IServiceProvider serviceProvider)
-        {
-            return this;
-        }
-
-        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value is bool isOn)
-            {
-                return isOn ? checkedIcon : uncheckedIcon;
-            }
-            throw new NotSupportedException();
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
-        }
-    }
-
-    public class StringToImageConverter : IValueConverter
-    {
-        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            object? result = null;
-            var path = value as string;
-
-            if (!string.IsNullOrEmpty(path) && File.Exists(path))
-            {
-                using (var stream = File.OpenRead(path))
-                {
-                    var image = new System.Windows.Media.Imaging.BitmapImage();
-                    image.BeginInit();
-                    image.CacheOption = System.Windows.Media.Imaging.BitmapCacheOption.OnLoad;
-                    image.StreamSource = stream;
-                    image.EndInit();
-                    result = image;
-                }
-            }
-            return result;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
-        }
-    }
-
-    public class IntToMarginConverter : IValueConverter
-    {
-        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (value == null) return new Thickness(0);
-            return new Thickness((int)value, 0, 0, 0);
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
-        }
-    }
-
-    public class NullToEnabledConverter : IValueConverter
-    {
-        public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            return value != null;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
-        }
-    }
-
-    public class NullToVisibilityConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-
-            return value != null ? Visibility.Visible : Visibility.Collapsed;
-        }
-        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
-        {
-            throw new NotSupportedException();
-        }
-    }
-
     public class BoolToVisibilityConverter : IValueConverter
     {
         public object? Convert(object value, Type targetType, object parameter, CultureInfo culture)
@@ -211,19 +116,6 @@ namespace AutoNumber.Infrastructure
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
         {
             throw new NotSupportedException();
-        }
-    }
-
-    public class ComparisonConverter : IValueConverter
-    {
-        public object Convert(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            return value?.Equals(parameter) ?? false;
-        }
-
-        public object ConvertBack(object value, Type targetType, object parameter, System.Globalization.CultureInfo culture)
-        {
-            return value?.Equals(true) == true ? parameter : Binding.DoNothing;
         }
     }
 

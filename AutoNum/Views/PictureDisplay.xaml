@@ -56,15 +56,15 @@
     <view:ZoomBorder                    
         x:Name="border"                  
         ClipToBounds="True"        
-        PanX="{Binding Page.PanX, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
-        PanY="{Binding Page.PanY, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
-        Zoom="{Binding Page.Zoom, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"                  
+        PanX="{Binding Picture.PanX, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
+        PanY="{Binding Picture.PanY, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
+        Zoom="{Binding Picture.Zoom, Mode=OneWay, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"                  
         >
-        <Canvas x:Name="PageCanvas">
+        <Canvas x:Name="PictureCanvas">
             <StackPanel x:Name="topTextPanel"
                 Canvas.Left="0"
                 Canvas.Top="{Binding ActualHeight, ElementName=topTextPanel, Mode=OneWay, ConverterParameter=-1, Converter={StaticResource MathMultiplyConverter}}"
-                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
+                Width="{Binding ActualWidth, ElementName=photoImage, Mode=OneWay}"
                 SizeChanged="TopTextPanel_SizeChanged">
                 <Border DataContext="{Binding TitleManager}"
                     Visibility="{Binding IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
@@ -100,18 +100,18 @@
                 </Border>
             </StackPanel>
             <Image                         
-                x:Name="pageimg"                       
+                x:Name="photoImage"                       
                 HorizontalAlignment="Left" VerticalAlignment="Top"      
                 ClipToBounds="true"                   
-                Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
-                Source="{Binding Page.Bitmap, Converter={StaticResource Bitmap2BitmapSource}, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
+                Width="{Binding Picture.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
+                Source="{Binding Picture.Bitmap, Converter={StaticResource Bitmap2BitmapSource}, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}" 
                 />
             <Border x:Name="imageIdBorder"
                 DataContext="{Binding ImageIdManager}"
                 Visibility="{Binding ShowImageIdLine, Converter={StaticResource Bool2Vis}}"
                 Canvas.Left="0"
-                Canvas.Top="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
-                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
+                Canvas.Top="{Binding ActualHeight, ElementName=photoImage, Mode=OneWay}"
+                Width="{Binding ActualWidth, ElementName=photoImage, Mode=OneWay}"
                 Height="{Binding LineHeight}"
                 BorderThickness="0"
                 Background="{Binding BackgroundColor, Converter={StaticResource Col2Brush}}">
@@ -130,8 +130,8 @@
                 x:Name="namesRegionBorder"
                 Canvas.Left="0"
                 Visibility="{Binding NameManager.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
-                Canvas.Top="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
-                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
+                Canvas.Top="{Binding ActualHeight, ElementName=photoImage, Mode=OneWay}"
+                Width="{Binding ActualWidth, ElementName=photoImage, Mode=OneWay}"
                 Height="{Binding PictureVM.NamesRegionHeight}"
                 BorderThickness="1,0,1,1"
                 BorderBrush="Black"
@@ -144,8 +144,8 @@
             <ItemsControl
                 Canvas.Left="0"
                 Canvas.Top="0"
-                Width="{Binding ActualWidth, ElementName=pageimg, Mode=OneWay}"
-                Height="{Binding ActualHeight, ElementName=PageCanvas, Mode=OneWay}"
+                Width="{Binding ActualWidth, ElementName=photoImage, Mode=OneWay}"
+                Height="{Binding ActualHeight, ElementName=PictureCanvas, Mode=OneWay}"
                 Visibility="{Binding NameManager.IsEnabled, Mode=OneWay ,Converter={StaticResource Bool2Vis}}"
                 ItemsSource="{Binding NameManager.RowDividers}">
                 <ItemsControl.ItemsPanel>
@@ -183,8 +183,8 @@
             <Canvas x:Name="rowDefinitionOverlay"
                     Canvas.Left="0"
                     Canvas.Top="0"
-                    Width="{Binding Page.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
-                    Height="{Binding Page.ImageHeight, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
+                    Width="{Binding Picture.ImageWidth, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
+                    Height="{Binding Picture.ImageHeight, RelativeSource={RelativeSource AncestorType={x:Type view:PictureDisplay}, Mode=FindAncestor}}"
                     Background="Transparent"
                     Visibility="Collapsed"
                     IsHitTestVisible="True"/>
@@ -193,7 +193,7 @@
                     Canvas.Left="0"
                     Canvas.Top="0"
                     Width="54"
-                    Height="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
+                    Height="{Binding ActualHeight, ElementName=photoImage, Mode=OneWay}"
                     Background="Transparent"
                     Visibility="{Binding RowDefinitionManager.IsRowDefinitionMode, Converter={StaticResource Bool2Vis}}"
                     MouseMove="RowEditStrip_MouseMove"
@@ -218,7 +218,7 @@
                 <Canvas x:Name="rowChipHost"
                         Canvas.Left="0"
                         Width="22"
-                        Height="{Binding ActualHeight, ElementName=pageimg, Mode=OneWay}"
+                        Height="{Binding ActualHeight, ElementName=photoImage, Mode=OneWay}"
                         IsHitTestVisible="True"/>
             </Canvas>
         </Canvas>

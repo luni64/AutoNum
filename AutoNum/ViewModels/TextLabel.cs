@@ -14,7 +14,7 @@ namespace AutoNumber.ViewModels
             set
             {
                 SetProperty(ref _text, value);
-                Person.OnPropertyChanged("FullName");
+                Person.OnPropertyChanged(nameof(Person.FullName));
             }
         }
 

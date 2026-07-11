@@ -137,6 +137,6 @@
     </UserControl.Style>
 
     <Grid>
-        <ContentControl x:Name="MarkerUI" Content="{Binding}"/>
+        <ContentControl x:Name="MarkerContent" Content="{Binding}"/>
     </Grid>
 </UserControl>

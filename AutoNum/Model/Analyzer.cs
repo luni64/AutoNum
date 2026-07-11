@@ -21,40 +21,6 @@ namespace AutoNumber.Model
             return (float)Math.Sqrt(size.Width * size.Width + size.Height * size.Height);
         }
 
-        public static (float d_max, T? item) GetLargestItem<T>(IEnumerable<T> list, Func<T, string?> selector, Font font)
-        {
-            float d_max = 0;
-            T? largestItem = list.FirstOrDefault();
-            foreach (T item in list)
-            {
-                string? str = selector(item);
-                if (str is null) continue;
-
-                var r = GetCircumscribingDiameter(str, font);
-                if (r > d_max)
-                {
-                    d_max = r;
-                    largestItem = item;
-                }
-            }
-            return (d_max, largestItem);
-        }
-
-        public static SizeF GetLargestBoundingBox<T>(IEnumerable<T> items, Func<T, string?> selector, Font font)
-        {
-            SizeF largest = new SizeF();
-            foreach (T item in items)
-            {
-                string? str = selector(item);
-                if (str is null) continue;
-
-                SizeF thisSize = measureString(str, font, GraphicsUnit.Point);
-                largest.Width = Math.Max(largest.Width, thisSize.Width);
-                largest.Height = Math.Max(largest.Height, thisSize.Height);
-            }
-            return largest;
-        }
-
         public static double GetTextBlockHeight(string text, FontFamily fontFamily, double fontSize)
         {
             if (string.IsNullOrWhiteSpace(text) || !double.IsFinite(fontSize) || fontSize <= 0)
@@ -65,12 +31,6 @@ namespace AutoNumber.Model
             using var font = new Font(fontFamily, (float)fontSize);
             SizeF thisSize = measureString(text, font, GraphicsUnit.Point);
             return thisSize.Height;
-        }
-
-        public static double PlaceTitle(TitleManager tm, ImageInfoManager iim)
-        {
-            return GetTextBlockHeight(tm.Title, tm.TitleFontFamily, tm.TitleFontSize)
-                + GetTextBlockHeight(iim.ImageInfo, iim.ImageInfoFontFamily, iim.ImageInfoFontSize);
         }
 
         public static NamePlacementResult PlacePersonNames(

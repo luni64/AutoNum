@@ -25,24 +25,24 @@ namespace AutoNumber.Views
             InitializeComponent();
         }
 
-        public ImageVM Page
+        public ImageVM Picture
         {
-            get => (ImageVM)GetValue(PageProperty);
-            set => SetValue(PageProperty, value);
+            get => (ImageVM)GetValue(PictureProperty);
+            set => SetValue(PictureProperty, value);
         }
 
-        public static readonly DependencyProperty PageProperty =
-            DependencyProperty.Register("Page", typeof(ImageVM), typeof(PictureDisplay), new PropertyMetadata(null, OnPageChanged));
+        public static readonly DependencyProperty PictureProperty =
+            DependencyProperty.Register(nameof(Picture), typeof(ImageVM), typeof(PictureDisplay), new PropertyMetadata(null, OnPictureChanged));
 
 
-        static void OnPageChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
+        static void OnPictureChanged(DependencyObject d, DependencyPropertyChangedEventArgs e)
         {
             var that = (PictureDisplay)d;
 
             if (e.OldValue is ImageVM oldPageVM)
             {
                 oldPageVM.Persons.CollectionChanged -= that.Marker_CollectionChanged;
-                oldPageVM.PropertyChanged -= that.PageVM_PropertyChanged;
+                oldPageVM.PropertyChanged -= that.PictureVM_PropertyChanged;
                 that.AttachRowDefinitionSession(null);
             }
 
@@ -52,7 +52,7 @@ namespace AutoNumber.Views
             }
 
             pageVM.Persons.CollectionChanged += that.Marker_CollectionChanged;
-            pageVM.PropertyChanged += that.PageVM_PropertyChanged;
+            pageVM.PropertyChanged += that.PictureVM_PropertyChanged;
 
             that.ClearMarkers();
             foreach (var person in pageVM.Persons)
@@ -96,7 +96,7 @@ namespace AutoNumber.Views
                     ClearMarkers();
                     UnsubscribeAllLabelsFromPositionChanges();
 
-                    foreach (Person person in Page.Persons)
+                    foreach (Person person in Picture.Persons)
                     {
                         AddMarker(person.Label);
                         AddMarker(person.Name);
@@ -117,18 +117,18 @@ namespace AutoNumber.Views
 
         void RemoveMarker(MarkerVM markerVM)
         {
-            var markerUIs = PageCanvas.Children.OfType<Marker>();  // we are only interested in canvas-children of type Marker
+            var markerUIs = PictureCanvas.Children.OfType<Marker>();  // we are only interested in canvas-children of type Marker
 
-            PageCanvas.Children.Remove(markerUIs.FirstOrDefault(m => m.Uid == markerVM.Id.ToString()));
+            PictureCanvas.Children.Remove(markerUIs.FirstOrDefault(m => m.Uid == markerVM.Id.ToString()));
 
         }
 
         void ClearMarkers()
         {
-            var ml = PageCanvas.Children.OfType<Marker>().ToList();
+            var ml = PictureCanvas.Children.OfType<Marker>().ToList();
             foreach (var marker in ml)
             {
-                PageCanvas.Children.Remove(marker);
+                PictureCanvas.Children.Remove(marker);
             }
         }
 
@@ -167,13 +167,13 @@ namespace AutoNumber.Views
             Canvas.SetLeft(marker, markerVM.X);
             Canvas.SetTop(marker, markerVM.Y);
 
-            int idx = PageCanvas.Children.Add(marker);
-            PageCanvas.Children[idx].Uid = markerVM.Id.ToString();
+            int idx = PictureCanvas.Children.Add(marker);
+            PictureCanvas.Children[idx].Uid = markerVM.Id.ToString();
         }
 
         private void UpdatePersonRowAndColor(Person person)
         {
-            if (_rowDefinitionSession is null || Page is null)
+            if (_rowDefinitionSession is null || Picture is null)
             {
                 return;
             }
@@ -185,17 +185,17 @@ namespace AutoNumber.Views
             person.RowPreviewColor = RowDefinitionSession.GetPreviewColor(row);
         }
 
-        private void PageVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        private void PictureVM_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == nameof(ImageVM.RowDefinitionSession))
             {
-                AttachRowDefinitionSession(Page.RowDefinitionSession);
+                AttachRowDefinitionSession(Picture.RowDefinitionSession);
                 return;
             }
 
             if (e.PropertyName is nameof(ImageVM.ImageWidth) or nameof(ImageVM.ImageHeight))
             {
-                if (Page.ImageWidth > 0 && Page.ImageHeight > 0)
+                if (Picture.ImageWidth > 0 && Picture.ImageHeight > 0)
                 {
                     _pendingInitialZoomToFit = true;
                     _pendingFitAttempts = 0;
@@ -223,9 +223,9 @@ namespace AutoNumber.Views
                 _rowDefinitionSession.PropertyChanged -= RowDefinitionSession_PropertyChanged;
                 _rowDefinitionSession.Boundaries.CollectionChanged -= RowDefinitionBoundaries_CollectionChanged;
 
-                if (Page is not null)
+                if (Picture is not null)
                 {
-                    _rowDefinitionSession.ClearPreview(Page.Persons);
+                    _rowDefinitionSession.ClearPreview(Picture.Persons);
                     UnsubscribeAllLabelsFromPositionChanges();
                 }
 
@@ -260,12 +260,12 @@ namespace AutoNumber.Views
 
         private void SubscribeAllLabelsToPositionChanges()
         {
-            if (Page is null)
+            if (Picture is null)
             {
                 return;
             }
 
-            foreach (var person in Page.Persons)
+            foreach (var person in Picture.Persons)
             {
                 person.Label.PropertyChanged += Label_PositionChanged;
             }
@@ -273,12 +273,12 @@ namespace AutoNumber.Views
 
         private void UnsubscribeAllLabelsFromPositionChanges()
         {
-            if (Page is null)
+            if (Picture is null)
             {
                 return;
             }
 
-            foreach (var person in Page.Persons)
+            foreach (var person in Picture.Persons)
             {
                 person.Label.PropertyChanged -= Label_PositionChanged;
             }
@@ -343,7 +343,7 @@ namespace AutoNumber.Views
 
         private void RenderRowDefinitionOverlay()
         {
-            if (_rowDefinitionSession is null || Page is null || Page.ImageWidth <= 0 || Page.ImageHeight <= 0)
+            if (_rowDefinitionSession is null || Picture is null || Picture.ImageWidth <= 0 || Picture.ImageHeight <= 0)
             {
                 rowDefinitionOverlay.Children.Clear();
                 rowDefinitionOverlay.Visibility = Visibility.Collapsed;
@@ -359,7 +359,7 @@ namespace AutoNumber.Views
             rowDefinitionOverlay.Children.Clear();
             _rowBoundaryVisuals.Clear();
 
-            var width = Page.ImageWidth;
+            var width = Picture.ImageWidth;
             var boundaries = _rowDefinitionSession.Boundaries.ToList();
 
             foreach (var boundary in boundaries)
@@ -477,13 +477,13 @@ namespace AutoNumber.Views
             }
 
             ClampBoundaryVisual(state);
-            UpdateBoundaryVisual(state, state.LeftY, state.RightY, Page?.ImageWidth ?? 0);
+            UpdateBoundaryVisual(state, state.LeftY, state.RightY, Picture?.ImageWidth ?? 0);
             ApplyPreviewFromVisuals();
         }
 
         private void ClampBoundaryVisual(RowBoundaryVisualState state)
         {
-            if (Page is null)
+            if (Picture is null)
             {
                 return;
             }
@@ -496,9 +496,9 @@ namespace AutoNumber.Views
 
             const double minimumGap = 8.0;
             var minLeft = index == 0 ? 0.0 : _rowBoundaryVisuals[index - 1].LeftY + minimumGap;
-            var maxLeft = index == _rowBoundaryVisuals.Count - 1 ? Page.ImageHeight : _rowBoundaryVisuals[index + 1].LeftY - minimumGap;
+            var maxLeft = index == _rowBoundaryVisuals.Count - 1 ? Picture.ImageHeight : _rowBoundaryVisuals[index + 1].LeftY - minimumGap;
             var minRight = index == 0 ? 0.0 : _rowBoundaryVisuals[index - 1].RightY + minimumGap;
-            var maxRight = index == _rowBoundaryVisuals.Count - 1 ? Page.ImageHeight : _rowBoundaryVisuals[index + 1].RightY - minimumGap;
+            var maxRight = index == _rowBoundaryVisuals.Count - 1 ? Picture.ImageHeight : _rowBoundaryVisuals[index + 1].RightY - minimumGap;
 
             state.LeftY = Math.Clamp(state.LeftY, minLeft, maxLeft);
             state.RightY = Math.Clamp(state.RightY, minRight, maxRight);
@@ -506,7 +506,7 @@ namespace AutoNumber.Views
 
         private void SyncVisualsToSession()
         {
-            if (_rowDefinitionSession is null || Page is null)
+            if (_rowDefinitionSession is null || Picture is null)
             {
                 return;
             }
@@ -522,23 +522,23 @@ namespace AutoNumber.Views
 
         private void CommitRowAssignmentsFromSession()
         {
-            if (_rowDefinitionSession is null || Page is null || DataContext is not MainVM mainVM)
+            if (_rowDefinitionSession is null || Picture is null || DataContext is not MainVM mainVM)
             {
                 return;
             }
 
-            _rowDefinitionSession.ApplyToPersons(Page.Persons);
+            _rowDefinitionSession.ApplyToPersons(Picture.Persons);
             mainVM.LabelManager.Numerate();
         }
 
         private void ApplyPreviewFromVisuals()
         {
-            if (Page is null)
+            if (Picture is null)
             {
                 return;
             }
 
-            foreach (var person in Page.Persons)
+            foreach (var person in Picture.Persons)
             {
                 var anchor = person.GetRowAnchorPoint();
                 var row = ResolvePreviewRow(anchor.X, anchor.Y);
@@ -571,7 +571,7 @@ namespace AutoNumber.Views
         private double GetBoundaryHandleSize()
         {
             var baseSize = (DataContext as MainVM)?.LabelManager.BaseLabelDiameter
-                           ?? Page?.LabelDiameter
+                           ?? Picture?.LabelDiameter
                            ?? 0;
             return baseSize * 0.5;
         }
@@ -623,7 +623,7 @@ namespace AutoNumber.Views
 
         public void ZoomToFit()
         {
-            if (border is null || PageCanvas is null)
+            if (border is null || PictureCanvas is null)
             {
                 return;
             }
@@ -636,25 +636,25 @@ namespace AutoNumber.Views
 
         public void ZoomToImage()
         {
-            if (border is null || PageCanvas is null || Page is null)
+            if (border is null || PictureCanvas is null || Picture is null)
             {
                 return;
             }
 
-            if (!pageimg.IsVisible || pageimg.ActualWidth <= 0 || pageimg.ActualHeight <= 0)
+            if (!photoImage.IsVisible || photoImage.ActualWidth <= 0 || photoImage.ActualHeight <= 0)
             {
                 return;
             }
 
             // Get image bounds (always needed as the base)
-            var imageBounds = pageimg.TransformToAncestor(PageCanvas).TransformBounds(new Rect(0, 0, pageimg.ActualWidth, pageimg.ActualHeight));
+            var imageBounds = photoImage.TransformToAncestor(PictureCanvas).TransformBounds(new Rect(0, 0, photoImage.ActualWidth, photoImage.ActualHeight));
 
             // If in row mode and row edit strip is visible, include it in zoom
             if (rowEditStrip.Visibility == Visibility.Visible)
             {
                 // The row strip is positioned to the right of the image
                 // Get its bounds and union with image bounds
-                var stripBounds = rowEditStrip.TransformToAncestor(PageCanvas).TransformBounds(new Rect(0, 0, rowEditStrip.ActualWidth, rowEditStrip.ActualHeight));
+                var stripBounds = rowEditStrip.TransformToAncestor(PictureCanvas).TransformBounds(new Rect(0, 0, rowEditStrip.ActualWidth, rowEditStrip.ActualHeight));
                 var combinedBounds = Rect.Union(imageBounds, stripBounds);
                 border.ZoomToFit(combinedBounds);
             }
@@ -669,20 +669,20 @@ namespace AutoNumber.Views
         {
             bounds = Rect.Empty;
 
-            if (requireImage && (!pageimg.IsVisible || pageimg.ActualWidth <= 0 || pageimg.ActualHeight <= 0))
+            if (requireImage && (!photoImage.IsVisible || photoImage.ActualWidth <= 0 || photoImage.ActualHeight <= 0))
             {
                 return false;
             }
 
             Rect? contentBounds = null;
-            foreach (var element in new FrameworkElement[] { pageimg, topTextPanel, imageIdBorder, namesRegionBorder })
+            foreach (var element in new FrameworkElement[] { photoImage, topTextPanel, imageIdBorder, namesRegionBorder })
             {
                 if (!element.IsVisible || element.ActualWidth <= 0 || element.ActualHeight <= 0)
                 {
                     continue;
                 }
 
-                var rect = element.TransformToAncestor(PageCanvas).TransformBounds(new Rect(0, 0, element.ActualWidth, element.ActualHeight));
+                var rect = element.TransformToAncestor(PictureCanvas).TransformBounds(new Rect(0, 0, element.ActualWidth, element.ActualHeight));
                 contentBounds = contentBounds is null ? rect : Rect.Union(contentBounds.Value, rect);
             }
 
@@ -697,7 +697,7 @@ namespace AutoNumber.Views
 
         private void UpdateRowEditStripLayout()
         {
-            if (Page is null)
+            if (Picture is null)
             {
                 return;
             }
@@ -710,7 +710,7 @@ namespace AutoNumber.Views
             _rowStripDeleteButtonSize = 1.5* handleSize;
             _rowStripTotalWidth = _rowStripChipWidth + _rowStripHandleDistance + _rowStripDeleteButtonSize;
 
-            Canvas.SetLeft(rowEditStrip, Page.ImageWidth + handleSize / 2.0 + _rowStripHandleDistance);
+            Canvas.SetLeft(rowEditStrip, Picture.ImageWidth + handleSize / 2.0 + _rowStripHandleDistance);
             rowEditStrip.Width = _rowStripTotalWidth;
 
             rowInsertGhost.X1 = Math.Max(3, _rowStripChipWidth * 0.08);
@@ -732,7 +732,7 @@ namespace AutoNumber.Views
 
         private void RowEditStrip_MouseMove(object sender, MouseEventArgs e)
         {
-            if (_rowDefinitionSession is null || Page is null || Page.ImageHeight <= 0)
+            if (_rowDefinitionSession is null || Picture is null || Picture.ImageHeight <= 0)
             {
                 rowInsertGhost.Visibility = Visibility.Collapsed;
                 return;
@@ -745,7 +745,7 @@ namespace AutoNumber.Views
                 return;
             }
 
-            var y = Math.Clamp(position.Y, 0, Page.ImageHeight);
+            var y = Math.Clamp(position.Y, 0, Picture.ImageHeight);
             rowInsertGhost.Y1 = y;
             rowInsertGhost.Y2 = y;
             rowInsertGhost.Visibility = Visibility.Visible;
@@ -763,7 +763,7 @@ namespace AutoNumber.Views
                 return;
             }
 
-            if (_rowDefinitionSession is null || Page is null)
+            if (_rowDefinitionSession is null || Picture is null)
             {
                 return;
             }
@@ -785,7 +785,7 @@ namespace AutoNumber.Views
                 return;
             }
 
-            var y = Math.Clamp(position.Y, 0, Page.ImageHeight);
+            var y = Math.Clamp(position.Y, 0, Picture.ImageHeight);
             if (mainVM.RowDefinitionManager.TryInsertRowAtRightEdgeY(y))
             {
                 RenderRowDefinitionOverlay();
@@ -798,7 +798,7 @@ namespace AutoNumber.Views
         {
             rowChipHost.Children.Clear();
 
-            if (_rowDefinitionSession is null || Page is null || Page.ImageHeight <= 0)
+            if (_rowDefinitionSession is null || Picture is null || Picture.ImageHeight <= 0)
             {
                 return;
             }
@@ -820,8 +820,8 @@ namespace AutoNumber.Views
 
         private FrameworkElement CreateRowRegion(int row, double top, double bottom)
         {
-            var clampedTop = Math.Clamp(top, 0, Page?.ImageHeight ?? top);
-            var clampedBottom = Math.Clamp(bottom, clampedTop, Page?.ImageHeight ?? bottom);
+            var clampedTop = Math.Clamp(top, 0, Picture?.ImageHeight ?? top);
+            var clampedBottom = Math.Clamp(bottom, clampedTop, Picture?.ImageHeight ?? bottom);
             var regionColor = RowDefinitionSession.GetPreviewColor(row);
             var borderThickness = Math.Max(1, _rowStripChipWidth * 0.05);
             var topBorderThickness = clampedTop <= 0.5 ? borderThickness : 0;
@@ -874,7 +874,7 @@ namespace AutoNumber.Views
 
             var buttonLeft = _rowStripChipWidth + (_rowStripHandleDistance * 0.5);
             Canvas.SetLeft(deleteButton, Math.Clamp(buttonLeft, 0, Math.Max(0, _rowStripTotalWidth - deleteButton.Width)));
-            Canvas.SetTop(deleteButton, Math.Clamp(centerY - deleteButton.Height / 2.0, 0, Math.Max(0, Page!.ImageHeight - deleteButton.Height)));
+            Canvas.SetTop(deleteButton, Math.Clamp(centerY - deleteButton.Height / 2.0, 0, Math.Max(0, Picture!.ImageHeight - deleteButton.Height)));
             return deleteButton;
         }
 

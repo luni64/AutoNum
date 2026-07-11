@@ -31,6 +31,12 @@
 
 ## Bug Fixes
 
+- **Errors while opening an image are no longer silently swallowed**
+  A leftover catch from the old Haar-cascade detector ("no faces found" used to arrive as an exception) discarded any `InvalidOperationException` thrown anywhere in the open pipeline — metadata parsing, patch restore, PDF import — with no message to the user. Such failures now surface through the normal error dialog.
+
+- **Window title version now comes from the project file**
+  The version shown in the title bar was hardcoded in code; it now reads the `<Version>` property from `AutoNumber.csproj`, so a release bump can't miss it. (Internal: a code-review cleanup pass also removed dead wizard-era views, unused converters/commands, and renamed mismatched files — see `docs/CODE_REVIEW_2026-07-11.md`.)
+
 - **Grayscale JPEGs crashed face detection**
   A grayscale JPEG (single color component) loads via GDI+ as an 8bpp-indexed bitmap, which `Bitmap.ToMat()` converts to a 4-channel (BGRA) `Mat` instead of the expected 3-channel BGR — `FaceDetectorYN.Detect` requires exactly 3 and threw `OpenCV: Number of input channels should be multiple of 3 but got 4`. `FaceDetector` now normalizes any non-3-channel Mat to BGR via `CvtColor` before detecting; normal color JPEGs are unaffected (already 3-channel, no conversion runs).
 
