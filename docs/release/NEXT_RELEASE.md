@@ -17,8 +17,8 @@
 - **Namensliste/Title/Description/Image-ID font size no longer tied to the label size**
   These previously shared the exact same 100% baseline as the label numbers, so the face-based label sizing above (and its label-circle-fit constraint) indirectly capped how large this text could get too. They're now sized independently from the image's own diagonal instead, with no such ceiling. Persisted per-image the same way label sizing already was, so reopening a saved file restores the exact size in effect when it was saved, even after further retuning.
 
-- **Face-relative label anchor (Einstellungen → Erkennung)**
-  New 3x3-grid control lets you choose where a freshly detected face's label is centered (e.g. top-left, center, bottom-right) instead of always below the chin. Applies only to newly created labels (open/redetect/rotate); existing labels are never moved. A "Neu Erkennen" button sits right beside the control to re-run detection immediately with the new anchor.
+- **Face-relative label anchor**
+  New 3x3-grid control lets you choose where a freshly detected face's label is centered (e.g. top-left, center, bottom-right) instead of always below the chin. Applies only to newly created labels (open/redetect/rotate); existing labels are never moved. Available in two places with different scope: Einstellungen → Erkennung sets the app-wide default applied to every freshly opened image (no redetect button there — it's a pure default, like every other setting); the label formatting dialog (Formatieren, next to the number labels) has its own copy of the grid plus a "Neu Erkennen" button that redetects only the current image with the chosen anchor (same delete-names confirmation as the existing redetect action) without touching the default — "Als Standard übernehmen" in that dialog is what promotes the current choice to the app-wide default. Labels are also no longer placed exactly on the tight detected-face box; every anchor now sits pushed outward by a tunable margin so, for example, "unten Mitte" (bottom center) lands below the chin instead of on it.
 
 - **Ctrl+drag to move all labels together**
   Holding Ctrl while dragging a label in the preview now moves every other label by the same amount, for quick bulk repositioning after zoom/rotation.
@@ -42,9 +42,6 @@
 
 - **Switching the face-anchor radio buttons could snap back to the previous selection**
   `EnumBooleanConverter.ConvertBack` now ignores the `false` notification a `RadioButton` fires for the option that just got unchecked, so it no longer immediately resets the bound enum.
-
-- **Duplicate "Neu Erkennen" button in Einstellungen → Erkennung**
-  An earlier reorder of the tab's sections left two copies of the button; removed the extra one.
 
 - **PDF: image vanishes on scroll in Acrobat DC at 100% zoom**
   The image embedded in the PDF was saved as JPEG (`DCTDecode` + `ICCBased` colorspace + `/ColorTransform 0`), a combination that caused Acrobat DC's tile cache to drop the image on re-render at 100% zoom. Fixed by embedding the image as PNG instead, which has no colour-transform ambiguity.

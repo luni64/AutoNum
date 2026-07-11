@@ -48,11 +48,6 @@ public partial class SettingsWindow : MetroWindow
         }
     }
 
-    private void RedetectFaces_Click(object sender, RoutedEventArgs e)
-    {
-        _mainVM.LabelManager.RedetectFacesCommand.Execute(null);
-    }
-
     private void BrowseOutputFolder_Click(object sender, RoutedEventArgs e)
     {
         if (DataContext is not SettingsManager settingsManager)

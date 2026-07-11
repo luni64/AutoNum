@@ -89,6 +89,28 @@
 				 VerticalContentAlignment="Center"/>
 		</Grid>
 
+		<StackPanel x:Name="LabelAnchorPanel"
+					Grid.Row="1"
+					Margin="0,20,0,0"
+					Visibility="Collapsed">
+			<TextBlock TextWrapping="Wrap" Margin="0,0,0,8">
+				Legt fest, an welcher Stelle des erkannten Gesichts das Nummern-Label platziert wird. Wirkt sich erst nach Klick auf "Neu Erkennen" aus.
+			</TextBlock>
+			<StackPanel Orientation="Horizontal">
+				<view:FaceAnchorPicker SelectedAnchor="{Binding FaceLabelAnchor, Mode=TwoWay}" VerticalAlignment="Top"/>
+				<Button x:Name="RedetectFacesButton"
+						Content="Neu Erkennen"
+						Command="{Binding RedetectFacesCommand}"
+						Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
+						FontSize="13"
+						mah:ControlsHelper.ContentCharacterCasing="Upper"
+						Padding="10"
+						VerticalAlignment="Top"
+						Margin="16,0,0,0"
+						ToolTip="Führt die Gesichtserkennung mit der gewählten Label-Position erneut aus"/>
+			</StackPanel>
+		</StackPanel>
+
 		<StackPanel Grid.Row="2"
 					Orientation="Horizontal"
 					HorizontalAlignment="Right"

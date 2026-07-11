@@ -167,6 +167,8 @@ Wenn Sie das Bild gar nicht in Reihen aufteilen möchten, löschen Sie im Reihen
 
 Öffnet die Darstellungseinstellungen für die Nummern (Größe, Schriftart, Rand- und Hintergrundfarbe) – analog zu den Formatierungsdialogen von Überschrift, Beschreibung, Bild-ID und Namensliste (siehe [Kapitel 8](#8-überschrift-beschreibung-bild-id)).
 
+Zusätzlich enthält dieser Dialog ein 3x3-Raster **Position des Labels im Gesicht**, mit dem Sie festlegen, an welcher Stelle des erkannten Gesichts das Nummern-Label zentriert wird. Anders als in den Einstellungen (siehe [Kapitel 10.3](#103-erkennung)) wirkt sich die Auswahl hier nur auf das **aktuell geöffnete Bild** aus und ändert nicht den Standardwert für künftig geöffnete Bilder. Über den Button **„Neu Erkennen"** direkt daneben wiederholen Sie die Gesichtserkennung mit der gewählten Position; sind bereits Namen eingetragen, erscheint vorher dieselbe Sicherheitsabfrage wie unter [6.1](#61-automatische-erkennung). Über **„Als Standard übernehmen"** lässt sich die aktuelle Auswahl – wie auch Größe und Farben – als neuer Standardwert für künftig geöffnete Bilder speichern.
+
 ---
 
 ## 7. Namensliste
@@ -282,14 +284,14 @@ Dieser Tab steuert die automatische Gesichtserkennung für neu geöffnete Bilder
 - **Gesichtserkennung verwenden:** schaltet die automatische Erkennung beim Öffnen ein/aus. Ist sie deaktiviert, lässt sich auch die Reihenerkennung nicht aktivieren.
 - **Reihenerkennung verwenden:** versucht zusätzlich, Reihen automatisch aus den erkannten Gesichtern abzuleiten.
 
-**Position des Labels im Gesicht:** Ein 3x3-Raster legt fest, an welcher Stelle des erkannten Gesichts das Nummern-Label zentriert wird (z. B. oben links, Mitte, unten rechts) – der Standard ist „Unten Mitte" (leicht unterhalb des Kinns). Die Einstellung wirkt sich nur auf neu erkannte Gesichter aus, bereits gesetzte Label werden nicht verschoben. Über den Button **„Neu Erkennen"** direkt daneben können Sie die Erkennung sofort mit der neuen Position wiederholen.
+**Position des Labels im Gesicht:** Ein 3x3-Raster legt den **Standardwert** fest, an welcher Stelle des erkannten Gesichts das Nummern-Label bei neu geöffneten Bildern zentriert wird (z. B. oben links, Mitte, unten rechts) – der Standard ist „Unten Mitte" (leicht unterhalb des Kinns). Wie bei allen anderen Werten auf dieser Seite wird die Auswahl sofort als Standardwert gespeichert; es gibt hier keinen „Neu Erkennen"-Button, da sich die Änderung nicht auf ein bereits geöffnetes Bild auswirkt. Um die Position für das **aktuell geöffnete Bild** anzupassen und die Gesichter damit neu zu erkennen, nutzen Sie stattdessen den Formatierungsdialog der Nummern-Label (siehe [Kapitel 6.4](#64-formatieren)).
 
 Die Gesichtserkennung läuft vollständig lokal auf Ihrem Rechner: Es werden keine Bilder oder Daten über das Internet verschickt, und es ist keine Internetverbindung erforderlich. AutoNumber nutzt dafür ein bewährtes Verfahren aus der Bildverarbeitungsbibliothek OpenCV, das speziell auf die Erkennung von Gesichtern spezialisiert ist. Es erkennt Gesichter auch auf alten oder gescannten Fotos zuverlässig – bei seitlicher Kopfhaltung, kleinen oder unscharfen Gesichtern und ungleichmäßiger Beleuchtung. Die Erkennungsschwelle ist fest auf einen Wert eingestellt, der für die allermeisten Fotos gute Ergebnisse liefert, und daher nicht über die Einstellungen veränderbar.
 
 Für Nutzer mit technischem Interesse: eine ausführliche Erklärung des Verfahrens findet sich im offiziellen [OpenCV-Beitrag zu YuNet](https://docs.opencv.org/4.x/df/d20/classcv_1_1FaceDetectorYN.html).
 
 ![Einstellungen – Tab Erkennung](Pictures/10c_einstellungen_erkennung.png)
-<!-- Zeigt: Erkennung-Tab mit Gesichts-/Reihenerkennung-Toggles und 3x3-Anker-Raster -->
+<!-- Zeigt: Erkennung-Tab mit Gesichts-/Reihenerkennung-Toggles und 3x3-Anker-Raster (ohne "Neu Erkennen"-Button). TODO: Screenshot ist veraltet und zeigt noch den alten Button, muss neu aufgenommen werden. -->
 
 ### 10.4 Export
 

@@ -166,6 +166,8 @@ If you don't want to split the image into rows at all, simply delete all rows in
 
 Opens the display settings for the numbers (size, font, border and background color) – analogous to the formatting dialogs for title, description, image ID, and name list (see [Chapter 8](#8-title-description-image-id)).
 
+This dialog also includes a 3×3 **label position on the face** grid, letting you choose where the number label is centered within the detected face. Unlike the same grid in Settings (see [Chapter 10.3](#103-detection)), your choice here only affects the **currently open image** and doesn't change the default used for future images. The **"Redetect"** button right next to it reruns face detection with the chosen position; if names have already been entered, the same confirmation prompt from [6.1](#61-automatic-detection) appears first. Use **"Use as default"** to save the current selection — along with size and colors — as the new default for future images.
+
 ---
 
 ## 7. Name List
@@ -276,7 +278,7 @@ This tab controls automatic face detection for newly opened images:
 - **Use face detection:** turns automatic detection on opening on/off. If disabled, row detection can't be enabled either.
 - **Use row detection:** additionally tries to derive rows automatically from the detected faces.
 
-**Label position on the face:** A 3×3 grid sets where the number label is centered within the detected face (e.g., top-left, center, bottom-right) – the default is "bottom center" (slightly below the chin). This setting only affects newly detected faces; already-placed labels are not moved. The **"Redetect"** button right next to it lets you immediately re-run detection with the new position.
+**Label position on the face:** A 3×3 grid sets the **default** for where the number label is centered within the detected face on freshly opened images (e.g., top-left, center, bottom-right) – the default is "bottom center" (slightly below the chin). As with every other value on this page, your selection is saved as the default immediately; there's no "Redetect" button here, since the change doesn't affect an image that's already open. To adjust the position for the **currently open image** and redetect faces with it, use the number labels' formatting dialog instead (see [Chapter 6.4](#64-formatting)).
 
 Face detection runs entirely locally on your computer: no images or data are ever sent over the internet, and no internet connection is required. AutoNumber uses a proven method from the OpenCV image-processing library that's specialized for face detection. It reliably detects faces even in old or scanned photos – with turned heads, small or blurry faces, and uneven lighting. The detection threshold is fixed at a value that works well for the vast majority of photos, and is therefore not adjustable in Settings.
 

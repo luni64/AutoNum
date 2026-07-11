@@ -212,13 +212,27 @@ namespace AutoNumber.ViewModels
             }
         }
 
+        /// <summary>
+        /// Anchor used the next time this image's faces are (re)detected. Scoped to the current
+        /// image/session only — never persisted in metadata (once a label exists its coordinates are
+        /// indistinguishable from a manually placed one) and never written back to the app-wide
+        /// default on its own. Seeded from <see cref="SettingsManager.FaceLabelAnchor"/> whenever a
+        /// new image is opened; only <see cref="SettingsManager.ApplyCurrentImageFormattingDefaults"/>
+        /// ("Auf das aktuelle Bild anwenden") or the format dialog's "Als Standard übernehmen" button
+        /// cross that boundary explicitly.
+        /// </summary>
+        public FaceLabelAnchor FaceLabelAnchor
+        {
+            get => _faceLabelAnchor;
+            set => SetProperty(ref _faceLabelAnchor, value);
+        }
+
         #endregion
         public void SetLabels(List<Rectangle> faces, bool assignRows = true)
         {
             BaseLabelDiameter = SizingModel.ComputeBaseLabelDiameter(faces, _imageVM.Bitmap?.Width ?? 0, _imageVM.Bitmap?.Height ?? 0);
 
-            var anchor = _mainVM?.SettingsManager.FaceLabelAnchor ?? FaceLabelAnchor.BottomCenter;
-            var newPersons = faces.Select(face => new Person(0, "", ResolveAnchorPosition(face, anchor)));
+            var newPersons = faces.Select(face => new Person(0, "", ResolveAnchorPosition(face, FaceLabelAnchor)));
             _imageVM.Persons.AddRange(newPersons);
 
             if (assignRows)
@@ -233,21 +247,28 @@ namespace AutoNumber.ViewModels
         }
 
         /// <summary>
-        /// Resolves the label's initial center point within a detected face rectangle
-        /// for the given anchor. BottomCenter keeps the historical slight overshoot
-        /// below the chin; all other anchors sit exactly on the rectangle's fraction point.
+        /// How far, relative to face width/height, an anchor point sits beyond the detected face
+        /// rectangle's tight edge — e.g. BottomCenter lands this fraction below the detected chin
+        /// rather than exactly on it. Equivalent to inflating the face rect by this fraction on
+        /// each side before placing the anchor at its exact 0..1 fraction point; Center (0.5, 0.5)
+        /// is unaffected either way.
+        /// </summary>
+        private const double AnchorOutwardMargin = 0.2;
+
+        /// <summary>
+        /// Resolves the label's initial center point within a detected face rectangle for the
+        /// given anchor, pushed outward by <see cref="AnchorOutwardMargin"/> so labels don't sit
+        /// exactly on the tight detection box (e.g. right on the chin or eyebrows).
         /// </summary>
         private static PointF ResolveAnchorPosition(Rectangle face, FaceLabelAnchor anchor)
         {
-            if (anchor == FaceLabelAnchor.BottomCenter)
-            {
-                return new PointF(face.X + face.Width / 2f, face.Y + face.Height * 1.05f);
-            }
-
             var (fracX, fracY) = anchor.ToFraction();
+            var marginedFracX = fracX * (1 + 2 * AnchorOutwardMargin) - AnchorOutwardMargin;
+            var marginedFracY = fracY * (1 + 2 * AnchorOutwardMargin) - AnchorOutwardMargin;
+
             return new PointF(
-                (float)(face.X + fracX * face.Width),
-                (float)(face.Y + fracY * face.Height));
+                (float)(face.X + marginedFracX * face.Width),
+                (float)(face.Y + marginedFracY * face.Height));
         }
 
         public void AssignDetectedRows()
@@ -362,6 +383,10 @@ namespace AutoNumber.ViewModels
                 MarkerLabel.Style.BackgroundColor = BackgroundColor;
                 MarkerLabel.Style.EdgeColor = EdgeColor;
                 MarkerLabel.Style.FontColor = FontColor;
+
+                // A newly opened image always starts from the current app-wide default,
+                // never from whatever anchor was left over from editing a previous image.
+                FaceLabelAnchor = _mainVM?.SettingsManager.FaceLabelAnchor ?? FaceLabelAnchor.BottomCenter;
                 SetLabels(msg.Faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
             });
 
@@ -376,6 +401,10 @@ namespace AutoNumber.ViewModels
                 {
                     var md = msg.Metadata;
                     Trace.WriteLine($"MetadataLoaded[LabelManager]: start version={md.Version}, labels={md.Persons.Count}");
+
+                    // Same reasoning as the fresh-image path: start this session from the current
+                    // app-wide default rather than carrying over a previous image's anchor choice.
+                    FaceLabelAnchor = _mainVM?.SettingsManager.FaceLabelAnchor ?? FaceLabelAnchor.BottomCenter;
 
                     BackgroundColor = Color.FromArgb(md.LabelsFont.Background);
                     FontColor = Color.FromArgb(md.LabelsFont.Foreground);
@@ -466,6 +495,7 @@ namespace AutoNumber.ViewModels
         private readonly ImageVM _imageVM;
         private Color _edgeColor, _fontColor, _backgroundColor;
         private double _labelScale = 1.0; // Default scale
+        private FaceLabelAnchor _faceLabelAnchor = FaceLabelAnchor.BottomCenter;
 
         // Set by MainVM after creation
         internal IDialogCoordinator? _dialogCoordinator { get; set; }

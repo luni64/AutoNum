@@ -67,7 +67,8 @@ public partial class TextFormatDialog : MetroWindow
         if (manager is LabelManager labelManager)
         {
             FontManagerControl.ShowEdgeColor = true;
-            Height = 260;
+            LabelAnchorPanel.Visibility = Visibility.Visible;
+            Height = 460;
 
             BindingOperations.SetBinding(
                 FontManagerControl,
@@ -140,6 +141,12 @@ public partial class TextFormatDialog : MetroWindow
         if (Owner is MainWindow mainWindow && mainWindow.DataContext is MainVM mainVM)
         {
             mainVM.SettingsManager.UpdateDefaultFormatting(_managerTypeName, currentScale, fontColor, backgroundColor, edgeColor);
+
+            if (_manager is LabelManager labelManager)
+            {
+                mainVM.SettingsManager.FaceLabelAnchor = labelManager.FaceLabelAnchor;
+            }
+
             MessageBox.Show("Die Einstellung wurde als Standardwert übernommen.", "Erfolg", MessageBoxButton.OK, MessageBoxImage.Information);
         }
     }
