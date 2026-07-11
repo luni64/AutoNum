@@ -147,7 +147,7 @@ public static class RowClusterer
 
     /// <summary>Resolves a point's row against boundary lines, same rule as ImageVM/row-edit mode.</summary>
     private static int ResolveRowFromBoundaries(FacePoint point, List<RowBoundary> boundaries, double imageWidth) =>
-        1 + boundaries.Count(b => point.Y > b.GetYAtX(point.X, imageWidth));
+        RowBoundaryMath.ResolveRow(point.X, point.Y, boundaries, imageWidth);
 
     private static int FindEmptyRow(int[] rows, int rowCount)
     {

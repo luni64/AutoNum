@@ -128,19 +128,7 @@ namespace AutoNumber.ViewModels
 
         public sealed record RowStripRow(int Row, double Top, double Bottom);
 
-        public int ResolveRow(double x, double y)
-        {
-            var row = 1;
-            foreach (var boundary in Boundaries)
-            {
-                if (y > boundary.GetYAtX(x, ImageWidth))
-                {
-                    row++;
-                }
-            }
-
-            return row;
-        }
+        public int ResolveRow(double x, double y) => RowBoundaryMath.ResolveRow(x, y, Boundaries, ImageWidth);
 
         public int ResolveRow(Person person)
         {

@@ -316,8 +316,18 @@ namespace AutoNumber.ViewModels
 
         private void Person_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
-            Refresh();
-            ShowNames();
+            // Only re-sort/re-layout the names table for properties that actually affect it:
+            // row membership and FullName (raised for number and name-text changes). Purely
+            // visual per-marker state — IsSelected (raised on every hover move) and the
+            // RowPreview* pair (set on ALL persons on every boundary-drag delta) — used to
+            // trigger a full relayout each time, making hover and row dragging O(n²).
+            // Empty/null PropertyName is the batched "assume everything changed" convention.
+            if (string.IsNullOrEmpty(e.PropertyName)
+                || e.PropertyName is nameof(Person.Row) or nameof(Person.FullName))
+            {
+                Refresh();
+                ShowNames();
+            }
         }
 
         private void ImageIdManager_PropertyChanged(object? sender, PropertyChangedEventArgs e)

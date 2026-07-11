@@ -20,15 +20,15 @@ The architecture is in good shape: the MVVM + Messenger design described in `ARC
 ## 2. Correctness findings
 
 - [x] **`FileManager.ExecuteOpenImage` swallows any `InvalidOperationException`** (`FileManager.cs:133`): `catch (InvalidOperationException) { Trace.WriteLine("No faces found"); }` covers the *entire* open pipeline — metadata parsing, patch restore, PDF import. A real failure in any of those shows the user nothing at all. This catch predates the YuNet detector (which no longer throws for "no faces") and should probably be deleted outright, letting the generic error dialog below it handle everything.
-- [ ] **`WriteJpg`/`WritePdfWithSidecars` silently no-op** when `ToNumberedBitmap` returns null — user clicks Speichern, nothing happens, no message. Rare (null bitmap), but a dialog would be better.
+- [x] **`WriteJpg`/`WritePdfWithSidecars` silently no-op** when `ToNumberedBitmap` returns null — user clicks Speichern, nothing happens, no message. Rare (null bitmap), but a dialog would be better.
 - [x] **Version string `"AutoNumber V2.3.0"` is hardcoded twice** in `MainVM.Title`, separately from the installer's version in `setup.iss`. Every release bump touches multiple places by hand; read it from the assembly version instead (single source in the csproj).
 
 ## 3. MVVM compliance
 
 Mostly clean — views bind to VMs, cross-VM communication uses the messenger, business logic lives in VMs/Model. The violations, worst first:
 
-- [ ] **`FileManager.ShowRetryCancelDialog` builds a WPF `Window` with Grid/TextBlock/Buttons inside a ViewModel** (`FileManager.cs:366-431`) — the clearest MVVM break in the codebase (note `using System.Windows.Controls` in a VM). It should be a method on `IDialogService` (which exists precisely for this).
-- [ ] **~200 lines of QuestPDF document layout inline in `FileManager.WritePdf`** — rendering belongs in the Model layer next to the other renderers (e.g. `Model/PdfReportRenderer`). This would shrink FileManager from 863 lines to something presentable and complete the "three renderers" story architecturally.
+- [x] **`FileManager.ShowRetryCancelDialog` builds a WPF `Window` with Grid/TextBlock/Buttons inside a ViewModel** (`FileManager.cs:366-431`) — the clearest MVVM break in the codebase (note `using System.Windows.Controls` in a VM). It should be a method on `IDialogService` (which exists precisely for this).
+- [x] **~200 lines of QuestPDF document layout inline in `FileManager.WritePdf`** — rendering belongs in the Model layer next to the other renderers (e.g. `Model/PdfReportRenderer`). This would shrink FileManager from 863 lines to something presentable and complete the "three renderers" story architecturally.
 - [ ] **`ZoomBorder.ZoomBorder_PreviewMouseRightButtonDown`** adds/deletes persons, resolves rows and renumbers directly in code-behind. The hit-testing is legitimately view work; the "add person at point / delete person" logic should be VM commands the view invokes.
 - [ ] **Model → ViewModel dependencies**: `Analyzer`, `ExtensionMethods` and `AutoNumMetaData_V4` all reach *up* into `AutoNumber.ViewModels` (`Person`, `TextLabel`, the five managers, `RowBoundary`). The cheapest structural fix with the most effect: **move `RowBoundary` (and arguably `MarkerLabel`/`TextLabel`/`Person`'s data parts) into Model** — `RowBoundary` is persisted metadata and has no view behavior; it simply lives in the wrong namespace.
 - [ ] **`MainVM.DialogCoordinator` setter injects `LabelManager._mainVM` and `_dialogCoordinator` as internal fields** — temporal coupling that only works because the window sets the coordinator right after construction. Constructor injection (or an `Initialize` call in `MainVM`'s ctor) would remove the trap.
@@ -36,7 +36,7 @@ Mostly clean — views bind to VMs, cross-VM communication uses the messenger, b
 
 ## 4. Duplication / over-complication
 
-- [ ] **The row-boundary midline computation exists three times** — `LabelManager.CalculateAndStoreRowBoundaries`, `ImageVM.CalculateBoundariesFromDetectedRows`, `RowDefinitionManager.TryInitializeSessionFromDetectedRows` — byte-for-byte the same grouping + `(MaxY+MinY)/2` + clamp loop. And **the "resolve row from boundaries" loop exists five times** (`ImageVM:257`, `RowDefinitionManager:157`, `RowDefinitionSession.ResolveRow`, `PictureDisplay.ResolvePreviewRow`, `RowClusterer`). One static helper class (e.g. `Model/RowBoundaryMath`) would collapse all eight sites and make the row system much easier to reason about.
+- [x] **The row-boundary midline computation exists three times** — `LabelManager.CalculateAndStoreRowBoundaries`, `ImageVM.CalculateBoundariesFromDetectedRows`, `RowDefinitionManager.TryInitializeSessionFromDetectedRows` — byte-for-byte the same grouping + `(MaxY+MinY)/2` + clamp loop. And **the "resolve row from boundaries" loop exists five times** (`ImageVM:257`, `RowDefinitionManager:157`, `RowDefinitionSession.ResolveRow`, `PictureDisplay.ResolvePreviewRow`, `RowClusterer`). One static helper class (e.g. `Model/RowBoundaryMath`) would collapse all eight sites and make the row system much easier to reason about.
 - [ ] **Four near-identical text managers**: `TitleManager`, `ImageInfoManager`, `ImageIdManager` and (partially) `NameManager` repeat the same `FontScale`-clamp/`ApplyScale`/colors/font-family/metadata-restore/legacy-scale-fallback pattern. A `TextElementManagerBase` would remove ~250 lines and guarantee the four can't drift apart.
 - [ ] **`SettingsManager` is 647 lines of five-fold copy-paste** (per-element scale/colors/enabled × Label/Names/Title/ImageInfo/ImageId), and `SaveSettings()` re-copies every property into `AppSettings` by hand. A per-element defaults record (`ElementDefaults { Scale, FontColor, BackgroundColor, Enabled }`) keyed by element would cut it to ~200 lines. Also: **every property setter writes `settings.json` synchronously** — dragging a default-scale slider in the settings dialog produces a file write per tick. Debounce, or save on dialog close.
 - [ ] **`OpenFileInfo`/`SaveFileInfo`** are identical twins; `DialogService.ShowDialog(object) → object?` is a weakly-typed switch — fine for now, but typed methods (`ShowOpenDialog`, `ShowSaveDialog`, `ShowError`, plus the new `ShowRetryCancel`) would be clearer and enable the retry-dialog fix in §3.
@@ -44,8 +44,8 @@ Mostly clean — views bind to VMs, cross-VM communication uses the messenger, b
 
 ## 5. Performance observations
 
-- [ ] **`ExtensionMethods.drawLabels` allocates a 3× supersampled overlay of the entire image** (`ExtensionMethods.cs:39`): 9× the pixel count — a 20 MP scan needs a ~700 MB temporary bitmap during every save. Genealogy scans get big; this is an OutOfMemory risk. Supersample per-label tiles (labels cover a tiny fraction of the image) for the same quality at ~1% of the memory.
-- [ ] **`NameManager.Person_PropertyChanged` reacts to *every* person property** with `Refresh()` + `ShowNames()` (full collection-view re-sort + GDI text measurement of the whole names table). `IsSelected` (hover highlight fires on every mouse move) and `RowPreviewActive`/`RowPreviewColor` (set on *all* persons on *every* row-boundary drag delta) all trigger it. On a 45-person image that's hundreds of full relayouts per second while dragging. Filter to the properties that actually affect layout (`Row`, name text, number).
+- [x] **`ExtensionMethods.drawLabels` allocates a 3× supersampled overlay of the entire image** (`ExtensionMethods.cs:39`): 9× the pixel count — a 20 MP scan needs a ~700 MB temporary bitmap during every save. Genealogy scans get big; this is an OutOfMemory risk. Supersample per-label tiles (labels cover a tiny fraction of the image) for the same quality at ~1% of the memory.
+- [x] **`NameManager.Person_PropertyChanged` reacts to *every* person property** with `Refresh()` + `ShowNames()` (full collection-view re-sort + GDI text measurement of the whole names table). `IsSelected` (hover highlight fires on every mouse move) and `RowPreviewActive`/`RowPreviewColor` (set on *all* persons on *every* row-boundary drag delta) all trigger it. On a 45-person image that's hundreds of full relayouts per second while dragging. Filter to the properties that actually affect layout (`Row`, name text, number).
 - [ ] **`BitmapToBitmapSource` re-encodes the full photo as PNG** on every binding refresh — slow for large scans; `Imaging.CreateBitmapSourceFromHBitmap` (with proper handle cleanup) or caching would remove a noticeable open-image delay.
 
 ## 6. Naming and style nits
@@ -53,7 +53,8 @@ Mostly clean — views bind to VMs, cross-VM communication uses the messenger, b
 - [x] File/class mismatches: `BaseViewmodel.cs` (class `BaseViewModel`), `MarkerRect.cs` (contains `MarkerLabel`), `TiltleView.xaml` (typo for "Title", referenced from `MainWindow.xaml`).
 - [ ] Convention violations: public `drawLabels`/`drawNames` (camelCase) in `ExtensionMethods`, `FileManager.openFromOriginalFile`, `RelayCommand`/`AsyncCommand` nested inside `BaseViewModel` rather than standalone files.
 - [x] String literals where `nameof` belongs: `"IsLocked"` (`Marker.xaml.cs:78`), `"FullName"` (`MarkerRect.cs:63`, `TextLabel.cs`).
-- [x] Stale header comment "Interaktionslogik für Bookmark.xaml" in `Marker.xaml.cs`; `DialogService` shows an English "Error" title in an otherwise German UI.
+- [x] Stale header comment "Interaktionslogik für Bookmark.xaml" in `Marker.xaml.cs`.
+- [x] `DialogService` shows an English "Error" title in an otherwise German UI (fold into the §3/§4 dialog-service rework).
 
 ## 7. Stale documentation (cheap, high presentability value)
 

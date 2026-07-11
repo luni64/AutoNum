@@ -157,15 +157,7 @@ namespace AutoNumber.ViewModels
             if (_imageVM.CurrentMetadata?.RowBoundaries.Count > 0)
             {
                 var anchor = person.GetRowAnchorPoint();
-                var row = 1;
-                foreach (var boundary in _imageVM.CurrentMetadata.RowBoundaries)
-                {
-                    if (anchor.Y > boundary.GetYAtX(anchor.X, _imageVM.ImageWidth))
-                    {
-                        row++;
-                    }
-                }
-                return row;
+                return RowBoundaryMath.ResolveRow(anchor.X, anchor.Y, _imageVM.CurrentMetadata.RowBoundaries, _imageVM.ImageWidth);
             }
 
             return 1;
@@ -255,43 +247,28 @@ namespace AutoNumber.ViewModels
 
         private bool TryInitializeSessionFromDetectedRows()
         {
-            var groups = _imageVM.Persons
+            var assignedRowCount = _imageVM.Persons
                 .Where(person => person.Row > 0)
-                .GroupBy(person => person.Row)
-                .OrderBy(group => group.Key)
-                .Select(group => new
-                {
-                    Row = group.Key,
-                    MinY = group.Min(person => (double)person.GetRowAnchorPoint().Y),
-                    MaxY = group.Max(person => (double)person.GetRowAnchorPoint().Y)
-                })
-                .ToList();
+                .Select(person => person.Row)
+                .Distinct()
+                .Count();
 
-            if (groups.Count == 0)
+            if (assignedRowCount == 0)
             {
                 return false;
             }
 
-            if (groups.Count == 1)
+            if (assignedRowCount == 1)
             {
                 _imageVM.BeginRowDefinition(1);
                 return true;
             }
 
-            var boundaries = new List<RowBoundary>();
-            for (var index = 0; index < groups.Count - 1; index++)
-            {
-                var current = groups[index];
-                var next = groups[index + 1];
-                var boundaryY = (current.MaxY + next.MinY) / 2.0;
+            var boundaries = RowBoundaryMath.MidlineBoundaries(
+                _imageVM.Persons.Select(person => (person.Row, (double)person.GetRowAnchorPoint().Y)),
+                _imageVM.ImageHeight);
 
-                var minAllowed = index == 0 ? 0.0 : boundaries[index - 1].LeftY + 2.0;
-                boundaryY = Math.Clamp(boundaryY, minAllowed, _imageVM.ImageHeight);
-
-                boundaries.Add(new RowBoundary(boundaryY, boundaryY));
-            }
-
-            _imageVM.BeginRowDefinition(groups.Count, boundaries);
+            _imageVM.BeginRowDefinition(assignedRowCount, boundaries);
             return true;
         }
 

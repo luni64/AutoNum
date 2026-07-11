@@ -547,26 +547,10 @@ namespace AutoNumber.Views
             }
         }
 
-        private int ResolvePreviewRow(double x, double y)
-        {
-            var row = 1;
-            foreach (var boundary in _rowBoundaryVisuals)
-            {
-                if (y > GetBoundaryY(boundary, x))
-                {
-                    row++;
-                }
-            }
-
-            return row;
-        }
-
-        private static double GetBoundaryY(RowBoundaryVisualState state, double x)
-        {
-            var width = Math.Max(1, state.MainLine.X2);
-            var t = Math.Clamp(x / width, 0.0, 1.0);
-            return state.LeftY + (state.RightY - state.LeftY) * t;
-        }
+        private int ResolvePreviewRow(double x, double y) =>
+            RowBoundaryMath.ResolveRow(x, y,
+                _rowBoundaryVisuals.Select(state => (state.LeftY, state.RightY)),
+                Picture?.ImageWidth ?? 0);
 
         private double GetBoundaryHandleSize()
         {

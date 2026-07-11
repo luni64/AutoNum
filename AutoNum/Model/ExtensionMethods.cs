@@ -28,7 +28,13 @@ namespace AutoNumber.Model
             return (float)sz * 96 / g.DpiX;
         }
 
-        public static void drawLabels(List<MarkerLabel> labels, Bitmap bmp, int offset)
+        /// <summary>
+        /// Draws all number-label circles supersampled for smooth edges at small sizes. Each
+        /// label is rendered into one small shared supersampled tile and scaled down into place —
+        /// NOT into a supersampled copy of the whole image, which would need 9x the photo's
+        /// pixel count (a 20 MP scan would briefly allocate ~700 MB).
+        /// </summary>
+        private static void DrawLabels(List<MarkerLabel> labels, Bitmap bmp, int offset)
         {
             if (labels.Count == 0)
             {
@@ -36,35 +42,47 @@ namespace AutoNumber.Model
             }
 
             const int supersampleFactor = 3;
-            using var overlay = new Bitmap(bmp.Width * supersampleFactor, bmp.Height * supersampleFactor, PixelFormat.Format32bppArgb);
-            using (var gOverlay = Graphics.FromImage(overlay))
-            {
-                applyHighQualityRenderMode(gOverlay);
+            var diameter = MarkerLabel.Style.Diameter;
+            var penWidth = Math.Max(2f, diameter / 25f);
 
-                float fontSize = MarkerLabel.Style.FontSize.toGdiGlyphSize(gOverlay) * supersampleFactor;
-                using Brush fillBrush = new SolidBrush(MarkerLabel.Style.BackgroundColor);
-                using Brush textBrush = new SolidBrush(MarkerLabel.Style.FontColor);
-                using Pen edgePen = new Pen(MarkerLabel.Style.EdgeColor, Math.Max(2f, MarkerLabel.Style.Diameter / 25f) * supersampleFactor);
+            // The edge pen straddles the circle outline, so the tile needs penWidth/2 of margin
+            // around the circle (plus 1px for anti-aliasing bleed).
+            var margin = penWidth / 2f + 1f;
+            var tileSize = diameter + 2 * margin;
+            var tilePixels = (int)Math.Ceiling(tileSize * supersampleFactor);
 
-                foreach (var label in labels)
-                {
-                    PointF circlePos = new((float)label.X * supersampleFactor, ((float)label.Y + offset) * supersampleFactor);
-                    var scaledDiameter = MarkerLabel.Style.Diameter * supersampleFactor;
-                    SizeF circleSize = new(scaledDiameter, scaledDiameter);
-                    RectangleF bb = new(circlePos, circleSize);
-                    gOverlay.FillEllipse(fillBrush, bb);
-                    gOverlay.DrawEllipse(edgePen, bb.X, bb.Y, bb.Width, bb.Height);
-
-                    drawCenteredGlyph(gOverlay, label.Number.ToString(), MarkerLabel.Style.FontFamily, fontSize, textBrush, bb);
-                }
-            }
+            using var tile = new Bitmap(tilePixels, tilePixels, PixelFormat.Format32bppArgb);
+            using var gTile = Graphics.FromImage(tile);
+            applyHighQualityRenderMode(gTile);
 
             using var gFinal = Graphics.FromImage(bmp);
             applyHighQualityRenderMode(gFinal);
-            gFinal.DrawImage(overlay,
-                new Rectangle(0, 0, bmp.Width, bmp.Height),
-                new Rectangle(0, 0, overlay.Width, overlay.Height),
-                GraphicsUnit.Pixel);
+
+            float fontSize = MarkerLabel.Style.FontSize.toGdiGlyphSize(gTile) * supersampleFactor;
+            using Brush fillBrush = new SolidBrush(MarkerLabel.Style.BackgroundColor);
+            using Brush textBrush = new SolidBrush(MarkerLabel.Style.FontColor);
+            using Pen edgePen = new Pen(MarkerLabel.Style.EdgeColor, penWidth * supersampleFactor);
+
+            var circleInTile = new RectangleF(
+                margin * supersampleFactor,
+                margin * supersampleFactor,
+                diameter * supersampleFactor,
+                diameter * supersampleFactor);
+
+            foreach (var label in labels)
+            {
+                gTile.Clear(Color.Transparent);
+                gTile.FillEllipse(fillBrush, circleInTile);
+                gTile.DrawEllipse(edgePen, circleInTile.X, circleInTile.Y, circleInTile.Width, circleInTile.Height);
+                drawCenteredGlyph(gTile, label.Number.ToString(), MarkerLabel.Style.FontFamily, fontSize, textBrush, circleInTile);
+
+                var destination = new RectangleF(
+                    (float)label.X - margin,
+                    (float)label.Y + offset - margin,
+                    tileSize,
+                    tileSize);
+                gFinal.DrawImage(tile, destination, new RectangleF(0, 0, tile.Width, tile.Height), GraphicsUnit.Pixel);
+            }
         }
         private static void applyHighQualityRenderMode(Graphics graphics)
         {
@@ -105,7 +123,7 @@ namespace AutoNumber.Model
             graphics.DrawString(text, font, fg, bounds, format);
         }
 
-        public static void drawNames(List<TextLabel> names, IReadOnlyList<NameListDividerRenderItem> rowDividers, Bitmap bmp, Font font, int offset)
+        private static void DrawNames(List<TextLabel> names, IReadOnlyList<NameListDividerRenderItem> rowDividers, Bitmap bmp, Font font, int offset)
         {
             using var g = Graphics.FromImage(bmp);
             applyHighQualityRenderMode(g);
@@ -216,7 +234,7 @@ namespace AutoNumber.Model
 
             var labels = model.Persons.Select(p => p.Label).ToList();
             var bitmap = new Bitmap(model.Bitmap);
-            drawLabels(labels, bitmap, 0);
+            DrawLabels(labels, bitmap, 0);
             return bitmap;
         }
 
@@ -287,7 +305,7 @@ namespace AutoNumber.Model
 
                     var fontSize = (float)Math.Max(1d, TextLabel.Style.FontSize);
                     using var font = new Font(nm.FontFamily, fontSize, FontStyle.Regular, GraphicsUnit.Pixel);
-                    drawNames(names, nm.RowDividers, bmpFinal, font, titleHeight);
+                    DrawNames(names, nm.RowDividers, bmpFinal, font, titleHeight);
                 }
             }
 
@@ -309,7 +327,7 @@ namespace AutoNumber.Model
                 patches.Add(capturePatch(bmpFinal, region));
             }
 
-            drawLabels(labels, bmpFinal, titleHeight);
+            DrawLabels(labels, bmpFinal, titleHeight);
 
             bmpFinal.CopyMetadataFrom(model.OriginalPropertyItems);
             bmpFinal.AddMetadata(model, lm, nm, tm, iim, idm);

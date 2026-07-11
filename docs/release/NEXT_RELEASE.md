@@ -31,6 +31,15 @@
 
 ## Bug Fixes
 
+- **Saving large scans no longer briefly allocates huge amounts of memory**
+  The JPG/PDF export drew the number labels into a 3x-supersampled copy of the *entire* image (9x the photo's pixel count — ~700 MB for a 20 MP scan, an out-of-memory risk). Labels are now supersampled individually in a small tile and scaled into place, with identical visual quality.
+
+- **Smoother hovering and row-boundary dragging on photos with many people**
+  Hover highlights and row-preview coloring used to trigger a full re-sort and re-layout of the names table for every affected person on every mouse move; the names table now only recomputes when something layout-relevant actually changed (row, number, name text).
+
+- **Saving with no image loaded now says so**
+  Speichern/Speichern unter with no renderable image silently did nothing; now an error dialog explains it.
+
 - **Errors while opening an image are no longer silently swallowed**
   A leftover catch from the old Haar-cascade detector ("no faces found" used to arrive as an exception) discarded any `InvalidOperationException` thrown anywhere in the open pipeline — metadata parsing, patch restore, PDF import — with no message to the user. Such failures now surface through the normal error dialog.
 

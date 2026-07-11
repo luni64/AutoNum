@@ -32,6 +32,8 @@ AutoNum/
 │   ├── NamesTableLayout.cs     # Shared names-table contracts/options and sizing constants
 │   ├── NameTableLayoutEngine.cs# Shared names-table layout computation (wrap-aware row geometry)
 │   ├── RowClusterer.cs         # Row detection: chain clustering + slanted boundary fitting
+│   ├── PdfReportRenderer.cs    # QuestPDF layout of the printable PDF report
+│   ├── SidecarExportData.cs    # Export DTOs shared by CSV/JSON sidecars and the PDF report
 
 │   └── FontFamilyResolver.cs   # Safe metadata font-family restore with fallback logging
 ├── ViewModels/                 # MVVM view models (INotifyPropertyChanged)
@@ -43,6 +45,7 @@ AutoNum/
 │   ├── TitleManager.cs         # Title behavior and styling
 │   ├── ImageInfoManager.cs     # Secondary image-information banner behavior and styling
 │   ├── ImageIdManager.cs       # Image ID behavior and styling
+│   ├── RowBoundaryMath.cs      # Shared row-resolve + midline-boundary geometry (single source)
 │   ├── SettingsManager.cs      # App-wide defaults (persisted settings)
 │   ├── FaceDetector.cs         # Static OpenCV detector configuration/execution
 │   ├── Person.cs, MarkerVM.cs, MarkerLabel.cs, TextLabel.cs
@@ -214,8 +217,8 @@ Each manager that uses scale (LabelManager, NameManager, TitleManager, ImageInfo
 ## Rendering Notes
 - **Live preview renderer (WPF/XAML):** marker templates in `Marker.xaml` render label circles and names-table rows. Holding **Ctrl** while dragging a label (`Marker.xaml.cs`) moves all other labels by the same delta, for quick bulk repositioning.
 - **Name-list hover highlight:** `Person.IsSelected` drives a thick magenta stroke on the corresponding label (`Marker.xaml`'s `RowPreviewEdgeConverter`/`SelectedStrokeThicknessConverter`, sized as a fraction of `Diameter` so it scales with label size). Set by `Infrastructure/PersonHoverHighlight.cs`, an attached behavior (`is:PersonHoverHighlight.Enable`) on the Namensliste `DataGrid` (`NamesView.xaml`) that hit-tests under the cursor on every `PreviewMouseMove` and diffs against the previously-hovered `Person` — deliberately not per-row `MouseEnter`/`MouseLeave`, which can desync (leaving a stale highlight) when the mouse moves fast across recycled row containers.
-- **JPG export renderer (GDI+):** `ExtensionMethods` draws final bitmap; label drawing uses supersampled anti-aliased overlay/downsampling for improved small-label quality.
-- **PDF export renderer (QuestPDF):** `FileManager.WritePdf(...)` creates document output, sets standard PDF document metadata, and embeds editable payload as a non-visible PDF attachment. The numbered image is embedded as **PNG** (not JPEG): JPEG embedding causes QuestPDF to write `/ColorTransform 0` alongside an `ICCBased` colorspace, which confuses Acrobat DC's tile cache and makes the image vanish at 100% zoom on scroll.
+- **JPG export renderer (GDI+):** `ExtensionMethods` draws the final bitmap; each label circle is rendered into a small supersampled tile and scaled down into place for smooth edges (deliberately NOT a supersampled copy of the whole image, which would need 9x the photo's pixel count).
+- **PDF export renderer (QuestPDF):** `Model/PdfReportRenderer` lays out the printable report (title/description/image/names table); `FileManager.WritePdf(...)` orchestrates it and embeds the editable payload as a non-visible PDF attachment (`PdfPayloadStore`). The numbered image is embedded as **PNG** (not JPEG): JPEG embedding causes QuestPDF to write `/ColorTransform 0` alongside an `ICCBased` colorspace, which confuses Acrobat DC's tile cache and makes the image vanish at 100% zoom on scroll.
 - Save operations use retry/cancel prompting when a target file is locked by another application, allowing the user to close the conflicting program and try again.
 - Names-table row geometry is computed once via `NameTableLayoutEngine` and projected to `TextLabel` row bounds (`X/Y/W/H`) so preview and JPG share the same wrap-aware layout foundation.
 - To minimize drift between renderers, column-width and padding rules are centralized in `NamesTableLayout`; preview uses dedicated converters, JPG uses GDI drawing helpers, and PDF uses the same width resolver.

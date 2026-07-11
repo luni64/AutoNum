@@ -6,19 +6,12 @@ using MahApps.Metro.IconPacks;
 using System.Diagnostics;
 using System.Drawing;
 using DrawingImageFormat = System.Drawing.Imaging.ImageFormat;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Text;
-using QuestPDF.Fluent;
-using QuestPDF.Helpers;
-using QuestPDF.Infrastructure;
 using System.Text.Encodings.Web;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Collections.Generic;
-using System.Windows;
-using System.Windows.Controls;
 
 namespace AutoNumber.ViewModels
 {
@@ -202,6 +195,7 @@ namespace AutoNumber.ViewModels
             using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
             if (result is null)
             {
+                parent.DialogService.ShowDialog("Speichern nicht möglich — es ist kein Bild geladen.");
                 return;
             }
 
@@ -227,7 +221,11 @@ namespace AutoNumber.ViewModels
         private void WritePdfWithSidecars(string filename)
         {
             using var result = parent.PictureVM.ToNumberedBitmap(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
-            if (result is null) return;
+            if (result is null)
+            {
+                parent.DialogService.ShowDialog("Speichern nicht möglich — es ist kein Bild geladen.");
+                return;
+            }
 
             var exportData = BuildExportData();
             exportData.GeneratedAt = DateTimeOffset.Now.ToString("O");
@@ -354,79 +352,12 @@ namespace AutoNumber.ViewModels
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
-                    if (!ShowRetryCancelDialog(operationName, filename, ex))
+                    if (!parent.DialogService.ShowSaveRetryDialog(operationName, filename, ex.Message))
                     {
                         return false;
                     }
                 }
             }
-        }
-
-        private bool ShowRetryCancelDialog(string operationName, string filename, Exception ex)
-        {
-            var owner = Application.Current?.Windows.OfType<Window>().FirstOrDefault(window => window.IsActive) ?? Application.Current?.MainWindow;
-
-            var dialog = new Window
-            {
-                Title = "Speichern fehlgeschlagen",
-                Width = 560,
-                Height = 420,
-                WindowStartupLocation = System.Windows.WindowStartupLocation.CenterOwner,
-                ResizeMode = ResizeMode.NoResize,
-                ShowInTaskbar = false,
-                Owner = owner,
-            };
-
-            var grid = new Grid { Margin = new Thickness(16) };
-            grid.RowDefinitions.Add(new RowDefinition { Height = System.Windows.GridLength.Auto });
-            grid.RowDefinitions.Add(new RowDefinition { Height = System.Windows.GridLength.Auto });
-
-            var text = new TextBlock
-            {
-                Text = $"Die {operationName}-Datei konnte nicht gespeichert werden.\n\n" +
-                       $"Möglicherweise ist die Datei in einer anderen Anwendung geöffnet.\n\n" +
-                       $"Datei: {Path.GetFileName(filename)}\n" +
-                       $"Details: {ex.Message}\n\n" +
-                       "Schließen Sie die Datei in der anderen Anwendung und klicken Sie auf \"Wiederholen\", oder brechen Sie den Vorgang ab.",
-                TextWrapping = TextWrapping.Wrap
-            };
-            Grid.SetRow(text, 0);
-            grid.Children.Add(text);
-
-            var buttons = new StackPanel
-            {
-                Orientation = Orientation.Horizontal,
-                HorizontalAlignment = System.Windows.HorizontalAlignment.Right,
-                Margin = new Thickness(0, 16, 0, 0)
-            };
-
-            var retryButton = new Button
-            {
-                Content = "Wiederholen",
-                Width = 110,
-                Margin = new Thickness(0, 0, 8, 0),
-                IsDefault = true
-            };
-
-            var cancelButton = new Button
-            {
-                Content = "Abbrechen",
-                Width = 110,
-                IsCancel = true
-            };
-
-            bool? retrySelected = null;
-            retryButton.Click += (_, __) => { retrySelected = true; dialog.DialogResult = true; dialog.Close(); };
-            cancelButton.Click += (_, __) => { retrySelected = false; dialog.DialogResult = false; dialog.Close(); };
-
-            buttons.Children.Add(retryButton);
-            buttons.Children.Add(cancelButton);
-            Grid.SetRow(buttons, 1);
-            grid.Children.Add(buttons);
-
-            dialog.Content = grid;
-            dialog.ShowDialog();
-            return retrySelected == true;
         }
 
         private static string EscapeCsv(string value)
@@ -454,155 +385,12 @@ namespace AutoNumber.ViewModels
                 }
             }
 
-            var heading = string.IsNullOrWhiteSpace(exportData.Title) ? "Ohne Titel" : exportData.Title;
-            var hasId = !string.IsNullOrWhiteSpace(exportData.Id);
-            var hasDescription = !string.IsNullOrWhiteSpace(exportData.Description);
-            var namesColumnCount = Math.Clamp(parent.NameManager.NameTableColumnCount, 1, 4);
-            var tableReferenceWidth = 360d / namesColumnCount;
-            var pdfNumberColumnWidth = Math.Clamp(NamesTableLayout.ResolveNumberColumnWidth(tableReferenceWidth) * 0.5f, 24f, 48f);
-            var showRowDividers = parent.NameManager.ShowRowDividers;
-            var orderedPersons = exportData.Persons
-                .OrderBy(person => person.Row <= 0 ? int.MaxValue : person.Row)
-                .ThenBy(person => person.Number)
-                .ToList();
-            var assignedRowGroups = orderedPersons
-                .Where(person => person.Row > 0)
-                .GroupBy(person => person.Row)
-                .OrderBy(group => group.Key)
-                .ToList();
-            var unassignedPersons = orderedPersons
-                .Where(person => person.Row <= 0)
-                .ToList();
-
-            var documentTimestamp = DateTimeOffset.TryParse(exportData.GeneratedAt, out var generatedAt)
-                ? generatedAt
-                : DateTimeOffset.Now;
-            var createdDate = documentTimestamp.ToString("dd.MM.yyyy", CultureInfo.GetCultureInfo("de-DE"));
-
-            using var pdfStream = new MemoryStream();
-
-            Document.Create(container =>
-            {
-                container.Page(page =>
-                {
-                    page.Size(PageSizes.A4);
-                    page.Margin(30);
-                    page.DefaultTextStyle(x => x.FontFamily("Helvetica").FontSize(10));
-
-                    page.Content().Column(column =>
-                    {
-                        column.Spacing(10);
-
-                        column.Item().AlignRight().Text(createdDate);
-
-                        column.Item().Text(heading).FontSize(20).SemiBold();
-
-                        if (hasId)
-                        {
-                            column.Item().PaddingTop(12).Text($"Bild-ID: {exportData.Id}").FontSize(11);
-                        }
-
-                        if (hasDescription)
-                        {
-                            column.Item().PaddingTop(8).Text("Beschreibung").FontSize(13).SemiBold();
-                            column.Item().Text(exportData.Description);
-                        }
-
-                        if (photoBytes is not null)
-                        {
-                            const float maxImageWidth = 428f;
-                            const float maxImageHeight = 320f;
-
-                            column.Item()
-                                .PaddingTop(8)
-                                .AlignCenter()
-                                .MaxWidth(maxImageWidth)
-                                .MaxHeight(maxImageHeight)
-                                .Image(photoBytes)
-                                .FitArea();
-                        }
-
-                        column.Item().PaddingTop(8).Text("Namensliste").FontSize(14).SemiBold();
-
-                        column.Item().Table(table =>
-                        {
-                            table.ColumnsDefinition(cols =>
-                            {
-                                for (var c = 0; c < namesColumnCount; c++)
-                                {
-                                    cols.ConstantColumn(pdfNumberColumnWidth);
-                                    cols.RelativeColumn();
-                                }
-                            });
-
-                            table.Header(header =>
-                            {
-                                for (var c = 0; c < namesColumnCount; c++)
-                                {
-                                    header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Nr.").SemiBold();
-                                    header.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text("Name").SemiBold();
-                                }
-                            });
-
-                            void RenderPersonRows(IReadOnlyList<SidecarPerson> persons)
-                            {
-                                for (var index = 0; index < persons.Count; index += namesColumnCount)
-                                {
-                                    for (var c = 0; c < namesColumnCount; c++)
-                                    {
-                                        var personIndex = index + c;
-                                        if (personIndex < persons.Count)
-                                        {
-                                            var person = persons[personIndex];
-                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Number.ToString());
-                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(person.Name);
-                                        }
-                                        else
-                                        {
-                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
-                                            table.Cell().Border(NamesTableLayout.PdfBorderWidth).BorderColor(Colors.Grey.Lighten2).Padding(NamesTableLayout.CellPadding).Text(string.Empty);
-                                        }
-                                    }
-                                }
-                            }
-
-                            foreach (var rowGroup in assignedRowGroups)
-                            {
-                                if (showRowDividers)
-                                {
-                                    table.Cell()
-                                        .ColumnSpan((uint)(namesColumnCount * 2))
-                                        .Border(NamesTableLayout.PdfBorderWidth)
-                                        .BorderColor(Colors.Grey.Lighten2)
-                                        .Padding(NamesTableLayout.CellPadding)
-                                        .Text(parent.NameManager.FormatRowDividerText(rowGroup.Key))
-                                        .SemiBold();
-                                }
-
-                                RenderPersonRows(rowGroup.OrderBy(person => person.Number).ToList());
-                            }
-
-                            if (unassignedPersons.Count > 0)
-                            {
-                                RenderPersonRows(unassignedPersons);
-                            }
-                        });
-                    });
-                });
-            })
-            .WithMetadata(new DocumentMetadata
-            {
-                Title = heading,
-                Author = "AutoNum",
-                Subject = "AutoNum export",
-                Keywords = "AutoNum, Face labels, Numbered image, PDF",
-                Creator = "AutoNum",
-                Producer = "QuestPDF",
-                Language = "de-DE",
-                CreationDate = documentTimestamp,
-                ModifiedDate = documentTimestamp
-            })
-            .GeneratePdf(pdfStream);
+            var pdfBytes = PdfReportRenderer.Render(
+                exportData,
+                photoBytes,
+                parent.NameManager.NameTableColumnCount,
+                parent.NameManager.ShowRowDividers,
+                parent.NameManager.FormatRowDividerText);
 
             // Update existing metadata with latest runtime values, then use it
             parent.PictureVM.UpdateMetadataBeforeSave(parent.LabelManager, parent.NameManager, parent.TitleManager, parent.ImageInfoManager, parent.ImageIdManager);
@@ -630,12 +418,7 @@ namespace AutoNumber.ViewModels
                 throw new InvalidDataException("Die PDF-Nutzdaten konnten nicht verifiziert werden.");
             }
 
-            if (!TryWriteWithRetry(filename, () => PdfPayloadStore.SavePdfWithPayloadAttachment(pdfStream.ToArray(), payloadZip, filename), "PDF"))
-            {
-                return false;
-            }
-
-            return true;
+            return TryWriteWithRetry(filename, () => PdfPayloadStore.SavePdfWithPayloadAttachment(pdfBytes, payloadZip, filename), "PDF");
         }
 
         private void OpenFromPdfFile(string pdfFilename, ImageVM pvm)
@@ -828,35 +611,5 @@ namespace AutoNumber.ViewModels
         private RelayCommand? _openImageCommand;
         private RelayCommand? _saveCommand;
         private RelayCommand? _saveAsCommand;
-
-        private sealed class SidecarExportData
-        {
-            [JsonPropertyName("generatedAt")]
-            public string GeneratedAt { get; set; } = string.Empty;
-
-            [JsonPropertyName("title")]
-            public string Title { get; set; } = string.Empty;
-
-            [JsonPropertyName("description")]
-            public string Description { get; set; } = string.Empty;
-
-            [JsonPropertyName("id")]
-            public string Id { get; set; } = string.Empty;
-
-            [JsonPropertyName("persons")]
-            public List<SidecarPerson> Persons { get; set; } = [];
-        }
-
-        private sealed class SidecarPerson
-        {
-            [JsonPropertyName("row")]
-            public int Row { get; set; }
-
-            [JsonPropertyName("number")]
-            public int Number { get; set; }
-
-            [JsonPropertyName("name")]
-            public string Name { get; set; } = string.Empty;
-        }
     }
 }

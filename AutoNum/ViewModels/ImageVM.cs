@@ -257,15 +257,7 @@ namespace AutoNumber.ViewModels
             foreach (var person in Persons)
             {
                 var anchor = person.GetRowAnchorPoint();
-                var row = 1;
-                foreach (var boundary in CurrentMetadata.RowBoundaries)
-                {
-                    if (anchor.Y > boundary.GetYAtX(anchor.X, ImageWidth))
-                    {
-                        row++;
-                    }
-                }
-                person.Row = row;
+                person.Row = RowBoundaryMath.ResolveRow(anchor.X, anchor.Y, CurrentMetadata.RowBoundaries, ImageWidth);
             }
         }
 
@@ -281,55 +273,21 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            // First check if persons have any row assignments
-            var hasAnyRows = Persons.Any(p => p.Row > 0);
-
-            if (!hasAnyRows)
+            // Edge case: persons with no rows - assign all to row 1
+            if (!Persons.Any(p => p.Row > 0))
             {
-                // Edge case: persons with no rows - assign all to row 1
                 foreach (var person in Persons)
                 {
                     person.Row = 1;
                 }
             }
 
-            // Group persons by row
-            var groups = Persons
-                .Where(person => person.Row > 0)
-                .GroupBy(person => person.Row)
-                .OrderBy(group => group.Key)
-                .Select(group => new
-                {
-                    Row = group.Key,
-                    MinY = group.Min(person => (double)person.GetRowAnchorPoint().Y),
-                    MaxY = group.Max(person => (double)person.GetRowAnchorPoint().Y)
-                })
-                .ToList();
-
-            // Single row or no rows: no boundaries needed
-            if (groups.Count <= 1)
-            {
-                CurrentMetadata.RowBoundaries = [];
-                CurrentMetadata.RowCount = 1;
-                return;
-            }
-
-            // Multi-row: calculate boundaries between rows
-            var boundaries = new List<RowBoundary>();
-            for (var index = 0; index < groups.Count - 1; index++)
-            {
-                var current = groups[index];
-                var next = groups[index + 1];
-                var boundaryY = (current.MaxY + next.MinY) / 2.0;
-
-                var minAllowed = index == 0 ? 0.0 : boundaries[index - 1].LeftY + 2.0;
-                boundaryY = Math.Clamp(boundaryY, minAllowed, ImageHeight);
-
-                boundaries.Add(new RowBoundary(boundaryY, boundaryY));
-            }
+            var boundaries = RowBoundaryMath.MidlineBoundaries(
+                Persons.Select(person => (person.Row, (double)person.GetRowAnchorPoint().Y)),
+                ImageHeight);
 
             CurrentMetadata.RowBoundaries = boundaries;
-            CurrentMetadata.RowCount = groups.Count;
+            CurrentMetadata.RowCount = boundaries.Count + 1;
         }
 
         public void UpdateMetadataBeforeSave(LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
