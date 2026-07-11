@@ -232,18 +232,23 @@ namespace AutoNumber.ViewModels
         {
             BaseLabelDiameter = SizingModel.ComputeBaseLabelDiameter(faces, _imageVM.Bitmap?.Width ?? 0, _imageVM.Bitmap?.Height ?? 0);
 
-            var newPersons = faces.Select(face => new Person(0, "", ResolveAnchorPosition(face, FaceLabelAnchor)));
+            var newPersons = faces.Select(face => new Person(0, "", ResolveAnchorPosition(face, FaceLabelAnchor))).ToList();
             _imageVM.Persons.AddRange(newPersons);
 
             if (assignRows)
             {
-                AssignDetectedRows();
+                AssignDetectedRows(faces, newPersons);
             }
 
             RecalculateBaseLabelFontSize();
             RecalculateBaseTextFontSize();
             Numerate();
-            CalculateAndStoreRowBoundaries();
+
+            if (!assignRows)
+            {
+                // Row detection disabled: reset to the single-row state (no boundaries).
+                CalculateAndStoreRowBoundaries();
+            }
         }
 
         /// <summary>
@@ -271,53 +276,39 @@ namespace AutoNumber.ViewModels
                 (float)(face.Y + marginedFracY * face.Height));
         }
 
-        public void AssignDetectedRows()
+        /// <summary>
+        /// Clusters the freshly created labels into rows (RowClusterer) and stores the resulting
+        /// slanted boundaries in the current metadata. Clustering runs on the label anchor points
+        /// (not the raw faces) so the boundaries provably separate what the rest of the app tests
+        /// against them; the face rectangles only contribute their heights as the size scale for
+        /// the clustering tolerances.
+        /// </summary>
+        public void AssignDetectedRows(IReadOnlyList<Rectangle> faces, IReadOnlyList<Person> persons)
         {
-            if (_imageVM.Persons.Count == 0)
+            if (persons.Count == 0)
             {
                 return;
             }
 
-            var persons = _imageVM.Persons.ToList();
-            var anchors = persons
-                .Select(person => new { Person = person, Y = (double)person.GetRowAnchorPoint().Y })
-                .ToList();
-
-            var minY = anchors.Min(item => item.Y);
-            var maxY = anchors.Max(item => item.Y);
-            var span = Math.Max(0, maxY - minY);
-            var estimatedRowCount = (int)Math.Max(1, span / (BaseLabelDiameter * 1.25));
-
-            if (span <= 0 || estimatedRowCount <= 1)
+            var points = new List<RowClusterer.FacePoint>(persons.Count);
+            for (var i = 0; i < persons.Count; i++)
             {
-                foreach (var person in persons)
-                {
-                    person.Row = 1;
-                }
-
-                return;
+                var anchor = persons[i].GetRowAnchorPoint();
+                var faceHeight = i < faces.Count ? faces[i].Height : 0;
+                points.Add(new RowClusterer.FacePoint(anchor.X, anchor.Y, faceHeight));
             }
 
-            var delta = span / estimatedRowCount;
+            var result = RowClusterer.AssignRows(points, _imageVM.Bitmap?.Width ?? 0, _imageVM.Bitmap?.Height ?? 0);
 
-            foreach (var item in anchors)
+            for (var i = 0; i < persons.Count; i++)
             {
-                var normalized = (item.Y - minY) / delta;
-                var detectedRow = Math.Clamp((int)Math.Floor(normalized) + 1, 1, estimatedRowCount);
-                item.Person.Row = detectedRow;
+                persons[i].Row = result.Rows[i];
             }
 
-            var rowMap = persons
-                .Select(person => person.Row)
-                .Where(row => row > 0)
-                .Distinct()
-                .OrderBy(row => row)
-                .Select((row, index) => new { row, compactRow = index + 1 })
-                .ToDictionary(item => item.row, item => item.compactRow);
-
-            foreach (var person in persons)
+            if (_imageVM.CurrentMetadata is not null)
             {
-                person.Row = rowMap.TryGetValue(person.Row, out var compactRow) ? compactRow : 1;
+                _imageVM.CurrentMetadata.RowBoundaries = result.Boundaries;
+                _imageVM.CurrentMetadata.RowCount = result.RowCount;
             }
         }
 

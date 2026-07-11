@@ -31,6 +31,8 @@ AutoNum/
 │   ├── PdfPayloadStore.cs      # PDF payload zip create/read + embed/extract
 │   ├── NamesTableLayout.cs     # Shared names-table contracts/options and sizing constants
 │   ├── NameTableLayoutEngine.cs# Shared names-table layout computation (wrap-aware row geometry)
+│   ├── RowClusterer.cs         # Row detection: chain clustering + slanted boundary fitting
+
 │   └── FontFamilyResolver.cs   # Safe metadata font-family restore with fallback logging
 ├── ViewModels/                 # MVVM view models (INotifyPropertyChanged)
 │   ├── MainVM.cs               # Composition root for managers/view models
@@ -104,6 +106,13 @@ AutoNum/
   - `LabelManager.FaceLabelAnchor` is reseeded from `SettingsManager.FaceLabelAnchor` whenever a new image is opened (both the `NewImageOpenedMessage` and `MetadataLoadedMessage` handlers), so each editing session starts from the current default rather than carrying over a previous image's experiment.
 - `LabelManager.SetLabels` resolves the anchor to a fractional position via `FaceLabelAnchor.ToFraction()` and `ResolveAnchorPosition`, which pushes every anchor outward by `AnchorOutwardMargin` (currently 0.2, i.e. 20% of face width/height beyond the tight detected-face box on whichever edge the anchor points toward) — equivalent to inflating the face rect by that fraction on each side before placing the anchor at its exact 0..1 point. Replaces an earlier `BottomCenter`-only overshoot special case; `Center` is unaffected by the margin either way.
 
+### Row Detection (`Model/RowClusterer.cs`)
+- Runs when a fresh image opens (or on redetect/rotate) with `SettingsManager.RowDetectionEnabled`; called from `LabelManager.AssignDetectedRows`, which stores the result (per-person `Row` plus `RowBoundaries`/`RowCount`) in `ImageVM.CurrentMetadata`.
+- Clusters the **label anchor points** (not the raw face rectangles) so the emitted boundaries provably separate exactly what the rest of the app tests against boundaries (row-edit mode, drag-across-boundary, metadata reload). The detected face rectangles contribute only their heights, as the size scale for all tolerances — the algorithm is scale-invariant and needs no up-front row-count guess.
+- Pipeline (all constants are multiples of the median face height, see the tuning constants at the top of the class): 1) chain growth — union-find linking of horizontally neighbouring labels at similar height, as in OCR text-line segmentation (tilt-tolerant, local); 2) merge of broken chains via mutual line-fit prediction, capped to a max horizontal gap so far-apart stragglers can't fuse; 3) straggler/singleton attachment at looser tolerances; 4) merge of adjacent rows that no straight boundary could separate (>25% of the smaller row misclassified) — the straight-boundary row model is the authority on what counts as separate rows; 5) merge of adjacent rows closer than ~1 face height (stratification noise, e.g. children of different heights in one row).
+- Boundaries: all boundaries share a single **global slope** (size-weighted average of the row line fits, clamped) since row tilt comes from camera/terrain and is common to the whole photo — parallel boundaries can never cross inside the image. Each boundary's intercept is the best 1D separation of the two adjacent rows (max margin when separable, min errors otherwise), emitted as slanted `RowBoundary(LeftY, RightY)`.
+- Final row numbers are then **re-resolved from the boundaries** (same `GetYAtX` rule as `ImageVM`/row-edit mode), so "every label starts on its detected side" is an invariant by construction; boundaries whose row ends up empty are dropped.
+
 ### File Menu Commands
 - `MainWindow.xaml` hosts a top `Menu` (Datei: Öffnen/Speichern/Speichern unter/Metadaten exportieren/Einstellungen; Hilfe: Handbuch) instead of the old left-panel buttons — there is no left column in the main grid anymore, and no title-bar gear button (Einstellungen now lives in the Datei menu, `MainWindow.xaml.cs`'s `OpenSettings_Click`).
 - `FileManager.ResolveOutputFolder(sourcePath)` decides the Save-As/Export-metadata dialog's initial directory from `SettingsManager.UseCustomOutputFolder`/`OutputFolder`: an absolute (`Path.IsPathFullyQualified`) folder must already exist (set via the Browse button); a relative folder (e.g. `AutoNum`, or `/AutoNum` — leading separators are trimmed) is created on demand as a subfolder next to the source image. Everything is normalized through `Path.GetFullPath` before being handed to `SaveFileDialog.InitialDirectory`, since the underlying shell API throws on a mixed-separator path (e.g. `C:\Photos\AutoNum/test`) even though `Directory.CreateDirectory` tolerates it.
@@ -115,7 +124,7 @@ AutoNum/
 1. `FileManager` loads bitmap and applies EXIF orientation.
 2. `ImageVM` is initialized.
 3. If `SettingsManager.FaceDetectionEnabled` is true, fresh-image face detection runs via `FaceDetector` and `NewImageOpenedMessage` triggers `LabelManager.SetLabels(...)`.
-4. `LabelManager.SetLabels(...)` initializes persons, computes baseline label diameter, and optionally assigns rows when `SettingsManager.RowDetectionEnabled` is true.
+4. `LabelManager.SetLabels(...)` initializes persons, computes baseline label diameter, and optionally assigns rows when `SettingsManager.RowDetectionEnabled` is true (see Row Detection above — this also stores the detected slanted row boundaries in `CurrentMetadata`).
 5. `SettingsManager.ApplyFreshImageDefaults(...)` ensures all managers start unscaled:
    - All managers (`LabelManager`, `NameManager`, `TitleManager`, `ImageInfoManager`, `ImageIdManager`) have `FontScale = 1.0`
    - Applies saved default toggles for names, title, and image-info visibility

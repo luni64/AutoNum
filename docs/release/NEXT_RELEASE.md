@@ -23,6 +23,9 @@
 - **Ctrl+drag to move all labels together**
   Holding Ctrl while dragging a label in the preview now moves every other label by the same amount, for quick bulk repositioning after zoom/rotation.
 
+- **Much smarter automatic row detection**
+  The old row detection sliced the image into equal-height horizontal bands (guessing the row count from the label size), which fell apart on real group photos: unevenly spaced rows, tilted camera, children between adults, and seated vs. standing rows produced far too many rows with boundaries cutting through the middle of them. The new algorithm (`Model/RowClusterer.cs`) grows rows locally out of neighbouring labels (the way OCR segments text lines), merges what no straight boundary could separate anyway, and fits **slanted, parallel row boundaries** that follow the photo's tilt — the boundary lines you see in row mode now start out matching the actual rows. On the test photos this cut detected row counts from 7–9 nonsense rows down to the 3–4 rows a person would actually count. Rows are still resolved from the boundaries, so dragging a label across a boundary or editing boundaries in row mode fine-tunes the result exactly as before.
+
 - **Face detection switched from Haar cascade to YuNet (DNN)**
   Replaced the old `haarcascade_frontalface_default.xml` classifier with OpenCV's YuNet face detector (`FaceDetectorYN`), a small ONNX model that detects faces far more reliably on old/scanned genealogy photos — non-frontal poses, small or blurry faces, and uneven lighting. The old "Empfindlichkeit (ScaleFactor)" / "Bestätigungen (MinNeighbors)" sliders in Einstellungen → Erkennung are gone; the new detector's default confidence threshold works well enough that it isn't user-configurable.
 
