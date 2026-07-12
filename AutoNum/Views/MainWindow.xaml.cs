@@ -60,7 +60,7 @@ namespace AutoNumber
         {
             try
             {
-                Process.Start(new ProcessStartInfo("https://luni64.github.io/AutoNum/")
+                Process.Start(new ProcessStartInfo("https://autonumber.niggl-schlagbauer.de/")
                 {
                     UseShellExecute = true
                 });

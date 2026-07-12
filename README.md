@@ -8,7 +8,7 @@
 
 ## 📖 Benutzerhandbuch
 
-Die vollständige Anleitung (Installation, alle Funktionen, Tipps, FAQ) steht im **[Online-Benutzerhandbuch](https://luni64.github.io/AutoNum/)** (Quelle: [docs/Manual/index.md](docs/Manual/index.md)).
+Die vollständige Anleitung (Installation, alle Funktionen, Tipps, FAQ) steht im **[Online-Benutzerhandbuch](https://autonumber.niggl-schlagbauer.de/)** (Quelle: [docs/Manual/index.md](docs/Manual/index.md)).
 
 ## Funktionen
 
@@ -26,7 +26,7 @@ Fertige Builds gibt es auf der [Releases-Seite](https://github.com/luni64/AutoNu
 - **ZIP-Archiv** herunterladen, entpacken und `AutoNum.exe` starten — keine Installation nötig, oder
 - **Setup-Installer** herunterladen und ausführen.
 
-Details siehe [Kapitel 14 im Handbuch](https://luni64.github.io/AutoNum/#14-installation).
+Details siehe [Kapitel 14 im Handbuch](https://autonumber.niggl-schlagbauer.de/#14-installation).
 
 Benötigt wird das **.NET 8.0**-Runtime; falls die automatische Installation fehlschlägt, steht sie auf [Microsofts Website](https://dotnet.microsoft.com/de-de/download/dotnet/8.0) zum manuellen Download bereit.
 
@@ -43,7 +43,7 @@ Siehe [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) für vollständige Deta
 
 ## Änderungsprotokoll
 
-Alle Versionen und ihre Änderungen sind im [Changelog](https://luni64.github.io/AutoNum/CHANGELOG/) aufgeführt.
+Alle Versionen und ihre Änderungen sind im [Changelog](https://autonumber.niggl-schlagbauer.de/CHANGELOG/) aufgeführt.
 
 ## Lizenz
 

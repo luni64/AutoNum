@@ -8,7 +8,7 @@
 
 ## 📖 User Manual
 
-The full manual (installation, all features, tips, FAQ) is available in the **[online User Manual](https://luni64.github.io/AutoNum/MANUAL_EN/)** (source: [docs/Manual/MANUAL_EN.md](docs/Manual/MANUAL_EN.md)).
+The full manual (installation, all features, tips, FAQ) is available in the **[online User Manual](https://autonumber.niggl-schlagbauer.de/MANUAL_EN/)** (source: [docs/Manual/MANUAL_EN.md](docs/Manual/MANUAL_EN.md)).
 
 ## Features
 
@@ -41,7 +41,7 @@ See [THIRD_PARTY_LICENCES.md](THIRD_PARTY_LICENCES.md) for full details and lice
 
 ## Changelog
 
-All versions and their changes are listed in the [changelog](https://luni64.github.io/AutoNum/CHANGELOG/).
+All versions and their changes are listed in the [changelog](https://autonumber.niggl-schlagbauer.de/CHANGELOG/).
 
 ## License
 

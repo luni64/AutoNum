@@ -1,11 +1,11 @@
 # MkDocs configuration for the AutoNumber user manual site
-# (https://luni64.github.io/AutoNum/). Only docs/Manual is published;
+# (https://autonumber.niggl-schlagbauer.de/). Only docs/Manual is published;
 # everything else under docs/ stays repo-internal. Built and deployed by
 # .github/workflows/manual.yml on every push to main that touches the manual.
 
 site_name: AutoNumber
 site_description: Handbuch für AutoNumber – Gesichter auf Gruppenfotos automatisch nummerieren und beschriften
-site_url: https://luni64.github.io/AutoNum/
+site_url: https://autonumber.niggl-schlagbauer.de/
 repo_url: https://github.com/luni64/AutoNum
 repo_name: luni64/AutoNum
 edit_uri: ""

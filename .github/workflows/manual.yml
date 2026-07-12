@@ -1,5 +1,5 @@
 # Builds the user-manual site (docs/Manual via MkDocs Material, see mkdocs.yml)
-# and deploys it to GitHub Pages at https://luni64.github.io/AutoNum/.
+# and deploys it to GitHub Pages at https://autonumber.niggl-schlagbauer.de/.
 
 name: Deploy manual to GitHub Pages
 
