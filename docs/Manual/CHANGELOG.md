@@ -2,6 +2,37 @@
 
 Alle wesentlichen Änderungen an AutoNumber werden in dieser Datei dokumentiert. Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); die Versionen entsprechen den getaggten [GitHub-Releases](https://github.com/luni64/AutoNum/releases).
 
+## V2.3.0 - 2026-07-12
+
+**Neu**
+
+- Datei-Menü ersetzt die bisherigen Öffnen-/Speichern-Buttons und das Einstellungen-Zahnrad: Öffnen, Speichern (Strg+S), Speichern unter... (JPG oder PDF in einem Dialog), Metadaten exportieren... und Datei → Einstellungen; die Bildvorschau hat dadurch mehr Platz.
+- Neues Hilfe-Menü mit Link zum Online-Handbuch unter [autonumber.niggl-schlagbauer.de](https://autonumber.niggl-schlagbauer.de/).
+- Gesichtserkennung auf ein modernes DNN-Verfahren (YuNet) umgestellt — deutlich zuverlässiger auf alten und gescannten Fotos.
+- Deutlich verbesserte automatische Reihenerkennung: Reihen werden wie von einem Menschen gezählt gruppiert, die Reihengrenzen folgen als schräge, parallele Linien der Neigung des Fotos.
+- Die Größe der Nummern richtet sich bei neuen Bildern wieder nach der erkannten Gesichtsgröße statt nur nach der Bildbreite.
+- Wählbarer Anker für neu erkannte Nummern relativ zum Gesicht (3×3-Raster), als App-Standard in den Einstellungen und pro Bild im Formatieren-Dialog.
+- Bewegt man die Maus über einen Eintrag der Namensliste, wird die zugehörige Nummer im Bild hervorgehoben.
+- Strg+Ziehen verschiebt alle Nummern gemeinsam.
+- Die Schriftgröße von Namensliste, Überschrift, Beschreibung und Bild-ID ist unabhängig von der Nummerngröße einstellbar.
+
+**Geändert**
+
+- Der Öffnen-Dialog merkt sich den Ordner der Originalfotos, unabhängig davon, wohin gespeichert wurde.
+- Der Einstellungen-Dialog hat jetzt OK und Abbrechen: Änderungen werden erst mit OK übernommen und gespeichert.
+- Öffnen und Drehen großer Fotos ist deutlich schneller; das Speichern großer Scans belegt nicht mehr kurzzeitig sehr viel Arbeitsspeicher.
+- Flüssigeres Arbeiten bei Fotos mit vielen Personen (Hervorheben, Ziehen von Reihengrenzen).
+- Die Version im Fenstertitel kommt aus der Projektdatei und kann bei Releases nicht mehr vergessen werden.
+
+**Behoben**
+
+- „Speichern unter..." hängt einen relativen Ausgabeordner nicht mehr bei jedem Speichern erneut an; relative Ausgabeordner funktionieren jetzt generell zuverlässig, und bei unbrauchbarem Ausgabeordner erscheint eine Meldung statt eines stillen Ausweichens.
+- Graustufen-JPEGs ließen die Gesichtserkennung abstürzen.
+- Die gespeicherte Nummernposition war um den halben Nummerndurchmesser versetzt; alte Dateien werden beim Öffnen automatisch korrigiert.
+- Fehler beim Öffnen eines Bildes werden nicht mehr verschluckt, sondern angezeigt; Speichern ohne geladenes Bild meldet sich jetzt ebenfalls.
+- PDF: Das Bild verschwand in Acrobat DC beim Scrollen bei 100 % Zoom; außerdem einen ungültigen Eintrag im PDF-Dateiverzeichnis behoben.
+- Die Anker-Auswahl in den Erkennungs-Einstellungen sprang teils auf die vorherige Auswahl zurück.
+
 ## V2.2.0 - 2026-07-06
 
 **Neu**

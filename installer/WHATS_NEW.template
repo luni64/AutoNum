@@ -1,25 +1,27 @@
 AutoNum ${VERSION} — Was ist neu
 =================================
 
+Neue Funktionen
+---------------
+- Neues Datei-Menü ersetzt die bisherigen Öffnen-/Speichern-Buttons und das Einstellungen-Zahnrad: Öffnen, Speichern (Strg+S), Speichern unter... (JPG oder PDF in einem Dialog) und Metadaten exportieren...; die Einstellungen finden sich jetzt unter Datei -> Einstellungen. Die Bildvorschau hat dadurch mehr Platz.
+- Neues Hilfe-Menü mit Link zum neuen Online-Handbuch: https://autonumber.niggl-schlagbauer.de/
+- Die Gesichtserkennung wurde auf ein modernes DNN-Verfahren (YuNet) umgestellt und erkennt Gesichter auf alten und gescannten Fotos deutlich zuverlässiger.
+- Deutlich verbesserte automatische Reihenerkennung: Reihen werden wie von einem Menschen gezählt gruppiert, und die Reihengrenzen folgen als schräge, parallele Linien der Neigung des Fotos.
+- Die Größe der Nummern richtet sich bei neuen Bildern wieder nach der erkannten Gesichtsgröße statt nur nach der Bildbreite.
+- Wählbarer Anker für neu erkannte Nummern relativ zum Gesicht (3x3-Raster, z. B. unter dem Kinn oder mittig), als App-Standard in den Einstellungen und pro Bild im Formatieren-Dialog.
+- Bewegt man die Maus über einen Eintrag der Namensliste, wird die zugehörige Nummer im Bild hervorgehoben.
+- Strg+Ziehen verschiebt alle Nummern gemeinsam.
+- Die Schriftgröße von Namensliste, Überschrift, Beschreibung und Bild-ID ist jetzt unabhängig von der Nummerngröße einstellbar.
+- Der Öffnen-Dialog merkt sich den Ordner der Originalfotos, unabhängig davon, wohin gespeichert wurde — praktisch beim Abarbeiten ganzer Foto-Ordner.
+- Der Einstellungen-Dialog hat jetzt OK und Abbrechen: Änderungen werden erst mit OK übernommen und gespeichert.
+
 Fehlerbehebungen
 ----------------
-- Wenn eine gespeicherte Datei bereits in einem anderen Programm geöffnet ist, zeigt AutoNum jetzt einen Hinweis mit Wiederholen/Abbrechen an.
-- Nach dem erneuten Öffnen einer zuvor gespeicherten Bilddatei wird der Bildausschnitt jetzt wieder korrekt wiederhergestellt.
-- Die Zuordnung von Personen zu Reihen funktioniert jetzt auch bei schräg gezogenen Reihengrenzen korrekt.
-- Die PDF-Namensliste verwendet jetzt eine schmalere Nummernspalte.
-- Lange Titel- und Bildinformationstexte werden jetzt umgebrochen, anstatt abgeschnitten zu werden.
-
-Verbesserungen
---------------
-- Die neuen Möglichkeiten zur Reihenverwaltung sind der wichtigste Ausbau dieses Releases: Reihen können jetzt einfacher automatisch erkannt, manuell bearbeitet und flexibel zurückgesetzt werden.
-- Die Namensliste und die Reihenbearbeitung wurden visuell überarbeitet und sind besser bedienbar.
-- Ein neuer Button „Auf Bild zoomen“ passt im Reihenmodus Bild und Reihensteuerung gemeinsam in die Ansicht ein.
-- Die Bedienelemente für den Reihenmodus wurden vereinfacht: Das Eingabefeld für die Reihenanzahl entfiel, der Reihenmodus-Button ist jetzt in der Gruppe „Nummerierung“ zu finden.
-- In den Einstellungen gibt es jetzt einen neuen Bereich „Erkennen“ für die automatische Gesichtserkennung und die Reihenerkennung.
-- Gesichtserkennung und Reihenerkennung können für neue Bilder jetzt einzeln ein- oder ausgeschaltet werden.
-- Die Erkennungswerte lassen sich direkt in den Einstellungen anpassen und mit einem Klick neu anwenden.
-- Die Standardwerte für die Gesichtserkennung sind direkt in den Einstellungen rücksetzbar.
-- Die Nummernformatierung lässt sich jetzt auch als Standard speichern.
-- Die Standarddarstellung neuer Bilder wurde überarbeitet und ist nun etwas kompakter.
-- Bearbeitbare PDF-Dateien werden jetzt als standardkonforme PDF-Anhänge gespeichert und können wieder geöffnet werden.
-- Viele Symbole in der Bedienoberfläche wurden durch ein einheitlicheres Icon-Set ersetzt.
+- Öffnen und Drehen großer Fotos ist deutlich schneller; das Speichern großer Scans belegt nicht mehr kurzzeitig sehr viel Arbeitsspeicher.
+- Flüssigeres Arbeiten bei Fotos mit vielen Personen (Hervorheben, Ziehen von Reihengrenzen).
+- „Speichern unter..." hängt einen relativen Ausgabeordner nicht mehr bei jedem Speichern erneut an; relative Ausgabeordner funktionieren jetzt generell zuverlässig, und bei unbrauchbarem Ausgabeordner erscheint eine Meldung statt eines stillen Ausweichens.
+- Graustufen-JPEGs ließen die Gesichtserkennung abstürzen.
+- Die gespeicherte Nummernposition war um den halben Nummerndurchmesser versetzt; alte Dateien werden beim Öffnen automatisch korrigiert.
+- Fehler beim Öffnen eines Bildes werden nicht mehr verschluckt, sondern angezeigt; Speichern ohne geladenes Bild meldet sich jetzt ebenfalls.
+- PDF: Das Bild verschwand in Acrobat DC beim Scrollen bei 100 % Zoom; außerdem einen ungültigen Eintrag im PDF-Dateiverzeichnis behoben.
+- Die Anker-Auswahl in den Erkennungs-Einstellungen sprang teils auf die vorherige Auswahl zurück.
