@@ -2,11 +2,7 @@
 
 Alle wesentlichen Änderungen an AutoNumber werden in dieser Datei dokumentiert. Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); die Versionen entsprechen den getaggten [GitHub-Releases](https://github.com/luni64/AutoNum/releases).
 
-## [Unreleased]
-
-Noch nicht veröffentlichte Änderungen sind in [NEXT_RELEASE.md](https://github.com/luni64/AutoNum/blob/main/docs/release/NEXT_RELEASE.md) gesammelt.
-
-## [2.2.0] - 2026-07-06
+## V2.2.0 - 2026-07-06
 
 ### Neu
 - Automatische Reihenerkennung und -verwaltung: Reihen können automatisch erkannt, manuell bearbeitet und flexibel zurückgesetzt werden.
@@ -30,7 +26,7 @@ Noch nicht veröffentlichte Änderungen sind in [NEXT_RELEASE.md](https://github
 - Die Namensliste im PDF verwendet eine schmalere Nummernspalte.
 - Lange Überschriften und Bildinformationen werden umbrochen statt abgeschnitten.
 
-## [2.1.0] - 2026-07-01
+## V2.1.0 - 2026-07-01
 
 ### Neu
 - Neuer Button „Jetzt exportieren" unter Einstellungen → Export für den direkten Metadaten-Export.
@@ -39,7 +35,7 @@ Noch nicht veröffentlichte Änderungen sind in [NEXT_RELEASE.md](https://github
 - Der PDF-Export berücksichtigt jetzt wie der JPG-Export die Metadaten-Optionen unter Einstellungen → Export (CSV-/JSON-Begleitdateien).
 - Zuvor eingegebene bildbezogene Texte (Überschrift, Bildinformationen, Bild-ID) werden beim Öffnen eines neuen Bildes korrekt zurückgesetzt.
 
-## [2.0.0] - 2026-06-30
+## V2.0.0 - 2026-06-30
 
 ### Neu
 - Neue Bild-Aktionsleiste unter der Vorschau: Drehen um 90°, Zoom auf Inhalt anpassen.
@@ -56,13 +52,13 @@ Noch nicht veröffentlichte Änderungen sind in [NEXT_RELEASE.md](https://github
 - Verbesserte Darstellungsqualität für kleine Nummern und Namenslisten im JPG- und PDF-Export.
 - AutoNum-Dateien benötigen zum Bearbeiten nicht mehr das Originalbild — alle nötigen Informationen sind direkt in den Metadaten gespeichert.
 
-## [1.3.0] - 2025-10-25
+## V1.3.0 - 2025-10-25
 
 ### Behoben
 - Beim Öffnen von mit AutoNum erstellten Bildern wurde die Nummerngröße falsch (zu klein) gesetzt.
 - Das Öffnen von mit AutoNum erstellten Bildern löste eine automatische Neunummerierung aus und veränderte damit manuell angepasste Nummerierungen.
 
-## [1.2.1] - 2025-03-10
+## V1.2.1 - 2025-03-10
 
 ### Neu
 - Beim Öffnen eines nummerierten Bildes, dessen Original nicht automatisch gefunden wird, kann jetzt danach gesucht werden.
@@ -75,14 +71,14 @@ Noch nicht veröffentlichte Änderungen sind in [NEXT_RELEASE.md](https://github
 - Beim Öffnen eines nummerierten Bildes war die Nummerngröße falsch.
 - Abstürze beim Öffnen von Nicht-Bilddateien behoben.
 
-## [1.2.0] - 2025-03-05
+## V1.2.0 - 2025-03-05
 
 ### Neu
 - Beta-Unterstützung für das Öffnen und Bearbeiten bereits nummerierter Bilder, z. B. um nachträglich identifizierte Personen in einem vorhandenen Bild zu ergänzen.
 
 > **Hinweis:** AutoNumber benötigt in dieser Version zum Bearbeiten eines nummerierten Bildes das Originalbild; dessen Speicherort wird beim Speichern in den Metadaten abgelegt. Mit älteren Versionen erstellte Bilder ohne diese Metadaten können nicht bearbeitet werden.
 
-## [1.1.15] - 2025-03-03
+## V1.1.15 - 2025-03-03
 
 ### Geändert
 - Neue Oberfläche und neue Funktionen (erste dokumentierte Version).
