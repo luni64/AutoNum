@@ -60,7 +60,7 @@ namespace AutoNumber
         {
             try
             {
-                Process.Start(new ProcessStartInfo("https://github.com/luni64/AutoNum/blob/main/docs/Manual/HANDBUCH_DE.md")
+                Process.Start(new ProcessStartInfo("https://luni64.github.io/AutoNum/")
                 {
                     UseShellExecute = true
                 });

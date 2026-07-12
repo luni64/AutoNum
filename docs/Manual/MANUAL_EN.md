@@ -1,6 +1,6 @@
 # AutoNumber – User Manual
 
-*[Deutsche Version](HANDBUCH_DE.md)*
+*[Deutsche Version](index.md)*
 
 *Note: AutoNumber's user interface is German-only, so the screenshots below show German menu and button labels. This manual explains what each one does.*
 

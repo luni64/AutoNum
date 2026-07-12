@@ -20,6 +20,9 @@ artifacts/
 *.rsuser
 *.sln.docstates
 
+# MkDocs local build output (the site is built by CI, see mkdocs.yml)
+site/
+
 # Logs and transient files
 *.log
 *.tmp

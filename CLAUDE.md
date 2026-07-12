@@ -51,8 +51,9 @@ This is a stable, high-level index only — it intentionally omits specifics (ve
 - Prefer direct file-edit tools over terminal-based file writing.
 - Git/terminal: use `--no-pager` for `git diff`/`log`/`show`. For multi-line commit messages, write to a temp file and use `git --no-pager commit -F <file>` rather than inline here-strings.
 
-## Release docs
+## Release docs & manual site
 
 - `docs/release/NEXT_RELEASE.md` is the scratchpad for the unreleased version — add bug-fix/improvement notes here as you go.
 - `docs/release/RELEASE_NOTES_DE.md` holds the German user-facing notes for the current/most recent release.
-- Workflow: after tagging a release, roll `NEXT_RELEASE.md` entries into the release notes and reset `NEXT_RELEASE.md`.
+- Workflow: after tagging a release, roll `NEXT_RELEASE.md` entries into the release notes and `docs/Manual/CHANGELOG.md`, then reset `NEXT_RELEASE.md`.
+- `docs/Manual/` (index.md = German manual, MANUAL_EN.md, CHANGELOG.md, Pictures/) is published to https://luni64.github.io/AutoNum/ as an MkDocs Material site (`mkdocs.yml`, deployed by `.github/workflows/manual.yml` on push to main). Nothing else under `docs/` is published. The app's Hilfe menu links to the site root.

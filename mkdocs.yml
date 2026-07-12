@@ -1,0 +1,57 @@
+# MkDocs configuration for the AutoNumber user manual site
+# (https://luni64.github.io/AutoNum/). Only docs/Manual is published;
+# everything else under docs/ stays repo-internal. Built and deployed by
+# .github/workflows/manual.yml on every push to main that touches the manual.
+
+site_name: AutoNumber
+site_description: Handbuch für AutoNumber – Gesichter auf Gruppenfotos automatisch nummerieren und beschriften
+site_url: https://luni64.github.io/AutoNum/
+repo_url: https://github.com/luni64/AutoNum
+repo_name: luni64/AutoNum
+edit_uri: ""
+
+docs_dir: docs/Manual
+
+nav:
+  - Handbuch: index.md
+  - English Manual: MANUAL_EN.md
+  - Changelog: CHANGELOG.md
+
+theme:
+  name: material
+  language: de
+  features:
+    - navigation.top
+    - search.suggest
+    - toc.follow
+  palette:
+    # Follow the visitor's system preference, with a manual toggle.
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: blue grey
+      toggle:
+        icon: material/brightness-7
+        name: Dunkles Design
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      toggle:
+        icon: material/brightness-4
+        name: Helles Design
+
+plugins:
+  - search:
+      lang:
+        - de
+        - en
+
+markdown_extensions:
+  - attr_list
+  # Generate heading anchors the same way GitHub does (keep umlauts and
+  # leading chapter numbers), so the manual's table-of-contents links work
+  # identically on the site and in the GitHub file view.
+  - toc:
+      permalink: true
+      slugify: !!python/object/apply:pymdownx.slugs.slugify
+        kwds:
+          case: lower

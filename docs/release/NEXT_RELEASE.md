@@ -32,6 +32,9 @@
 - **Warning instead of silent fallback when the output folder is unusable**
   If the configured absolute output folder no longer exists (or a relative subfolder can't be created), the Save dialog used to silently fall back to the image's folder. A message now explains what happened and where to fix it.
 
+- **Online-Handbuch: Hilfe → Handbuch öffnet jetzt die neue Handbuch-Website**
+  The manual now lives at https://luni64.github.io/AutoNum/ (MkDocs Material site with navigation sidebar, search and dark mode; German manual on the start page, English manual and the changelog as separate pages). The Hilfe menu entry previously opened the raw markdown file in the GitHub repository view — fine for developers, but cluttered for end users. The site rebuilds automatically on every push that touches `docs/Manual/`.
+
 - **Face detection switched from Haar cascade to YuNet (DNN)**
   Replaced the old `haarcascade_frontalface_default.xml` classifier with OpenCV's YuNet face detector (`FaceDetectorYN`), a small ONNX model that detects faces far more reliably on old/scanned genealogy photos — non-frontal poses, small or blurry faces, and uneven lighting. The old "Empfindlichkeit (ScaleFactor)" / "Bestätigungen (MinNeighbors)" sliders in Einstellungen → Erkennung are gone; the new detector's default confidence threshold works well enough that it isn't user-configurable.
 

@@ -4,7 +4,7 @@ All notable changes to this project are documented in this file. The format is b
 
 ## [Unreleased]
 
-See [NEXT_RELEASE.md](NEXT_RELEASE.md) for changes not yet published in a release.
+See [NEXT_RELEASE.md](https://github.com/luni64/AutoNum/blob/main/docs/release/NEXT_RELEASE.md) for changes not yet published in a release.
 
 ## [2.2.0] - 2026-07-06
 
