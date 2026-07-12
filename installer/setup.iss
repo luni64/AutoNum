@@ -7,10 +7,9 @@
 #define MyAppExeName   "AutoNumber.exe"
 
 ; Source paths (relative to this script — one level up from installer folder).
-; The win-x64 publish output is used deliberately: a RID-less build/publish
-; also contains native libraries for foreign platforms (win-x86/arm64, linux,
-; osx) that would double the package size. Build it with:
-;   dotnet publish AutoNum\AutoNumber.csproj -c Release -r win-x64 --no-self-contained
+; The win-x64 publish output contains only win-x64 natives (the csproj pins
+; RuntimeIdentifier). Build it with:
+;   dotnet publish AutoNum\AutoNumber.csproj -c Release
 #define SourceDir  "..\AutoNum\bin\Release\net8.0-windows\win-x64\publish"
 #define IconFile   "..\AutoNum\autonumber_taskbar.ico"
 #define InstallerDir "."
@@ -28,10 +27,12 @@
 #include "CodeDependencies.iss"
 
 [Setup]
-; Installer code signing using an Inno Setup Sign Tool profile named "signtool"
-; (configure it in Inno Setup IDE: Tools -> Configure Sign Tools)
-;SignTool=certum $f
-;SignedUninstaller=yes
+; Installer code signing using an Inno Setup Sign Tool profile named "certum"
+; (configure it in the Inno Setup IDE: Tools -> Configure Sign Tools).
+; For command-line builds pass the same command via /S, e.g.:
+;   ISCC.exe "/Scertum=signtool.exe sign /sha1 <thumbprint> ... $f" setup.iss
+SignTool=certum $f
+SignedUninstaller=yes
 
 AppId={{6F3A2B1C-9D4E-4F7A-B1C2-3D4E5F6A7B8C}
 AppName={#MyAppName}

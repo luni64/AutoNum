@@ -10,6 +10,11 @@
     <!-- Single source for the app version shown in the window title (MainVM.Title).
          The installer version in installer\setup.iss is still bumped separately at release time. -->
     <Version>2.3.0</Version>
+    <!-- Pin the runtime so builds only contain win-x64 native libraries.
+         Without this, Emgu.CV and QuestPDF also copy natives for win-x86/arm64,
+         linux and osx into the output (~113 MB dead weight in installer/ZIP). -->
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
   </PropertyGroup>
 
   <ItemGroup>
