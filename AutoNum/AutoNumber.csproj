@@ -28,7 +28,11 @@
     <PackageReference Include="MahApps.Metro" Version="3.0.0-alpha0513" />
     <PackageReference Include="MahApps.Metro.IconPacks.Material" Version="5.1.0" />
     <PackageReference Include="PdfPig" Version="0.1.15" />
-    <PackageReference Include="QuestPDF" Version="2026.6.1" />
+    <!-- ExcludeAssets skips the package's targets file, whose only effect is
+         copying QuestPDF's bundled 11 MB LatoFont folder into the output.
+         AutoNum never uses Lato (the PDF report sets Helvetica as page default,
+         all other text uses user-chosen system fonts). -->
+    <PackageReference Include="QuestPDF" Version="2026.6.1" ExcludeAssets="build;buildTransitive" />
   </ItemGroup>
 
   <ItemGroup>
