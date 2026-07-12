@@ -1,3 +1,5 @@
+![Numbered group photo](Pictures/banner.png)
+
 # AutoNumber – User Manual
 
 *[Deutsche Version](index.md)*
