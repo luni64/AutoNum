@@ -6,8 +6,12 @@
 #define MyAppURL       "https://github.com/luni64/AutoNum"
 #define MyAppExeName   "AutoNumber.exe"
 
-; Source paths (relative to this script — one level up from installer folder)
-#define SourceDir  "..\AutoNum\bin\Release\net8.0-windows"
+; Source paths (relative to this script — one level up from installer folder).
+; The win-x64 publish output is used deliberately: a RID-less build/publish
+; also contains native libraries for foreign platforms (win-x86/arm64, linux,
+; osx) that would double the package size. Build it with:
+;   dotnet publish AutoNum\AutoNumber.csproj -c Release -r win-x64 --no-self-contained
+#define SourceDir  "..\AutoNum\bin\Release\net8.0-windows\win-x64\publish"
 #define IconFile   "..\AutoNum\autonumber_taskbar.ico"
 #define InstallerDir "."
 

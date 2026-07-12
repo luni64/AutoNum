@@ -16,12 +16,17 @@ It provides the `Dependency_AddDotNet80Desktop` helper used in `InitializeSetup`
 
 ## Build the installer
 
-1. Build the AutoNum project in **Release** configuration:
+1. Publish the AutoNum project for **win-x64** in **Release** configuration:
 
    ```
-   dotnet publish AutoNum\AutoNumber.csproj -c Release
+   dotnet publish AutoNum\AutoNumber.csproj -c Release -r win-x64 --no-self-contained
    ```
-   (or build via Visual Studio — Release | Any CPU)
+
+   The `-r win-x64` matters: a RID-less build also copies native libraries for
+   foreign platforms (win-x86/arm64, linux, osx) into the output, which would
+   roughly double the installer and release-ZIP size. The release ZIP is created
+   from the same folder the installer uses:
+   `AutoNum\bin\Release\net8.0-windows\win-x64\publish`.
 
 2. Open `installer\setup.iss` in the Inno Setup IDE (or compile from the command line):
 
