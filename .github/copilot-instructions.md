@@ -40,7 +40,7 @@
 # Release Documentation
 
 - **Release scratchpad:** `docs/release/NEXT_RELEASE.md` — items for the next unreleased version
-- **Changelog:** `docs/Manual/CHANGELOG.md` — user-facing changes per released version (published on the manual site at https://luni64.github.io/AutoNum/CHANGELOG/)
+- **Changelog:** `docs/Manual/CHANGELOG.md` — user-facing changes per released version, written in German (published on the manual site at https://luni64.github.io/AutoNum/CHANGELOG/)
 - **Release process:** `docs/release/RELEASE_PROCESS.md` — tagging and publishing steps
 
 Add notes to `NEXT_RELEASE.md` as features/fixes are developed. After tagging a release, copy items to `CHANGELOG.md` and reset `NEXT_RELEASE.md`.

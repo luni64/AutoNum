@@ -1,88 +1,88 @@
 # Changelog
 
-All notable changes to this project are documented in this file. The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions correspond to tagged [GitHub releases](https://github.com/luni64/AutoNum/releases).
+Alle wesentlichen Änderungen an AutoNumber werden in dieser Datei dokumentiert. Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); die Versionen entsprechen den getaggten [GitHub-Releases](https://github.com/luni64/AutoNum/releases).
 
 ## [Unreleased]
 
-See [NEXT_RELEASE.md](https://github.com/luni64/AutoNum/blob/main/docs/release/NEXT_RELEASE.md) for changes not yet published in a release.
+Noch nicht veröffentlichte Änderungen sind in [NEXT_RELEASE.md](https://github.com/luni64/AutoNum/blob/main/docs/release/NEXT_RELEASE.md) gesammelt.
 
 ## [2.2.0] - 2026-07-06
 
-### Added
-- Automatic row detection and management: rows can now be detected automatically, edited manually, and reset flexibly.
-- New "Zoom to Image" button that fits both the image and the row controls into view together while in row mode.
-- New "Detection" section in Settings for face detection and row detection.
-- Face detection and row detection can each be enabled/disabled independently for new images.
-- Detection parameters can be adjusted directly in Settings and reapplied with one click, with a reset-to-default option.
-- Number formatting can now be saved as a default.
+### Neu
+- Automatische Reihenerkennung und -verwaltung: Reihen können automatisch erkannt, manuell bearbeitet und flexibel zurückgesetzt werden.
+- Neuer Button „Zoom auf Bild", der im Reihenmodus Bild und Reihen-Bedienelemente gemeinsam in den sichtbaren Bereich einpasst.
+- Neuer Bereich „Erkennung" in den Einstellungen für Gesichtserkennung und Reihenerkennung.
+- Gesichtserkennung und Reihenerkennung lassen sich für neue Bilder unabhängig voneinander ein- und ausschalten.
+- Erkennungsparameter können direkt in den Einstellungen angepasst und mit einem Klick erneut angewendet werden, inklusive Zurücksetzen auf die Standardwerte.
+- Die Formatierung der Nummern kann als Standard gespeichert werden.
 
-### Changed
-- The name list and row-editing UI were visually reworked and are easier to use.
-- The row-mode controls were simplified: the row-count input field was removed, and the row-mode toggle now lives in the "Numbering" group.
-- The default layout for new images was reworked and is now more compact.
-- Editable PDF files are now saved as standards-compliant PDF attachments and can be reopened.
-- Many toolbar icons were replaced with a more consistent icon set.
+### Geändert
+- Namensliste und Reihenbearbeitung wurden optisch überarbeitet und sind einfacher zu bedienen.
+- Die Bedienelemente des Reihenmodus wurden vereinfacht: Das Eingabefeld für die Reihenanzahl entfällt, und der Reihenmodus-Schalter befindet sich jetzt in der Gruppe „Nummerierung".
+- Das Standardlayout für neue Bilder wurde überarbeitet und ist kompakter.
+- Bearbeitbare PDF-Dateien werden als standardkonforme PDF-Anhänge gespeichert und können wieder geöffnet werden.
+- Viele Symbole der Werkzeugleiste wurden durch einen einheitlicheren Symbolsatz ersetzt.
 
-### Fixed
-- AutoNum now shows a retry/cancel prompt when a file being saved is already open in another program.
-- The visible image region is now correctly restored when reopening a previously saved image.
-- Assigning people to rows now works correctly even when row boundaries are dragged at an angle.
-- The PDF name list now uses a narrower number column.
-- Long title and image-information texts now wrap instead of being cut off.
+### Behoben
+- AutoNum fragt jetzt mit „Wiederholen/Abbrechen" nach, wenn die zu speichernde Datei gerade in einem anderen Programm geöffnet ist.
+- Der sichtbare Bildausschnitt wird beim erneuten Öffnen eines gespeicherten Bildes wieder korrekt hergestellt.
+- Die Zuordnung von Personen zu Reihen funktioniert jetzt auch dann korrekt, wenn Reihengrenzen schräg gezogen wurden.
+- Die Namensliste im PDF verwendet eine schmalere Nummernspalte.
+- Lange Überschriften und Bildinformationen werden umbrochen statt abgeschnitten.
 
 ## [2.1.0] - 2026-07-01
 
-### Added
-- New "Export Now" button under Settings → Export for direct metadata export.
+### Neu
+- Neuer Button „Jetzt exportieren" unter Einstellungen → Export für den direkten Metadaten-Export.
 
-### Fixed
-- PDF export now respects the metadata options under Settings → Export (CSV/JSON sidecar files), matching JPG export.
-- Previously entered image-related texts (title, information, image ID) are now correctly reset when opening a new image.
+### Behoben
+- Der PDF-Export berücksichtigt jetzt wie der JPG-Export die Metadaten-Optionen unter Einstellungen → Export (CSV-/JSON-Begleitdateien).
+- Zuvor eingegebene bildbezogene Texte (Überschrift, Bildinformationen, Bild-ID) werden beim Öffnen eines neuen Bildes korrekt zurückgesetzt.
 
 ## [2.0.0] - 2026-06-30
 
-### Added
-- New image action bar below the preview: rotate 90°, fit zoom to content.
-- Separate save buttons: "Save as JPG" and "Save as PDF" (remains editable).
-- Metadata export: title, description, ID, and name list can be exported as `.csv` or `.json` for further processing in Excel or databases.
-- Reopen PDFs: PDF files created by AutoNumber can be reopened and edited later, like JPGs.
-- More control over the name list: number of columns per image is configurable (1–4), e.g. for compact lists on larger group photos.
-- Dedicated fields for image information and image ID, separate from the title, each independently shown/hidden and styled.
+### Neu
+- Neue Bild-Aktionsleiste unter der Vorschau: Drehen um 90°, Zoom auf Inhalt anpassen.
+- Getrennte Speichern-Buttons: „Als JPG speichern" und „Als PDF speichern" (bleibt bearbeitbar).
+- Metadaten-Export: Überschrift, Beschreibung, Bild-ID und Namensliste können als `.csv` oder `.json` exportiert werden, z. B. zur Weiterverarbeitung in Excel oder Datenbanken.
+- PDFs wieder öffnen: Mit AutoNumber erstellte PDF-Dateien lassen sich wie JPGs erneut öffnen und weiterbearbeiten.
+- Mehr Kontrolle über die Namensliste: Die Spaltenanzahl ist pro Bild einstellbar (1–4), z. B. für kompakte Listen bei größeren Gruppenfotos.
+- Eigene Felder für Bildinformationen und Bild-ID, getrennt von der Überschrift, jeweils unabhängig ein-/ausblendbar und formatierbar.
 
-### Changed
-- Unified formatting dialog for title, image information, image ID, and name list, with clearer percentage display for sizes.
-- Reworked Settings window with clearer sections for fonts, detection, and saving; defaults are easier to apply.
-- More reliable restoration of sizes, fonts, and visibility when reopening a file.
-- Improved rendering quality for small numbers and name lists in JPG and PDF export.
-- AutoNum files no longer require the original image to edit — all necessary information is stored directly in the metadata.
+### Geändert
+- Einheitlicher Formatierungsdialog für Überschrift, Bildinformationen, Bild-ID und Namensliste mit klarerer Prozentanzeige für Größen.
+- Überarbeitetes Einstellungsfenster mit klareren Bereichen für Schriften, Erkennung und Speichern; Standardwerte lassen sich einfacher übernehmen.
+- Größen, Schriftarten und Sichtbarkeit werden beim erneuten Öffnen einer Datei zuverlässiger wiederhergestellt.
+- Verbesserte Darstellungsqualität für kleine Nummern und Namenslisten im JPG- und PDF-Export.
+- AutoNum-Dateien benötigen zum Bearbeiten nicht mehr das Originalbild — alle nötigen Informationen sind direkt in den Metadaten gespeichert.
 
 ## [1.3.0] - 2025-10-25
 
-### Fixed
-- Label size was set incorrectly (too small) when opening images created with AutoNum.
-- Opening images created with AutoNum triggered an automatic renumbering, altering manually adjusted numbering.
+### Behoben
+- Beim Öffnen von mit AutoNum erstellten Bildern wurde die Nummerngröße falsch (zu klein) gesetzt.
+- Das Öffnen von mit AutoNum erstellten Bildern löste eine automatische Neunummerierung aus und veränderte damit manuell angepasste Nummerierungen.
 
 ## [1.2.1] - 2025-03-10
 
-### Added
-- Ability to search for the original image when opening a numbered image whose original can't be found automatically.
+### Neu
+- Beim Öffnen eines nummerierten Bildes, dessen Original nicht automatisch gefunden wird, kann jetzt danach gesucht werden.
 
-### Changed
-- Switched to `Bitmap.Open` instead of the OpenCV open method, reducing supported input formats to JPG, PNG, TIFF, BMP, GIF, and EXIF.
-- Export temporarily restricted to JPG (due to metadata handling).
+### Geändert
+- Umstellung auf `Bitmap.Open` statt der OpenCV-Lademethode; die unterstützten Eingabeformate reduzieren sich dadurch auf JPG, PNG, TIFF, BMP, GIF und EXIF.
+- Der Export ist vorübergehend auf JPG beschränkt (wegen der Metadaten-Verarbeitung).
 
-### Fixed
-- Label size was wrong when opening a numbered image.
-- Fixed crashes when opening non-image files.
+### Behoben
+- Beim Öffnen eines nummerierten Bildes war die Nummerngröße falsch.
+- Abstürze beim Öffnen von Nicht-Bilddateien behoben.
 
 ## [1.2.0] - 2025-03-05
 
-### Added
-- Beta support for opening and editing previously numbered images, e.g. to add identified person names to an existing image.
+### Neu
+- Beta-Unterstützung für das Öffnen und Bearbeiten bereits nummerierter Bilder, z. B. um nachträglich identifizierte Personen in einem vorhandenen Bild zu ergänzen.
 
-> **Note:** AutoNumber requires the original image to edit a numbered one; its location is stored in the metadata on save. Images created with older versions that didn't store this metadata cannot be edited.
+> **Hinweis:** AutoNumber benötigt in dieser Version zum Bearbeiten eines nummerierten Bildes das Originalbild; dessen Speicherort wird beim Speichern in den Metadaten abgelegt. Mit älteren Versionen erstellte Bilder ohne diese Metadaten können nicht bearbeitet werden.
 
 ## [1.1.15] - 2025-03-03
 
-### Changed
-- New GUI and new features (first tracked release).
+### Geändert
+- Neue Oberfläche und neue Funktionen (erste dokumentierte Version).
