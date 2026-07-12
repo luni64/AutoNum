@@ -2,26 +2,6 @@
 
 *[English version](MANUAL_EN.md)*
 
-## Inhaltsverzeichnis
-
-1. [Einführung](#1-einführung)
-2. [Oberfläche im Überblick](#2-oberfläche-im-überblick)
-3. [Schnellstart](#3-schnellstart)
-4. [Bild öffnen](#4-bild-öffnen)
-5. [Werkzeugleiste](#5-werkzeugleiste)
-6. [Gesichter & Nummerierung](#6-gesichter--nummerierung)
-7. [Namensliste](#7-namensliste)
-8. [Überschrift, Beschreibung, Bild-ID](#8-überschrift-beschreibung-bild-id)
-9. [Speichern & Export](#9-speichern--export)
-10. [Einstellungen](#10-einstellungen)
-11. [CSV/JSON-Metadaten-Export](#11-csvjson-metadaten-export)
-12. [Tipps für die Ahnenforschung](#12-tipps-für-die-ahnenforschung)
-13. [Häufige Fragen (FAQ)](#13-häufige-fragen-faq)
-14. [Installation](#14-installation)
-15. [Anhang](#15-anhang)
-
----
-
 ## 1. Einführung
 
 AutoNumber hilft Ihnen dabei,

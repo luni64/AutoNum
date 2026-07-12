@@ -4,26 +4,6 @@
 
 *Note: AutoNumber's user interface is German-only, so the screenshots below show German menu and button labels. This manual explains what each one does.*
 
-## Table of Contents
-
-1. [Introduction](#1-introduction)
-2. [Interface Overview](#2-interface-overview)
-3. [Quick Start](#3-quick-start)
-4. [Opening an Image](#4-opening-an-image)
-5. [Toolbar](#5-toolbar)
-6. [Faces & Numbering](#6-faces--numbering)
-7. [Name List](#7-name-list)
-8. [Title, Description, Image ID](#8-title-description-image-id)
-9. [Saving & Export](#9-saving--export)
-10. [Settings](#10-settings)
-11. [CSV/JSON Metadata Export](#11-csvjson-metadata-export)
-12. [Tips for Genealogy Research](#12-tips-for-genealogy-research)
-13. [Frequently Asked Questions (FAQ)](#13-frequently-asked-questions-faq)
-14. [Installation](#14-installation)
-15. [Appendix](#15-appendix)
-
----
-
 ## 1. Introduction
 
 AutoNumber helps you

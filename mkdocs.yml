@@ -48,8 +48,9 @@ plugins:
 markdown_extensions:
   - attr_list
   # Generate heading anchors the same way GitHub does (keep umlauts and
-  # leading chapter numbers), so the manual's table-of-contents links work
-  # identically on the site and in the GitHub file view.
+  # leading chapter numbers), so the manual's cross-reference links (e.g.
+  # "siehe Kapitel 9") work identically on the site and in the GitHub
+  # file view.
   - toc:
       permalink: true
       slugify: !!python/object/apply:pymdownx.slugs.slugify
