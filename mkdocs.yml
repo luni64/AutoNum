@@ -16,6 +16,8 @@ nav:
   - Handbuch: index.md
   - English Manual: MANUAL_EN.md
   - Changelog: CHANGELOG.md
+  # External link: always points at the newest GitHub release (download page)
+  - Installation: https://github.com/luni64/AutoNum/releases/latest
 
 theme:
   name: material
