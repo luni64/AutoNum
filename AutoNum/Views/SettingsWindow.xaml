@@ -135,6 +135,12 @@
 						<StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,0,0,14">
 							<view:FaceAnchorPicker SelectedAnchor="{Binding FaceLabelAnchor, Mode=TwoWay}"/>
 						</StackPanel>
+
+						<TextBlock Text="Reihenfolge der Nummerierung" Margin="0,25,0,4" FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}"/>
+						<TextBlock TextWrapping="Wrap" Margin="0,0,0,8">
+							Legt fest, in welcher Reihenfolge die erkannten Personen durchnummeriert werden (Standardwert für neu geladene Bilder). Innerhalb einer Reihe wird immer von links nach rechts gezählt. Diese Einstellung kann auch pro Bild im Formatierungsdialog der Nummern-Labels angepasst werden.
+						</TextBlock>
+						<mah:ToggleSwitch IsOn="{Binding NumberBottomUp, Mode=TwoWay}" Content="Mit der untersten Reihe beginnen" Margin="0,0,0,14"/>
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>

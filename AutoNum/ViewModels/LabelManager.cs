@@ -18,8 +18,14 @@ namespace AutoNumber.ViewModels
         {
             if (_imageVM.Persons.Count == 0) return;
 
-            var orderedPersons = _imageVM.Persons
-                .OrderBy(person => person.Row <= 0 ? int.MaxValue : person.Row)
+            // Rows are walked top-down or bottom-up depending on NumberBottomUp; within a row
+            // numbering always runs left to right. The sentinel flips with the direction so
+            // labels without a row (Row <= 0) stay last in both cases.
+            var orderedByRow = NumberBottomUp
+                ? _imageVM.Persons.OrderByDescending(person => person.Row <= 0 ? int.MinValue : person.Row)
+                : _imageVM.Persons.OrderBy(person => person.Row <= 0 ? int.MaxValue : person.Row);
+
+            var orderedPersons = orderedByRow
                 .ThenBy(person => person.Label.X)
                 .ToList();
 
@@ -258,6 +264,39 @@ namespace AutoNumber.ViewModels
             set => SetProperty(ref _faceLabelAnchor, value);
         }
 
+        /// <summary>
+        /// Numbering direction across rows: <c>false</c> (default) numbers the top row first,
+        /// <c>true</c> starts at the bottom row. Within a row numbering always runs left to right.
+        /// Scoped to the current image, persisted per image in the metadata and seeded from
+        /// <see cref="SettingsManager.NumberBottomUp"/> whenever an image is opened.
+        /// Setting it renumbers immediately; the load paths use <see cref="SeedNumberBottomUp"/>
+        /// instead, since there the numbers come from the file and must not be recomputed.
+        /// </summary>
+        public bool NumberBottomUp
+        {
+            get => _numberBottomUp;
+            set
+            {
+                if (_numberBottomUp == value) return;
+
+                _numberBottomUp = value;
+                OnPropertyChanged();
+                Numerate();
+            }
+        }
+
+        /// <summary>
+        /// Sets <see cref="NumberBottomUp"/> without triggering a renumber — used on the open paths,
+        /// where the labels either don't exist yet or carry the numbers restored from metadata.
+        /// </summary>
+        public void SeedNumberBottomUp(bool value)
+        {
+            if (_numberBottomUp == value) return;
+
+            _numberBottomUp = value;
+            OnPropertyChanged(nameof(NumberBottomUp));
+        }
+
         #endregion
         public void SetLabels(List<Rectangle> faces, bool assignRows = true)
         {
@@ -378,6 +417,9 @@ namespace AutoNumber.ViewModels
                 // A newly opened image always starts from the current app-wide default,
                 // never from whatever anchor was left over from editing a previous image.
                 FaceLabelAnchor = _mainVM?.SettingsManager.FaceLabelAnchor ?? FaceLabelAnchor.BottomCenter;
+
+                // Seeded before SetLabels, whose Numerate() call must already see the direction.
+                SeedNumberBottomUp(_mainVM?.SettingsManager.NumberBottomUp ?? false);
                 SetLabels(msg.Faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
             });
 
@@ -396,6 +438,11 @@ namespace AutoNumber.ViewModels
                     // Same reasoning as the fresh-image path: start this session from the current
                     // app-wide default rather than carrying over a previous image's anchor choice.
                     FaceLabelAnchor = _mainVM?.SettingsManager.FaceLabelAnchor ?? FaceLabelAnchor.BottomCenter;
+
+                    // Unlike the anchor, the numbering direction *is* per-image state: the stored
+                    // numbers were produced with it, so restore it (legacy files without the field
+                    // fall back to the top-down behaviour they were saved with).
+                    SeedNumberBottomUp(md.NumberBottomUp ?? false);
 
                     BackgroundColor = Color.FromArgb(md.LabelsFont.Background);
                     FontColor = Color.FromArgb(md.LabelsFont.Foreground);
@@ -487,6 +534,7 @@ namespace AutoNumber.ViewModels
         private Color _edgeColor, _fontColor, _backgroundColor;
         private double _labelScale = 1.0; // Default scale
         private FaceLabelAnchor _faceLabelAnchor = FaceLabelAnchor.BottomCenter;
+        private bool _numberBottomUp;
 
         // Set by MainVM after creation
         internal IDialogCoordinator? _dialogCoordinator { get; set; }

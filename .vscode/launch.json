@@ -1,0 +1,40 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            // F5 default. Requires the C# extension (ms-dotnettools.csharp) for the
+            // "coreclr" debug type — see .vscode/extensions.json.
+            "name": "AutoNumber (Debug)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/AutoNum/bin/Debug/net8.0-windows/win-x64/AutoNumber.exe",
+            "args": [],
+            // Must be the output folder: FaceDetector resolves the YuNet model via the
+            // relative path "Classifiers/face_detection_yunet_2023mar.onnx", so any other
+            // working directory makes face detection fail at runtime.
+            "cwd": "${workspaceFolder}/AutoNum/bin/Debug/net8.0-windows/win-x64",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "enableStepFiltering": true,
+            "justMyCode": true
+        },
+        {
+            "name": "AutoNumber (Release)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-release",
+            "program": "${workspaceFolder}/AutoNum/bin/Release/net8.0-windows/win-x64/AutoNumber.exe",
+            "args": [],
+            "cwd": "${workspaceFolder}/AutoNum/bin/Release/net8.0-windows/win-x64",
+            "console": "internalConsole",
+            "stopAtEntry": false,
+            "justMyCode": true
+        },
+        {
+            "name": "AutoNumber: Attach to running process",
+            "type": "coreclr",
+            "request": "attach"
+        }
+    ]
+}

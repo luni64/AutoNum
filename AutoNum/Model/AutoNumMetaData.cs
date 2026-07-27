@@ -85,6 +85,12 @@ namespace AutoNumber.Model
         public int? NamesColumnCount { get; set; }
         public bool? NamesRowDividersEnabled { get; set; }
         public string NamesRowDividerTemplate { get; set; } = "Reihe n:";
+        /// <summary>
+        /// Numbering direction the stored label numbers were produced with: <c>true</c> = bottom
+        /// row first. Optional — files written before the setting existed leave it null and are
+        /// read back as top-down, which is how they were numbered.
+        /// </summary>
+        public bool? NumberBottomUp { get; set; }
         public string ImageId { get; set; } = string.Empty;
         public AutoNumFont ImageIdFont { get; set; } = new AutoNumFont();
         public bool? ImageIdEnabled { get; set; }
@@ -111,6 +117,7 @@ namespace AutoNumber.Model
             NamesColumnCount = nm.NameTableColumnCount;
             NamesRowDividersEnabled = nm.ShowRowDividers;
             NamesRowDividerTemplate = nm.RowDividerTextTemplate;
+            NumberBottomUp = lm.NumberBottomUp;
             ImageId = idm.ImageId;
             ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
             ImageIdEnabled = idm.IsEnabled;

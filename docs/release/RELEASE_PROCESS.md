@@ -1,8 +1,9 @@
 # Release process
 
 Step-by-step process for releasing AutoNumber version X.Y.Z, as executed for
-v2.3.0. Commands are PowerShell from the repo root; `gh` is the GitHub CLI
-(`D:\apps\githubcli\gh.exe`).
+v2.3.0 and v2.4.0. Commands are PowerShell from the repo root; `gh` is the GitHub CLI
+(on PATH as of v2.4.0: `C:\Program Files\GitHub CLI\gh.exe`, authenticated as `luni64`
+with `repo` scope — the older `D:\apps\githubcli\gh.exe` path is gone).
 
 ## 1. Version bump (two places)
 
@@ -62,14 +63,30 @@ path must be converted to its 8.3 short path, because an embedded quoted path
 breaks ISCC's argument parsing:
 
 ```powershell
-$st  = (Get-ItemProperty "HKCU:\Software\Jordan Russell\Inno Setup\SignTools").SignTool0
-$cmd = $st.Substring($st.IndexOf('=') + 1)
-if ($cmd -match '^"([^"]+)"\s+(.*)$') {
-    $fso = New-Object -ComObject Scripting.FileSystemObject
-    $cmd = "$($fso.GetFile($Matches[1]).ShortPath) $($Matches[2])"
-}
-& "C:\Program Files (x86)\Inno Setup 6\ISCC.exe" /Q "/Scertum=$cmd" installer\setup.iss
+$st   = (Get-ItemProperty "HKCU:\Software\Jordan Russell\Inno Setup\SignTools").SignTool0
+$args = $st.Substring($st.IndexOf('=') + 1) -replace '^"[^"]+"\s+', ''   # keep only the arguments
+$fso  = New-Object -ComObject Scripting.FileSystemObject
+$tool = $fso.GetFile("C:\Program Files (x86)\Microsoft SDKs\ClickOnce\SignTool\signtool.exe").ShortPath
+& "C:\Program Files\Inno Setup 7\ISCC.exe" /Q "/Scertum=$tool $args" installer\setup.iss
 ```
+
+Two paths in the registry profile went stale and were corrected for v2.4.0 —
+verify both before blaming the script:
+
+- **Inno Setup is installed as version 7**, at `C:\Program Files\Inno Setup 7\ISCC.exe`
+  (the v2.3.0 notes said "Inno Setup 6" under `Program Files (x86)`).
+- The `certum` profile's `SignTool0` value still points at
+  `...\Windows Kits\10\bin\10.0.26100.0\x86\signtool.exe`, **which no longer exists** —
+  the Windows SDK is gone from this machine. The only `signtool.exe` left is the
+  ClickOnce copy above (v4.00, 2016); it supports `/tr` and `/td`, so it signs and
+  RFC3161-timestamps correctly. Hence the snippet keeps the registry *arguments*
+  (thumbprint, timestamp URL) but substitutes the tool path. The certificate itself
+  lives in `Cert:\CurrentUser\My` (thumbprint `7E32…F4F9`, valid to 2027-02-23) — no
+  PIN prompt appeared. Reinstalling the Windows SDK and repointing the profile in the
+  Inno IDE would let the original snippet work again.
+
+The 8.3 short path is still required: an embedded quoted path breaks ISCC's `/S`
+argument parsing.
 
 Output: `installer\bin\AutoNum-X.Y.Z-Setup.exe`. Verify the signature:
 

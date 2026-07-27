@@ -68,7 +68,7 @@ public partial class TextFormatDialog : MetroWindow
         {
             FontManagerControl.ShowEdgeColor = true;
             LabelAnchorPanel.Visibility = Visibility.Visible;
-            Height = 460;
+            Height = 560;
 
             BindingOperations.SetBinding(
                 FontManagerControl,
@@ -145,6 +145,7 @@ public partial class TextFormatDialog : MetroWindow
             if (_manager is LabelManager labelManager)
             {
                 mainVM.SettingsManager.FaceLabelAnchor = labelManager.FaceLabelAnchor;
+                mainVM.SettingsManager.NumberBottomUp = labelManager.NumberBottomUp;
             }
 
             // Setters no longer persist automatically — this button is one of the explicit

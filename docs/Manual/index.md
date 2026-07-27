@@ -118,6 +118,8 @@ So können Sie auch bei schwierigen Fotos (unscharf, seitlich, teilweise verdeck
 
 Der **Reihenmodus** (Icon mit Reihenlinien) ersetzt das manuelle Sortieren der Nummern nach Reihen: Sie fügen Reihengrenzen ein oder entfernen sie, und AutoNumber nummeriert automatisch reihenweise (erste Reihe von links nach rechts, dann die nächste usw.).
 
+**Reihenfolge der Reihen:** Standardmäßig beginnt die Zählung bei der **obersten** Reihe. Auf vielen alten Gruppenfotos – Schulklassen, Vereinen, Hochzeitsgesellschaften – sind die Namen jedoch von der vordersten Reihe aus überliefert. Deshalb lässt sich die Richtung umstellen, sodass mit der **untersten** Reihe begonnen wird. Innerhalb einer Reihe wird in beiden Fällen von links nach rechts gezählt. Sie stellen die Richtung als Standard für neu geöffnete Bilder in den Einstellungen ein (siehe [10.3](#103-erkennung)) oder nur für das aktuell geöffnete Bild im Formatierungsdialog der Nummern (siehe [6.4](#64-formatieren)).
+
 So funktioniert es:
 
 - **Reihenmodus einschalten** (Toggle-Button). Am rechten Bildrand erscheint ein schmaler Streifen mit farbigen Abschnitten – jede Farbe steht für eine Reihe. Passend dazu werden die Reihengrenzen als farbige Linien direkt im Bild eingezeichnet, und die Nummern-Label werden entsprechend ihrer Reihe eingefärbt. So sehen Sie auf einen Blick, welche Person zu welcher Reihe gehört. Falls Sie den Streifen nicht sehen, zoomen Sie das Bild etwas heraus.
@@ -150,6 +152,8 @@ Wenn Sie das Bild gar nicht in Reihen aufteilen möchten, löschen Sie im Reihen
 Öffnet die Darstellungseinstellungen für die Nummern (Größe, Schriftart, Rand- und Hintergrundfarbe) – analog zu den Formatierungsdialogen von Überschrift, Beschreibung, Bild-ID und Namensliste (siehe [Kapitel 8](#8-überschrift-beschreibung-bild-id)).
 
 Zusätzlich enthält dieser Dialog ein 3x3-Raster **Position des Labels im Gesicht**, mit dem Sie festlegen, an welcher Stelle des erkannten Gesichts das Nummern-Label zentriert wird. Anders als in den Einstellungen (siehe [Kapitel 10.3](#103-erkennung)) wirkt sich die Auswahl hier nur auf das **aktuell geöffnete Bild** aus und ändert nicht den Standardwert für künftig geöffnete Bilder. Über den Button **„Neu Erkennen"** direkt daneben wiederholen Sie die Gesichtserkennung mit der gewählten Position; sind bereits Namen eingetragen, erscheint vorher dieselbe Sicherheitsabfrage wie unter [6.1](#61-automatische-erkennung). Über **„Als Standard übernehmen"** lässt sich die aktuelle Auswahl – wie auch Größe und Farben – als neuer Standardwert für künftig geöffnete Bilder speichern.
+
+Darunter finden Sie das Kontrollkästchen **„Mit der untersten Reihe beginnen"** (siehe [6.3](#63-reihenmodus)). Es gilt nur für das **aktuell geöffnete Bild**; im Gegensatz zur Label-Position wirkt es sofort: Die Nummern werden unmittelbar neu vergeben, und die Namensliste zieht direkt nach – ein „Neu Erkennen" ist dafür nicht nötig und die eingetragenen Namen bleiben erhalten. Die gewählte Richtung wird beim Speichern **im Bild mitgespeichert**: Öffnen Sie das Bild später wieder, behält es seine Nummerierung, auch wenn der Standardwert inzwischen ein anderer ist.
 
 ---
 
@@ -265,6 +269,7 @@ Dieser Tab steuert die automatische Gesichtserkennung für neu geöffnete Bilder
 
 - **Gesichtserkennung verwenden:** schaltet die automatische Erkennung beim Öffnen ein/aus. Ist sie deaktiviert, lässt sich auch die Reihenerkennung nicht aktivieren.
 - **Reihenerkennung verwenden:** versucht zusätzlich, Reihen automatisch aus den erkannten Gesichtern abzuleiten.
+- **Mit der untersten Reihe beginnen:** legt den **Standardwert** für die Zählrichtung neu geöffneter Bilder fest (siehe [6.3](#63-reihenmodus)). Ist der Schalter aus, beginnt die Nummerierung wie bisher bei der obersten Reihe; ist er ein, bei der untersten. Innerhalb einer Reihe wird immer von links nach rechts gezählt. Wie die Label-Position wirkt sich auch diese Änderung nicht auf ein bereits geöffnetes Bild aus – dafür nutzen Sie den Formatierungsdialog der Nummern (siehe [6.4](#64-formatieren)).
 
 **Position des Labels im Gesicht:** Ein 3x3-Raster legt den **Standardwert** fest, an welcher Stelle des erkannten Gesichts das Nummern-Label bei neu geöffneten Bildern zentriert wird (z. B. oben links, Mitte, unten rechts) – der Standard ist „Unten Mitte" (leicht unterhalb des Kinns). Wie bei allen anderen Werten auf dieser Seite wird die Auswahl sofort als Standardwert gespeichert; es gibt hier keinen „Neu Erkennen"-Button, da sich die Änderung nicht auf ein bereits geöffnetes Bild auswirkt. Um die Position für das **aktuell geöffnete Bild** anzupassen und die Gesichter damit neu zu erkennen, nutzen Sie stattdessen den Formatierungsdialog der Nummern-Label (siehe [Kapitel 6.4](#64-formatieren)).
 
@@ -273,7 +278,7 @@ Die Gesichtserkennung läuft vollständig lokal auf Ihrem Rechner: Es werden kei
 Für Nutzer mit technischem Interesse: eine ausführliche Erklärung des Verfahrens findet sich im offiziellen [OpenCV-Beitrag zu YuNet](https://docs.opencv.org/4.x/df/d20/classcv_1_1FaceDetectorYN.html).
 
 ![Einstellungen – Tab Erkennung](Pictures/10c_einstellungen_erkennung.png)
-<!-- Zeigt: Erkennung-Tab mit Gesichts-/Reihenerkennung-Toggles und 3x3-Anker-Raster (ohne "Neu Erkennen"-Button). TODO: Screenshot ist veraltet und zeigt noch den alten Button, muss neu aufgenommen werden. -->
+<!-- Zeigt: Erkennung-Tab mit Gesichts-/Reihenerkennung-Toggles, 3x3-Anker-Raster und dem Schalter "Mit der untersten Reihe beginnen" (ohne "Neu Erkennen"-Button). TODO: Screenshot ist veraltet — er zeigt noch den alten Button und seit V2.4.0 auch den Nummerierungs-Schalter nicht, muss neu aufgenommen werden. -->
 
 ### 10.4 Export
 
@@ -342,6 +347,7 @@ Hinweis:
 
 **Die Nummerierungsreihenfolge passt nicht zu den Reihen im Foto?**
 - Nutzen Sie den Reihenmodus (siehe [6.3](#63-reihenmodus)), um Reihengrenzen direkt im Bild festzulegen.
+- Soll die Zählung bei der vordersten statt bei der obersten Reihe beginnen, aktivieren Sie „Mit der untersten Reihe beginnen" – für das aktuelle Bild im Formatierungsdialog der Nummern (siehe [6.4](#64-formatieren)), als Standard für neue Bilder in den Einstellungen (siehe [10.3](#103-erkennung)).
 
 **Namensliste wirkt zu klein/groß?**
 - Öffnen Sie den Formatierungsdialog der Namensliste (Zahnrad-Symbol) und passen Sie die Größe an.

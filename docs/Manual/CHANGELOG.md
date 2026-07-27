@@ -2,6 +2,15 @@
 
 Alle wesentlichen Änderungen an AutoNumber werden in dieser Datei dokumentiert. Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); die Versionen entsprechen den getaggten [GitHub-Releases](https://github.com/luni64/AutoNum/releases).
 
+## V2.4.0 - 2026-07-27
+
+**Neu**
+
+- Die Nummerierung kann jetzt wahlweise bei der untersten (vordersten) Reihe beginnen statt bei der obersten; innerhalb einer Reihe wird weiterhin von links nach rechts gezählt.
+- Einstellbar als Standard für neue Bilder unter Datei → Einstellungen → Erkennung und pro Bild im Formatieren-Dialog der Nummern, wo die Nummern sofort neu vergeben werden.
+- Die gewählte Richtung wird pro Bild mitgespeichert und bleibt beim erneuten Öffnen erhalten.
+- Die Reihentrenner der Namensliste zählen beim Nummerieren von unten die vorderste Reihe als „Reihe 1", sodass die Liste in Vorschau, JPG und PDF durchgehend von 1 bis n lesbar bleibt.
+
 ## V2.3.0 - 2026-07-12
 
 **Neu**

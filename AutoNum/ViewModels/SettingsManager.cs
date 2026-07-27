@@ -56,6 +56,7 @@ public class SettingsManager : BaseViewModel
         _faceDetectionEnabled = _settings.FaceDetectionEnabled;
         _rowDetectionEnabled = _settings.RowDetectionEnabled;
         _faceLabelAnchor = _settings.DefaultFaceLabelAnchor;
+        _numberBottomUp = _settings.DefaultNumberBottomUp;
         _saveFileSuffix = _settings.SaveFileSuffix ?? "_num";
         _useCustomOutputFolder = _settings.UseCustomOutputFolder;
         _outputFolder = _settings.OutputFolder ?? string.Empty;
@@ -112,6 +113,17 @@ public class SettingsManager : BaseViewModel
     {
         get => _faceLabelAnchor;
         set => SetProperty(ref _faceLabelAnchor, value);
+    }
+
+    /// <summary>
+    /// Default numbering direction for newly opened images: <c>false</c> numbers the top row
+    /// first, <c>true</c> the bottom row. Seeds <see cref="LabelManager.NumberBottomUp"/>;
+    /// per-image values restored from metadata are never overridden by it.
+    /// </summary>
+    public bool NumberBottomUp
+    {
+        get => _numberBottomUp;
+        set => SetProperty(ref _numberBottomUp, value);
     }
 
     public string SaveFileSuffix
@@ -188,6 +200,7 @@ public class SettingsManager : BaseViewModel
         FaceDetectionEnabled = snapshot.FaceDetectionEnabled;
         RowDetectionEnabled = snapshot.RowDetectionEnabled;
         FaceLabelAnchor = snapshot.FaceLabelAnchor;
+        NumberBottomUp = snapshot.NumberBottomUp;
         SaveFileSuffix = snapshot.SaveFileSuffix;
         UseCustomOutputFolder = snapshot.UseCustomOutputFolder;
         OutputFolder = snapshot.OutputFolder;
@@ -198,7 +211,7 @@ public class SettingsManager : BaseViewModel
 
     private SettingsSnapshot CaptureSnapshot() => new(
         Labels.Capture(), Title.Capture(), ImageInfo.Capture(), ImageId.Capture(), Names.Capture(),
-        FaceDetectionEnabled, RowDetectionEnabled, FaceLabelAnchor,
+        FaceDetectionEnabled, RowDetectionEnabled, FaceLabelAnchor, NumberBottomUp,
         SaveFileSuffix, UseCustomOutputFolder, OutputFolder,
         ExportCsvMetadata, ExportJsonMetadata, DefaultSaveFormat);
 
@@ -211,6 +224,7 @@ public class SettingsManager : BaseViewModel
         bool FaceDetectionEnabled,
         bool RowDetectionEnabled,
         FaceLabelAnchor FaceLabelAnchor,
+        bool NumberBottomUp,
         string SaveFileSuffix,
         bool UseCustomOutputFolder,
         string OutputFolder,
@@ -254,6 +268,7 @@ public class SettingsManager : BaseViewModel
         _settings.FaceDetectionEnabled = FaceDetectionEnabled;
         _settings.RowDetectionEnabled = RowDetectionEnabled;
         _settings.DefaultFaceLabelAnchor = FaceLabelAnchor;
+        _settings.DefaultNumberBottomUp = NumberBottomUp;
         _settings.SaveFileSuffix = SaveFileSuffix;
         _settings.UseCustomOutputFolder = UseCustomOutputFolder;
         _settings.OutputFolder = OutputFolder;
@@ -340,6 +355,7 @@ public class SettingsManager : BaseViewModel
     private bool _faceDetectionEnabled = true;
     private bool _rowDetectionEnabled = true;
     private FaceLabelAnchor _faceLabelAnchor;
+    private bool _numberBottomUp;
     private string _saveFileSuffix = "_num";
     private bool _useCustomOutputFolder;
     private string _outputFolder = string.Empty;

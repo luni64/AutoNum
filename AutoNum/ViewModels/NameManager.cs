@@ -366,18 +366,42 @@ namespace AutoNumber.ViewModels
                 ? DefaultRowDividerTextTemplate
                 : RowDividerTextTemplate;
 
+            var displayRow = ResolveDisplayRowNumber(row);
+
             if (template.Contains("{n}", StringComparison.OrdinalIgnoreCase))
             {
-                return template.Replace("{n}", row.ToString(), StringComparison.OrdinalIgnoreCase);
+                return template.Replace("{n}", displayRow.ToString(), StringComparison.OrdinalIgnoreCase);
             }
 
             var tokenIndex = template.LastIndexOf('n');
             if (tokenIndex >= 0)
             {
-                return template[..tokenIndex] + row + template[(tokenIndex + 1)..];
+                return template[..tokenIndex] + displayRow + template[(tokenIndex + 1)..];
             }
 
             return template;
+        }
+
+        /// <summary>
+        /// Row number printed in a divider. With bottom-up numbering the front (bottom) row holds
+        /// number 1, so labelling it "Reihe 3" would contradict the list — the stored index is
+        /// mirrored for display only. Person.Row and the row-edit mode keep counting from the top,
+        /// so the underlying data and the boundary editor are untouched.
+        /// </summary>
+        private int ResolveDisplayRowNumber(int row)
+        {
+            if (!_labelManager.NumberBottomUp || row <= 0)
+            {
+                return row;
+            }
+
+            var maxRow = _imageVM.Persons
+                .Where(person => person.Row > 0)
+                .Select(person => person.Row)
+                .DefaultIfEmpty(0)
+                .Max();
+
+            return maxRow > 0 ? maxRow - row + 1 : row;
         }
 
         private const string DefaultRowDividerTextTemplate = "Reihe n:";

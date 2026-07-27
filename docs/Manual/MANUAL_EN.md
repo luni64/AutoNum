@@ -118,6 +118,8 @@ This lets you build a clean numbering even on difficult photos (blurry, angled, 
 
 **Row mode** (icon with row lines) replaces manually sorting numbers by row: you add or remove row boundaries, and AutoNumber numbers people automatically row by row (first row left to right, then the next, and so on).
 
+**Row order:** By default, counting starts with the **top** row. On many old group photos – school classes, clubs, wedding parties – the names have been handed down starting from the front row instead. You can therefore reverse the direction so counting starts with the **bottom** row. Within a row, counting always runs left to right either way. Set the direction as the default for newly opened images in Settings (see [10.3](#103-detection)), or for the currently open image only in the number formatting dialog (see [6.4](#64-formatting)).
+
 Here's how it works:
 
 - **Turn on row mode** (toggle button). A narrow strip with colored sections appears along the right edge of the image – each color represents a row. Matching colored lines are also drawn directly in the image to mark the row boundaries, and the number labels are colored according to their row. This lets you see at a glance which person belongs to which row. If you don't see the strip, zoom out a bit.
@@ -149,6 +151,8 @@ If you don't want to split the image into rows at all, simply delete all rows in
 Opens the display settings for the numbers (size, font, border and background color) – analogous to the formatting dialogs for title, description, image ID, and name list (see [Chapter 8](#8-title-description-image-id)).
 
 This dialog also includes a 3×3 **label position on the face** grid, letting you choose where the number label is centered within the detected face. Unlike the same grid in Settings (see [Chapter 10.3](#103-detection)), your choice here only affects the **currently open image** and doesn't change the default used for future images. The **"Redetect"** button right next to it reruns face detection with the chosen position; if names have already been entered, the same confirmation prompt from [6.1](#61-automatic-detection) appears first. Use **"Use as default"** to save the current selection — along with size and colors — as the new default for future images.
+
+Below it you'll find the **"Start with the bottom row"** checkbox (see [6.3](#63-row-mode)). It applies to the **currently open image** only and, unlike the label position, takes effect immediately: the numbers are reassigned right away and the name list follows along – no "Redetect" needed, and the names you've entered are preserved. The chosen direction is **stored in the image** when you save: reopen it later and it keeps its numbering, even if the default has changed in the meantime.
 
 ---
 
@@ -259,6 +263,7 @@ This tab controls automatic face detection for newly opened images:
 
 - **Use face detection:** turns automatic detection on opening on/off. If disabled, row detection can't be enabled either.
 - **Use row detection:** additionally tries to derive rows automatically from the detected faces.
+- **Start with the bottom row:** sets the **default** counting direction for newly opened images (see [6.3](#63-row-mode)). When off, numbering starts at the top row as before; when on, at the bottom row. Within a row, counting always runs left to right. Like the label position, this change doesn't affect an image that's already open – use the number formatting dialog for that (see [6.4](#64-formatting)).
 
 **Label position on the face:** A 3×3 grid sets the **default** for where the number label is centered within the detected face on freshly opened images (e.g., top-left, center, bottom-right) – the default is "bottom center" (slightly below the chin). As with every other value on this page, your selection is saved as the default immediately; there's no "Redetect" button here, since the change doesn't affect an image that's already open. To adjust the position for the **currently open image** and redetect faces with it, use the number labels' formatting dialog instead (see [Chapter 6.4](#64-formatting)).
 
@@ -333,6 +338,7 @@ Note:
 
 **The numbering order doesn't match the rows in the photo?**
 - Use row mode (see [6.3](#63-row-mode)) to set row boundaries directly in the image.
+- If counting should start with the front row instead of the top one, enable "Start with the bottom row" – for the current image in the number formatting dialog (see [6.4](#64-formatting)), or as the default for new images in Settings (see [10.3](#103-detection)).
 
 **The name list looks too small/large?**
 - Open the name list's formatting dialog (gear icon) and adjust the size.

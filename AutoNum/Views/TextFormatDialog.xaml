@@ -109,6 +109,14 @@
 						Margin="16,0,0,0"
 						ToolTip="Führt die Gesichtserkennung mit der gewählten Label-Position erneut aus"/>
 			</StackPanel>
+
+			<TextBlock TextWrapping="Wrap" Margin="0,16,0,8">
+				Reihenfolge der Nummerierung für dieses Bild. Innerhalb einer Reihe wird immer von links nach rechts gezählt.
+			</TextBlock>
+			<CheckBox x:Name="NumberBottomUpCheckBox"
+					  Content="Mit der untersten Reihe beginnen"
+					  IsChecked="{Binding NumberBottomUp, Mode=TwoWay}"
+					  ToolTip="Nummeriert die Reihen von unten nach oben; die Nummern werden sofort neu vergeben"/>
 		</StackPanel>
 
 		<StackPanel Grid.Row="2"

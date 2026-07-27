@@ -1,0 +1,9 @@
+{
+    "recommendations": [
+        // Provides the "coreclr" debug type used by .vscode/launch.json, plus C#
+        // language support. Without it F5 cannot start.
+        "ms-dotnettools.csharp",
+        // XAML editing support for WPF views.
+        "ms-dotnettools.csdevkit"
+    ]
+}

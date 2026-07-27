@@ -67,10 +67,13 @@ namespace AutoNumber.Model
             var entryPersons = new List<Person?>();
             var dividerRowsByEntry = new List<int>();
 
+            // Row groups are ordered by their lowest label number, not by row index, so the list
+            // always reads 1..n. Identical to ordering by row index for top-down numbering, and
+            // correct for bottom-up numbering without the renderer having to know the direction.
             var assignedRowGroups = orderedItems
                 .Where(person => person.Row > 0)
                 .GroupBy(person => person.Row)
-                .OrderBy(group => group.Key)
+                .OrderBy(group => group.Min(person => person.Label.Number))
                 .ToList();
 
             foreach (var rowGroup in assignedRowGroups)

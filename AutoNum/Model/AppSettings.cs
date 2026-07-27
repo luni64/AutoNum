@@ -34,6 +34,7 @@ public class AppSettings
     public int DefaultImageIdFontBackground { get; set; } = Color.White.ToArgb();
 
     public FaceLabelAnchor DefaultFaceLabelAnchor { get; set; } = FaceLabelAnchor.BottomCenter;
+    public bool DefaultNumberBottomUp { get; set; } = false;
 
     public bool ExportCsvMetadata { get; set; } = true;
     public bool ExportJsonMetadata { get; set; } = true;
@@ -88,7 +89,7 @@ public static class AppSettingsStore
     {
         try
         {
-            settings.SchemaVersion = 8;
+            settings.SchemaVersion = 9;
             Directory.CreateDirectory(SettingsDirectory);
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(SettingsPath, json);
@@ -101,10 +102,11 @@ public static class AppSettingsStore
 
     private static AppSettings CreateDefault() => new()
     {
-        SchemaVersion = 8,
+        SchemaVersion = 9,
         FaceDetectionEnabled = true,
         RowDetectionEnabled = true,
         DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter,
+        DefaultNumberBottomUp = false,
         DefaultSaveFormat = SaveFormat.Jpg
     };
 
@@ -127,6 +129,13 @@ public static class AppSettingsStore
         {
             settings.DefaultSaveFormat = SaveFormat.Jpg;
             settings.SchemaVersion = 8;
+        }
+
+        if (settings.SchemaVersion < 9)
+        {
+            // Existing installations keep numbering top-down, as they always did.
+            settings.DefaultNumberBottomUp = false;
+            settings.SchemaVersion = 9;
         }
     }
 }

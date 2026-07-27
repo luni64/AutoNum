@@ -152,6 +152,7 @@ namespace AutoNumber.ViewModels
                     NamesColumnCount = md.NamesColumnCount,
                     NamesRowDividersEnabled = md.NamesRowDividersEnabled,
                     NamesRowDividerTemplate = md.NamesRowDividerTemplate,
+                    NumberBottomUp = md.NumberBottomUp,
                     ImageId = md.ImageId,
                     ImageIdFont = md.ImageIdFont,
                     ImageIdEnabled = md.ImageIdEnabled,
@@ -316,6 +317,7 @@ namespace AutoNumber.ViewModels
             CurrentMetadata.NamesColumnCount = nm.NameTableColumnCount;
             CurrentMetadata.NamesRowDividersEnabled = nm.ShowRowDividers;
             CurrentMetadata.NamesRowDividerTemplate = nm.RowDividerTextTemplate;
+            CurrentMetadata.NumberBottomUp = lm.NumberBottomUp;
             CurrentMetadata.ImageId = idm.ImageId;
             CurrentMetadata.ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
             CurrentMetadata.ImageIdEnabled = idm.IsEnabled;

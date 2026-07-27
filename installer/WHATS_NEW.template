@@ -3,25 +3,12 @@ AutoNum ${VERSION} — Was ist neu
 
 Neue Funktionen
 ---------------
-- Neues Datei-Menü ersetzt die bisherigen Öffnen-/Speichern-Buttons und das Einstellungen-Zahnrad: Öffnen, Speichern (Strg+S), Speichern unter... (JPG oder PDF in einem Dialog) und Metadaten exportieren...; die Einstellungen finden sich jetzt unter Datei -> Einstellungen. Die Bildvorschau hat dadurch mehr Platz.
-- Neues Hilfe-Menü mit Link zum neuen Online-Handbuch: https://autonumber.niggl-schlagbauer.de/
-- Die Gesichtserkennung wurde auf ein modernes DNN-Verfahren (YuNet) umgestellt und erkennt Gesichter auf alten und gescannten Fotos deutlich zuverlässiger.
-- Deutlich verbesserte automatische Reihenerkennung: Reihen werden wie von einem Menschen gezählt gruppiert, und die Reihengrenzen folgen als schräge, parallele Linien der Neigung des Fotos.
-- Die Größe der Nummern richtet sich bei neuen Bildern wieder nach der erkannten Gesichtsgröße statt nur nach der Bildbreite.
-- Wählbarer Anker für neu erkannte Nummern relativ zum Gesicht (3x3-Raster, z. B. unter dem Kinn oder mittig), als App-Standard in den Einstellungen und pro Bild im Formatieren-Dialog.
-- Bewegt man die Maus über einen Eintrag der Namensliste, wird die zugehörige Nummer im Bild hervorgehoben.
-- Strg+Ziehen verschiebt alle Nummern gemeinsam.
-- Die Schriftgröße von Namensliste, Überschrift, Beschreibung und Bild-ID ist jetzt unabhängig von der Nummerngröße einstellbar.
-- Der Öffnen-Dialog merkt sich den Ordner der Originalfotos, unabhängig davon, wohin gespeichert wurde — praktisch beim Abarbeiten ganzer Foto-Ordner.
-- Der Einstellungen-Dialog hat jetzt OK und Abbrechen: Änderungen werden erst mit OK übernommen und gespeichert.
+- Die Nummerierung kann jetzt wahlweise bei der untersten (vordersten) Reihe beginnen statt bei der obersten. Innerhalb einer Reihe wird weiterhin von links nach rechts gezählt.
+- Als Standard für neue Bilder einstellbar unter Datei -> Einstellungen -> Erkennung ("Mit der untersten Reihe beginnen").
+- Pro Bild umschaltbar im Formatieren-Dialog der Nummern; die Nummern werden sofort neu vergeben und die Namensliste zieht direkt nach.
+- Die gewählte Richtung wird im Bild mitgespeichert und bleibt beim erneuten Öffnen erhalten.
+- Die Reihentrenner der Namensliste zählen beim Nummerieren von unten die vorderste Reihe als "Reihe 1", sodass die Liste in Vorschau, JPG und PDF durchgehend von 1 bis n lesbar bleibt.
 
-Fehlerbehebungen
-----------------
-- Öffnen und Drehen großer Fotos ist deutlich schneller; das Speichern großer Scans belegt nicht mehr kurzzeitig sehr viel Arbeitsspeicher.
-- Flüssigeres Arbeiten bei Fotos mit vielen Personen (Hervorheben, Ziehen von Reihengrenzen).
-- „Speichern unter..." hängt einen relativen Ausgabeordner nicht mehr bei jedem Speichern erneut an; relative Ausgabeordner funktionieren jetzt generell zuverlässig, und bei unbrauchbarem Ausgabeordner erscheint eine Meldung statt eines stillen Ausweichens.
-- Graustufen-JPEGs ließen die Gesichtserkennung abstürzen.
-- Die gespeicherte Nummernposition war um den halben Nummerndurchmesser versetzt; alte Dateien werden beim Öffnen automatisch korrigiert.
-- Fehler beim Öffnen eines Bildes werden nicht mehr verschluckt, sondern angezeigt; Speichern ohne geladenes Bild meldet sich jetzt ebenfalls.
-- PDF: Das Bild verschwand in Acrobat DC beim Scrollen bei 100 % Zoom; außerdem einen ungültigen Eintrag im PDF-Dateiverzeichnis behoben.
-- Die Anker-Auswahl in den Erkennungs-Einstellungen sprang teils auf die vorherige Auswahl zurück.
+Hinweise für bestehende Dateien
+-------------------------------
+- Bereits gespeicherte Bilder bleiben unverändert bei der bisherigen Zählung von oben nach unten. Die neue Richtung gilt nur dort, wo sie ausdrücklich eingeschaltet wird.

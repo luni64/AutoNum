@@ -19,6 +19,8 @@ dotnet publish AutoNum\AutoNumber.csproj -c Release   # produces build for the i
 
 There is no automated test project — verification is manual (run the app and exercise the UI flow).
 
+In VS Code, **F5** runs the "AutoNumber (Debug)" configuration in `.vscode/launch.json` (builds first, then launches with breakpoints). Its `cwd` is the build output folder on purpose — `FaceDetector` resolves the YuNet model through the relative path `Classifiers/face_detection_yunet_2023mar.onnx`, so launching from anywhere else breaks face detection. Requires the `ms-dotnettools.csharp` extension.
+
 Building the installer (after a Release publish): open `installer\setup.iss` in Inno Setup (signs via the IDE's `certum` sign-tool profile), or via command-line `ISCC.exe` — which needs the sign command passed with `/S`; see `docs/release/RELEASE_PROCESS.md` for the exact invocation. Requires Inno Setup 6 plus `installer\CodeDependencies.iss` (from InnoDependencyInstaller, checked in). See `installer/README.md`. Before building, bump the version in `installer\setup.iss` **and** the `<Version>` property in `AutoNum\AutoNumber.csproj` (the window title reads it from the assembly).
 
 ## Architecture summary
@@ -55,6 +57,6 @@ This is a stable, high-level index only — it intentionally omits specifics (ve
 
 - `docs/release/NEXT_RELEASE.md` is the scratchpad for the unreleased version — add bug-fix/improvement notes here as you go.
 - `docs/release/RELEASE_NOTES_DE.md` holds the German user-facing notes for the current/most recent release.
-- Workflow: at release time, roll `NEXT_RELEASE.md` entries into the release notes and `docs/Manual/CHANGELOG.md`, then reset `NEXT_RELEASE.md`. The changelog is user-facing and written in German (sections `Neu`/`Geändert`/`Behoben`).
+- Workflow: at release time, roll `NEXT_RELEASE.md` entries into the release notes and `docs/Manual/CHANGELOG.md`, then reset `NEXT_RELEASE.md`. The changelog is user-facing and written in German (sections `Neu`/`Geändert`/`Behoben`), published at https://autonumber.niggl-schlagbauer.de/CHANGELOG/.
 - **`docs/release/RELEASE_PROCESS.md` is the authoritative step-by-step release guide** (version bump, doc rolling, win-x64 publish, ZIP, signed installer via ISCC, draft GitHub release, publish after user testing). Follow it when asked to prepare a release.
 - `docs/Manual/` (index.md = German manual, MANUAL_EN.md, CHANGELOG.md, Pictures/) is published to https://autonumber.niggl-schlagbauer.de/ as an MkDocs Material site (`mkdocs.yml`, deployed by `.github/workflows/manual.yml` on push to main). Nothing else under `docs/` is published. The app's Hilfe menu links to the site root.

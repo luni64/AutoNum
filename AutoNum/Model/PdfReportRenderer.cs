@@ -33,10 +33,12 @@ internal static class PdfReportRenderer
             .OrderBy(person => person.Row <= 0 ? int.MaxValue : person.Row)
             .ThenBy(person => person.Number)
             .ToList();
+        // Ordered by lowest label number rather than row index, so the table reads 1..n for
+        // top-down and bottom-up numbering alike (see Analyzer.PlacePersonNames).
         var assignedRowGroups = orderedPersons
             .Where(person => person.Row > 0)
             .GroupBy(person => person.Row)
-            .OrderBy(group => group.Key)
+            .OrderBy(group => group.Min(person => person.Number))
             .ToList();
         var unassignedPersons = orderedPersons
             .Where(person => person.Row <= 0)
