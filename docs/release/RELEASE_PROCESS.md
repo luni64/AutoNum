@@ -59,6 +59,17 @@ LatoFont assets, so the output must contain **only** win-x64 natives and **no**
 
 Smoke test: start `publish\AutoNumber.exe`, confirm it stays up, kill it.
 
+> **Pending — sign the publish output here (see
+> [CODE_SIGNING_SAC.md](CODE_SIGNING_SAC.md)).** We currently sign only the
+> installer and uninstaller, so everything the app actually loads — including
+> `AutoNumber.exe` and `AutoNumber.dll` — ships unsigned, and the portable ZIP
+> is unsigned end to end. Windows 11's Smart App Control validates *every* code
+> module and blocks hard, without a bypass. Researched 2026-07-27 and deferred
+> because no user has reported a block yet; our existing Certum certificate is
+> sufficient for it, no EV needed. Do this at the next release that touches the
+> installer, or immediately on the first complaint. The signing pass belongs
+> **here**, before the ZIP and ISCC steps, so both artifacts get it.
+
 ## 4. Release ZIP (portable version)
 
 Flat archive of the publish folder (no top-level directory), named with
