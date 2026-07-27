@@ -278,7 +278,7 @@ Die Gesichtserkennung läuft vollständig lokal auf Ihrem Rechner: Es werden kei
 Für Nutzer mit technischem Interesse: eine ausführliche Erklärung des Verfahrens findet sich im offiziellen [OpenCV-Beitrag zu YuNet](https://docs.opencv.org/4.x/df/d20/classcv_1_1FaceDetectorYN.html).
 
 ![Einstellungen – Tab Erkennung](Pictures/10c_einstellungen_erkennung.png)
-<!-- Zeigt: Erkennung-Tab mit Gesichts-/Reihenerkennung-Toggles, 3x3-Anker-Raster und dem Schalter "Mit der untersten Reihe beginnen" (ohne "Neu Erkennen"-Button). TODO: Screenshot ist veraltet — er zeigt noch den alten Button und seit V2.4.0 auch den Nummerierungs-Schalter nicht, muss neu aufgenommen werden. -->
+<!-- Zeigt: Erkennung-Tab mit Gesichts-/Reihenerkennung-Toggles, 3x3-Anker-Raster und dem Schalter "Mit der untersten Reihe beginnen" (ohne "Neu Erkennen"-Button). Screenshot für V2.4.0 neu aufgenommen. -->
 
 ### 10.4 Export
 
@@ -385,4 +385,4 @@ Beide Varianten enthalten dieselbe Programmversion – welche Sie wählen, ist r
 
 ### 15.2 Versionshinweis
 
-Dieses Handbuch beschreibt AutoNumber V2.3. Es wird bei Bedarf um weitere Screenshots und Beispiele ergänzt.
+Dieses Handbuch beschreibt AutoNumber V2.4. Es wird bei Bedarf um weitere Screenshots und Beispiele ergänzt.

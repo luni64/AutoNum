@@ -27,6 +27,23 @@ All user-facing texts are **German**. Sources: the entries collected in
    title line (substituted at installer compile time).
 4. **Reset `docs/release/NEXT_RELEASE.md`** to the empty skeleton
    (`# Next Release` / `## Features` / `## Bug Fixes`).
+5. **Manual version note** — chapter 15.2 ("Versionshinweis" / "Version Note")
+   in **both** `docs/Manual/index.md` and `docs/Manual/MANUAL_EN.md` names the
+   version the manual describes (`Dieses Handbuch beschreibt AutoNumber VX.Y`).
+   Bump it to the new X.Y; it was missed in v2.4.0 and still read V2.3 after
+   release. Quick check for leftovers:
+   `grep -rn "V2\.[0-9]" docs/Manual/*.md | grep -v CHANGELOG`
+6. **Document the feature in the manual itself**, not only in the changelog —
+   new options usually need a paragraph in the relevant chapter *and* in the
+   Settings chapter, in both languages, plus a fresh screenshot if a dialog
+   changed. The site is the user-facing documentation; the changelog only
+   says what changed, not how to use it.
+
+The version shown top-right on the manual site is **not** stored in the repo:
+MkDocs Material fetches it from `api.github.com/repos/luni64/AutoNum/releases/latest`
+in the visitor's browser and caches it in `sessionStorage`. It updates by itself
+once the release is published — a stale value there just means a cached session
+(Ctrl+F5), not a missed edit.
 
 ## 3. Build the binaries
 
