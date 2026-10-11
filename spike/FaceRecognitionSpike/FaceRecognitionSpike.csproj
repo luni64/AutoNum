@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <SelfContained>false</SelfContained>
+    <!-- Standalone spike, deliberately not part of AutoNum.sln. -->
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Same Emgu.CV build as the app, so results transfer 1:1. -->
+    <PackageReference Include="Emgu.CV.runtime.windows" Version="4.10.0.5680" />
+    <!-- Reads the AutoNum payload attachment out of _num.pdf files (same package as the app). -->
+    <PackageReference Include="PdfPig" Version="0.1.15" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- SFace recognizer: downloaded, git-ignored (38 MB) - see README.md -->
+    <None Update="Models\face_recognition_sface_2021dec.onnx" CopyToOutputDirectory="PreserveNewest" />
+    <!-- InsightFace ArcFace models for the comparison (model switch arcface / arcface-small): downloaded, git-ignored - see README.md -->
+    <None Update="Models\w600k_r50.onnx" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Models\w600k_mbf.onnx" CopyToOutputDirectory="PreserveNewest" />
+    <!-- YuNet detector: linked from the app so the spike uses exactly the same model -->
+    <None Include="..\..\AutoNum\Classifiers\face_detection_yunet_2023mar.onnx" Link="Models\face_detection_yunet_2023mar.onnx" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+</Project>

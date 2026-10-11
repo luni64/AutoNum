@@ -45,3 +45,10 @@ BenchmarkDotNet.Artifacts/
 # OS junk
 .DS_Store
 Thumbs.db
+
+# Face recognition spike: private photos and generated crops never enter the repo
+spike/photos/
+spike/out/
+spike/FaceRecognitionSpike/Models/face_recognition_sface_2021dec.onnx
+spike/FaceRecognitionSpike/Models/w600k_*.onnx
+spike/out_*/
