@@ -86,6 +86,14 @@ namespace AutoNumber.Model
         public bool? NamesRowDividersEnabled { get; set; }
         public string NamesRowDividerTemplate { get; set; } = "Reihe n:";
         /// <summary>
+        /// Where the names table sits: below the photo (the only layout before 2.5) or beside it.
+        /// Optional — older files leave it null and are read back as Below, which is how they
+        /// were rendered.
+        /// </summary>
+        public NamesPlacement? NamesPlacement { get; set; }
+        /// <summary>Width of a names table beside the photo, as a fraction of the photo width.</summary>
+        public double? NamesSideWidthScale { get; set; }
+        /// <summary>
         /// Numbering direction the stored label numbers were produced with: <c>true</c> = bottom
         /// row first. Optional — files written before the setting existed leave it null and are
         /// read back as top-down, which is how they were numbered.
@@ -117,6 +125,8 @@ namespace AutoNumber.Model
             NamesColumnCount = nm.NameTableColumnCount;
             NamesRowDividersEnabled = nm.ShowRowDividers;
             NamesRowDividerTemplate = nm.RowDividerTextTemplate;
+            NamesPlacement = nm.Placement;
+            NamesSideWidthScale = nm.SideWidthScale;
             NumberBottomUp = lm.NumberBottomUp;
             ImageId = idm.ImageId;
             ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);

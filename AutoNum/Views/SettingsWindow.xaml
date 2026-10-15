@@ -10,7 +10,7 @@
                  mc:Ignorable="d"
                  Title="Einstellungen"
                  Width="760"
-                 Height="640"
+                 Height="700"
                  ShowInTaskbar="False"
                  WindowStartupLocation="CenterOwner"
                  ResizeMode="CanResizeWithGrip">
@@ -29,6 +29,13 @@
             TabStripPlacement="Left" 
             mah:HeaderedControlHelper.HeaderFontSize="16" 
             mah:HeaderedControlHelper.HeaderFontWeight="Bold" >
+            <!-- MahApps paints each tab header with the TabControl's (white) Background; the vertical
+                 strip should sit on the window background instead, only the content pane stays white. -->
+            <TabControl.ItemContainerStyle>
+                <Style TargetType="TabItem" BasedOn="{StaticResource MahApps.Styles.TabItem}">
+                    <Setter Property="mah:HeaderedControlHelper.HeaderBackground" Value="Transparent"/>
+                </Style>
+            </TabControl.ItemContainerStyle>
             <TabItem Header="Formatierung">
                 <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
                     <StackPanel Margin="12,0">
@@ -78,6 +85,24 @@
 							FontColor="{Binding Names.FontColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							BackgroundColor="{Binding Names.BackgroundColor, Mode=TwoWay, Converter={StaticResource ColorConverter}}"
 							Margin="0,0,0,14"/>
+
+                        <TextBlock Text="Position der Namensliste" Margin="0,0,0,4" FontWeight="SemiBold"/>
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                            <RadioButton GroupName="NamesPlacement" Content="Unter dem Bild" Margin="0,0,20,0"
+                                         IsChecked="{Binding NamesPlacement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Below}"/>
+                            <RadioButton GroupName="NamesPlacement" Content="Rechts neben dem Bild"
+                                         IsChecked="{Binding NamesPlacement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Right}"/>
+                        </StackPanel>
+                        <Grid IsEnabled="{Binding NamesPlacement, Converter={StaticResource EnumBooleanConverter}, ConverterParameter=Right, Mode=OneWay}" Margin="0,0,0,14">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBlock Grid.Column="0" Text="Breite der seitlichen Liste:" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                            <Slider Grid.Column="1" Minimum="0.15" Maximum="1" Value="{Binding NamesSideWidthScale, Mode=TwoWay}" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Column="2" Text="{Binding NamesSideWidthScale, StringFormat={}{0:P0}, Mode=OneWay}" VerticalAlignment="Center" Margin="10,0,0,0" MinWidth="40" TextAlignment="Right"/>
+                        </Grid>
 
                         <Button
 							Content="Auf das aktuelle Bild Anwenden"

@@ -1,6 +1,7 @@
 using AutoNumber.Infrastructure;
 using AutoNumber.ViewModels;
 using MahApps.Metro.Controls;
+using AutoNumber.Model;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -11,6 +12,7 @@ namespace AutoNumber.Views;
 public partial class TextFormatDialog : MetroWindow
 {
     private static readonly ColorConverter DrawingToMediaColorConverter = new();
+    private static readonly EnumBooleanConverter PlacementConverter = new();
     private object? _manager;
     private string? _managerTypeName;
 
@@ -36,7 +38,56 @@ public partial class TextFormatDialog : MetroWindow
         if (manager is NameManager)
         {
             NameTableOptionsPanel.Visibility = Visibility.Visible;
-            Height = 340;
+
+            BindingOperations.SetBinding(
+                NamesBelowRadioButton,
+                RadioButton.IsCheckedProperty,
+                new Binding(nameof(NameManager.Placement))
+                {
+                    Mode = BindingMode.TwoWay,
+                    Converter = PlacementConverter,
+                    ConverterParameter = nameof(NamesPlacement.Below)
+                });
+
+            BindingOperations.SetBinding(
+                NamesRightRadioButton,
+                RadioButton.IsCheckedProperty,
+                new Binding(nameof(NameManager.Placement))
+                {
+                    Mode = BindingMode.TwoWay,
+                    Converter = PlacementConverter,
+                    ConverterParameter = nameof(NamesPlacement.Right)
+                });
+
+            foreach (var element in new FrameworkElement[] { NamesSideWidthLabel, NamesSideWidthSlider, NamesSideWidthText })
+            {
+                BindingOperations.SetBinding(
+                    element,
+                    IsEnabledProperty,
+                    new Binding(nameof(NameManager.Placement))
+                    {
+                        Mode = BindingMode.OneWay,
+                        Converter = PlacementConverter,
+                        ConverterParameter = nameof(NamesPlacement.Right)
+                    });
+            }
+
+            BindingOperations.SetBinding(
+                NamesSideWidthSlider,
+                Slider.ValueProperty,
+                new Binding(nameof(NameManager.SideWidthScale))
+                {
+                    Mode = BindingMode.TwoWay
+                });
+
+            BindingOperations.SetBinding(
+                NamesSideWidthText,
+                TextBlock.TextProperty,
+                new Binding(nameof(NameManager.SideWidthScale))
+                {
+                    Mode = BindingMode.OneWay,
+                    StringFormat = "{0:P0}"
+                });
 
             BindingOperations.SetBinding(
                 NameTableColumnCountComboBox,
@@ -68,7 +119,27 @@ public partial class TextFormatDialog : MetroWindow
         {
             FontManagerControl.ShowEdgeColor = true;
             LabelAnchorPanel.Visibility = Visibility.Visible;
-            Height = 560;
+
+            BindingOperations.SetBinding(
+                FaceAnchorPickerControl,
+                FaceAnchorPicker.SelectedAnchorProperty,
+                new Binding(nameof(LabelManager.FaceLabelAnchor))
+                {
+                    Mode = BindingMode.TwoWay
+                });
+
+            BindingOperations.SetBinding(
+                RedetectFacesButton,
+                System.Windows.Controls.Primitives.ButtonBase.CommandProperty,
+                new Binding(nameof(LabelManager.RedetectFacesCommand)));
+
+            BindingOperations.SetBinding(
+                NumberBottomUpCheckBox,
+                CheckBox.IsCheckedProperty,
+                new Binding(nameof(LabelManager.NumberBottomUp))
+                {
+                    Mode = BindingMode.TwoWay
+                });
 
             BindingOperations.SetBinding(
                 FontManagerControl,
@@ -146,6 +217,12 @@ public partial class TextFormatDialog : MetroWindow
             {
                 mainVM.SettingsManager.FaceLabelAnchor = labelManager.FaceLabelAnchor;
                 mainVM.SettingsManager.NumberBottomUp = labelManager.NumberBottomUp;
+            }
+
+            if (_manager is NameManager nameManager)
+            {
+                mainVM.SettingsManager.NamesPlacement = nameManager.Placement;
+                mainVM.SettingsManager.NamesSideWidthScale = nameManager.SideWidthScale;
             }
 
             // Setters no longer persist automatically — this button is one of the explicit

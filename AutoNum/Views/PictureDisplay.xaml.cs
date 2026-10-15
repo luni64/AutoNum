@@ -194,6 +194,12 @@ namespace AutoNumber.Views
                 return;
             }
 
+            if (e.PropertyName == nameof(ImageVM.NamesRegion) && _rowDefinitionSession is not null)
+            {
+                // A names column beside the photo pushes the row-edit strip further to the right
+                UpdateRowEditStripLayout();
+            }
+
             if (e.PropertyName is nameof(ImageVM.ImageWidth) or nameof(ImageVM.ImageHeight))
             {
                 if (Picture.ImageWidth > 0 && Picture.ImageHeight > 0)
@@ -211,7 +217,7 @@ namespace AutoNumber.Views
                 return;
             }
 
-            if (_pendingInitialZoomToFit && e.PropertyName is nameof(ImageVM.NamesRegionHeight) or nameof(ImageVM.TitleRegionHeight))
+            if (_pendingInitialZoomToFit && e.PropertyName is nameof(ImageVM.NamesRegion) or nameof(ImageVM.TitleRegionHeight))
             {
                 Dispatcher.BeginInvoke(TryApplyPendingZoomToFit, DispatcherPriority.ContextIdle);
             }
@@ -695,7 +701,7 @@ namespace AutoNumber.Views
             _rowStripDeleteButtonSize = 1.5* handleSize;
             _rowStripTotalWidth = _rowStripChipWidth + _rowStripHandleDistance + _rowStripDeleteButtonSize;
 
-            Canvas.SetLeft(rowEditStrip, Picture.ImageWidth + handleSize / 2.0 + _rowStripHandleDistance);
+            Canvas.SetLeft(rowEditStrip, Picture.CompositeWidth + handleSize / 2.0 + _rowStripHandleDistance);
             rowEditStrip.Width = _rowStripTotalWidth;
 
             rowInsertGhost.X1 = Math.Max(3, _rowStripChipWidth * 0.08);

@@ -66,6 +66,8 @@ public class SettingsManager : BaseViewModel
         _defaultSaveFormat = _settings.DefaultSaveFormat;
         _loggingEnabled = _settings.LoggingEnabled;
         _logFilePath = _settings.LogFilePath ?? string.Empty;
+        _namesPlacement = _settings.DefaultNamesPlacement;
+        _namesSideWidthScale = NamesSideWidth.Clamp(_settings.DefaultNamesSideWidthScale);
 
         // The log file can only be opened once the settings are known — this is that moment.
         LoggingError = AppLog.Configure(_loggingEnabled, _logFilePath);
@@ -172,6 +174,23 @@ public class SettingsManager : BaseViewModel
         set => SetProperty(ref _defaultSaveFormat, value);
     }
 
+    /// <summary>
+    /// Default placement of the names table for newly opened images (below or beside the photo).
+    /// Seeds <see cref="NameManager.Placement"/>; per-image values restored from metadata win.
+    /// </summary>
+    public NamesPlacement NamesPlacement
+    {
+        get => _namesPlacement;
+        set => SetProperty(ref _namesPlacement, value);
+    }
+
+    /// <summary>Default width of a names table beside the photo, as a fraction of the photo width.</summary>
+    public double NamesSideWidthScale
+    {
+        get => _namesSideWidthScale;
+        set => SetProperty(ref _namesSideWidthScale, NamesSideWidth.Clamp(value));
+    }
+
     /// <summary>Whether the application log file is written (see <see cref="AppLog"/>).</summary>
     public bool LoggingEnabled
     {
@@ -237,6 +256,8 @@ public class SettingsManager : BaseViewModel
         DefaultSaveFormat = snapshot.DefaultSaveFormat;
         LoggingEnabled = snapshot.LoggingEnabled;
         LogFilePath = snapshot.LogFilePath;
+        NamesPlacement = snapshot.NamesPlacement;
+        NamesSideWidthScale = snapshot.NamesSideWidthScale;
     }
 
     private SettingsSnapshot CaptureSnapshot() => new(
@@ -244,7 +265,8 @@ public class SettingsManager : BaseViewModel
         FaceDetectionEnabled, RowDetectionEnabled, FaceLabelAnchor, NumberBottomUp,
         SaveFileSuffix, UseCustomOutputFolder, OutputFolder,
         ExportCsvMetadata, ExportJsonMetadata, DefaultSaveFormat,
-        LoggingEnabled, LogFilePath);
+        LoggingEnabled, LogFilePath,
+        NamesPlacement, NamesSideWidthScale);
 
     private sealed record SettingsSnapshot(
         ElementDefaults.Snapshot Labels,
@@ -263,7 +285,9 @@ public class SettingsManager : BaseViewModel
         bool ExportJsonMetadata,
         SaveFormat DefaultSaveFormat,
         bool LoggingEnabled,
-        string LogFilePath);
+        string LogFilePath,
+        NamesPlacement NamesPlacement,
+        double NamesSideWidthScale);
 
     #endregion
 
@@ -310,6 +334,8 @@ public class SettingsManager : BaseViewModel
         _settings.DefaultSaveFormat = DefaultSaveFormat;
         _settings.LoggingEnabled = LoggingEnabled;
         _settings.LogFilePath = LogFilePath;
+        _settings.DefaultNamesPlacement = NamesPlacement;
+        _settings.DefaultNamesSideWidthScale = NamesSideWidthScale;
 
         AppSettingsStore.Save(_settings);
         LoggingError = AppLog.Configure(LoggingEnabled, LogFilePath);
@@ -365,6 +391,8 @@ public class SettingsManager : BaseViewModel
         nameManager.FontScale = Names.Scale;
         nameManager.FontColor = Names.FontColor;
         nameManager.BackgroundColor = Names.BackgroundColor;
+        nameManager.Placement = NamesPlacement;
+        nameManager.SideWidthScale = NamesSideWidthScale;
 
         titleManager.FontScale = Title.Scale;
         titleManager.FontColor = Title.FontColor;
@@ -400,4 +428,6 @@ public class SettingsManager : BaseViewModel
     private SaveFormat _defaultSaveFormat;
     private bool _loggingEnabled = true;
     private string _logFilePath = string.Empty;
+    private NamesPlacement _namesPlacement = NamesPlacement.Below;
+    private double _namesSideWidthScale = NamesSideWidth.Default;
 }

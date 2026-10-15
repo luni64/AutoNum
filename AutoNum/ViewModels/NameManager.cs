@@ -71,7 +71,7 @@ namespace AutoNumber.ViewModels
 
             if (_imageVM.Persons.Count == 0)
             {
-                _imageVM.NamesRegionHeight = 0;
+                _imageVM.NamesRegion = NamesRegion.None;
                 RowDividers = [];
                 return;
             }
@@ -79,14 +79,27 @@ namespace AutoNumber.ViewModels
             if (IsEnabled)
             {
                 var imageIdOffset = _imageIdManager.ShowImageIdLine ? _imageIdManager.LineHeight : 0;
+                var beside = Placement == NamesPlacement.Right;
+
+                // Below: full photo width, under the photo and the image-ID line.
+                // Beside: a column to the right, top-aligned with the photo, at least as tall as photo + ID line.
+                var startX = beside ? _imageVM.ImageWidth : 0;
+                var startY = beside ? 0 : _imageVM.ImageHeight + imageIdOffset;
+                var width = beside ? Math.Max(1, Math.Round(_imageVM.ImageWidth * SideWidthScale)) : _imageVM.ImageWidth;
+
                 var placement = Analyzer.PlacePersonNames(
                     PersonsView,
-                    _imageVM.ImageWidth,
-                    _imageVM.ImageHeight + imageIdOffset,
+                    startX,
+                    width,
+                    startY,
                     NameTableColumnCount,
                     ShowRowDividers,
                     FormatRowDividerText);
-                _imageVM.NamesRegionHeight = placement.TotalHeight;
+
+                var height = beside
+                    ? Math.Max(placement.TotalHeight, _imageVM.ImageHeight + imageIdOffset)
+                    : placement.TotalHeight;
+                _imageVM.NamesRegion = new NamesRegion(startX, startY, width, height, beside);
                 RowDividers = placement.Dividers;
             }
             else
@@ -96,7 +109,7 @@ namespace AutoNumber.ViewModels
                     person.Name.Visible = false;
                 }
 
-                _imageVM.NamesRegionHeight = 0;
+                _imageVM.NamesRegion = NamesRegion.None;
                 RowDividers = [];
             }
         }
@@ -149,6 +162,37 @@ namespace AutoNumber.ViewModels
                 if (_nameTableColumnCount != clamped)
                 {
                     _nameTableColumnCount = clamped;
+                    ShowNames();
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>Where the names table sits relative to the photo. Per image, seeded from the settings default.</summary>
+        public NamesPlacement Placement
+        {
+            get => _placement;
+            set
+            {
+                if (_placement != value)
+                {
+                    _placement = value;
+                    ShowNames();
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        /// <summary>Width of a table beside the photo as a fraction of the photo width (see <see cref="NamesSideWidth"/>).</summary>
+        public double SideWidthScale
+        {
+            get => _sideWidthScale;
+            set
+            {
+                var clamped = NamesSideWidth.Clamp(value);
+                if (_sideWidthScale != clamped)
+                {
+                    _sideWidthScale = clamped;
                     ShowNames();
                     OnPropertyChanged();
                 }
@@ -262,6 +306,8 @@ namespace AutoNumber.ViewModels
 
                     FontScale = scale;
                     NameTableColumnCount = Math.Clamp(md.NamesColumnCount ?? 1, 1, 4);
+                    Placement = md.NamesPlacement ?? NamesPlacement.Below;
+                    SideWidthScale = md.NamesSideWidthScale ?? NamesSideWidth.Default;
                     ShowRowDividers = md.NamesRowDividersEnabled ?? true;
                     RowDividerTextTemplate = string.IsNullOrWhiteSpace(md.NamesRowDividerTemplate)
                         ? DefaultRowDividerTextTemplate
@@ -406,6 +452,8 @@ namespace AutoNumber.ViewModels
         private readonly ImageIdManager _imageIdManager;
         private FontFamily _fontFamily = new("Calibri");
         private int _nameTableColumnCount = 1;
+        private NamesPlacement _placement = NamesPlacement.Below;
+        private double _sideWidthScale = NamesSideWidth.Default;
         private bool _showRowDividers = true;
         private string _rowDividerTextTemplate = DefaultRowDividerTextTemplate;
         private IReadOnlyList<NameListDividerRenderItem> _rowDividers = [];

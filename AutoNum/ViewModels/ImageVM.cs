@@ -51,18 +51,34 @@ namespace AutoNumber.ViewModels
         public int ImageWidth
         {
             get => _imageWidth;
-            set => SetProperty(ref _imageWidth, value);
+            set
+            {
+                SetProperty(ref _imageWidth, value);
+                OnPropertyChanged(nameof(CompositeWidth));
+            }
         }
         public int ImageHeight
         {
             get => _imageHeight;
             set => SetProperty(ref _imageHeight, value);
         }
-        public double NamesRegionHeight
+        /// <summary>
+        /// Where the names table sits relative to the photo (photo origin = 0,0; the title band
+        /// above is not included). Set by <see cref="NameManager.ShowNames"/>, read by the preview
+        /// bindings and the JPG export so both lay the composite out identically.
+        /// </summary>
+        public NamesRegion NamesRegion
         {
-            get => _namesRegionHeight;
-            set => SetProperty(ref _namesRegionHeight, value);
+            get => _namesRegion;
+            set
+            {
+                SetProperty(ref _namesRegion, value);
+                OnPropertyChanged(nameof(CompositeWidth));
+            }
         }
+
+        /// <summary>Width of the composite: the photo plus a names table beside it, if any.</summary>
+        public double CompositeWidth => ImageWidth + (NamesRegion.Beside ? NamesRegion.Width : 0);
         public double TitleRegionHeight
         {
             get => _titleRegionHeight;
@@ -314,6 +330,8 @@ namespace AutoNumber.ViewModels
             CurrentMetadata.NamesColumnCount = nm.NameTableColumnCount;
             CurrentMetadata.NamesRowDividersEnabled = nm.ShowRowDividers;
             CurrentMetadata.NamesRowDividerTemplate = nm.RowDividerTextTemplate;
+            CurrentMetadata.NamesPlacement = nm.Placement;
+            CurrentMetadata.NamesSideWidthScale = nm.SideWidthScale;
             CurrentMetadata.NumberBottomUp = lm.NumberBottomUp;
             CurrentMetadata.ImageId = idm.ImageId;
             CurrentMetadata.ImageIdFont = new AutoNumFont(idm.FontColor, idm.BackgroundColor, idm.FontFamily.Name, idm.FontSize);
@@ -427,7 +445,7 @@ namespace AutoNumber.ViewModels
         private int _panX, _panY;
         private double _zoom = 0.7;
         private double _labelDiameter;
-        private double _namesRegionHeight;
+        private NamesRegion _namesRegion = NamesRegion.None;
         private double _titleRegionHeight = 300;
         private RowDefinitionSession? _rowDefinitionSession;
         private AutoNumMetaData_V5? _currentMetadata;

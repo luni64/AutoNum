@@ -33,8 +33,15 @@ namespace AutoNumber.Model
             return thisSize.Height;
         }
 
+        /// <summary>
+        /// Lays the names table out and writes each person's row bounds (photo coordinates) into
+        /// its <c>Name</c> label. <paramref name="startX"/>/<paramref name="startY"/> are the
+        /// table's top-left corner: (0, photo height + ID line) below the photo, or (photo width, 0)
+        /// beside it.
+        /// </summary>
         public static NamePlacementResult PlacePersonNames(
             ICollectionView persons,
+            double startX,
             double width,
             double startY,
             int columnCount,
@@ -135,7 +142,7 @@ namespace AutoNumber.Model
 
                 if (person is not null)
                 {
-                    person.Name.X = cell.X;
+                    person.Name.X = startX + cell.X;
                     person.Name.Y = cell.Y;
                     person.Name.W = cell.Width;
                     person.Name.H = cell.Height;
@@ -149,7 +156,7 @@ namespace AutoNumber.Model
                     dividerItems.Add(new NameListDividerRenderItem(
                         Row: row,
                         Text: rowDividerTextFactory(row),
-                        X: 0,
+                        X: startX,
                         Y: cell.Y,
                         Width: options.TotalWidth,
                         Height: cell.Height));

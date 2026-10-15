@@ -50,6 +50,12 @@ public class AppSettings
 
     /// <summary>Custom log file path; empty means <see cref="AppLog.DefaultLogPath"/>.</summary>
     public string LogFilePath { get; set; } = string.Empty;
+
+    /// <summary>Default names-table placement for newly opened images.</summary>
+    public NamesPlacement DefaultNamesPlacement { get; set; } = NamesPlacement.Below;
+
+    /// <summary>Default width of a names table beside the photo, as a fraction of the photo width.</summary>
+    public double DefaultNamesSideWidthScale { get; set; } = NamesSideWidth.Default;
 }
 
 public static class AppSettingsStore
@@ -98,7 +104,7 @@ public static class AppSettingsStore
     {
         try
         {
-            settings.SchemaVersion = 10;
+            settings.SchemaVersion = 11;
             Directory.CreateDirectory(SettingsDirectory);
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(SettingsPath, json);
@@ -112,7 +118,7 @@ public static class AppSettingsStore
 
     private static AppSettings CreateDefault() => new()
     {
-        SchemaVersion = 10,
+        SchemaVersion = 11,
         FaceDetectionEnabled = true,
         RowDetectionEnabled = true,
         DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter,
@@ -153,6 +159,13 @@ public static class AppSettingsStore
             settings.LoggingEnabled = true;
             settings.LogFilePath = string.Empty;
             settings.SchemaVersion = 10;
+        }
+
+        if (settings.SchemaVersion < 11)
+        {
+            settings.DefaultNamesPlacement = NamesPlacement.Below;
+            settings.DefaultNamesSideWidthScale = NamesSideWidth.Default;
+            settings.SchemaVersion = 11;
         }
     }
 }

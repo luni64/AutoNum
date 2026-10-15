@@ -183,7 +183,7 @@ namespace AutoNumber.Model
             }
         }
 
-        private static void drawImageId(Graphics g, Bitmap bmp, ImageIdManager idm, int titleOffset, int imageHeight)
+        private static void drawImageId(Graphics g, ImageIdManager idm, int titleOffset, int imageWidth, int imageHeight)
         {
             if (string.IsNullOrWhiteSpace(idm.ImageId) || !idm.IsEnabled)
             {
@@ -195,7 +195,7 @@ namespace AutoNumber.Model
             using Brush bg = new SolidBrush(idm.BackgroundColor);
             using Brush fg = new SolidBrush(idm.FontColor);
 
-            var bounds = new RectangleF(0, titleOffset + imageHeight, bmp.Width, (float)idm.LineHeight);
+            var bounds = new RectangleF(0, titleOffset + imageHeight, imageWidth, (float)idm.LineHeight);
             g.FillRectangle(bg, bounds);
 
             var textSize = g.MeasureString(idm.ImageId, font);
@@ -256,13 +256,22 @@ namespace AutoNumber.Model
 
             var oldWidth = model.Bitmap.Width;
             var oldHeight = model.Bitmap.Height;
+            var namesRegion = hasNames ? model.NamesRegion : NamesRegion.None;
+            bool namesBeside = hasNames && namesRegion.Beside;
             int titleHeight = hasTopText ? (int)model.TitleRegionHeight : 0;
             int imageIdHeight = hasImageId ? (int)Math.Ceiling(idm.LineHeight) : 0;
-            int namesHeight = hasNames ? (int)model.NamesRegionHeight : 0;
-            int footerHeight = hasFooter ? imageIdHeight + namesHeight : 0;
+            int namesHeight = hasNames ? (int)Math.Ceiling(namesRegion.Height) : 0;
+            int namesWidth = namesBeside ? (int)Math.Ceiling(namesRegion.Width) : 0;
 
-            int newHeight = oldHeight + titleHeight + footerHeight;
-            var bmpFinal = new Bitmap(oldWidth, newHeight);
+            // Composite: [title | photo (+ names column beside) | image ID | names below]. The title
+            // spans the full width; a names column is top-aligned with the photo and the canvas
+            // grows downward if the table is taller than photo + ID line.
+            int newWidth = oldWidth + namesWidth;
+            int contentHeight = namesBeside
+                ? Math.Max(oldHeight + imageIdHeight, namesHeight)
+                : oldHeight + imageIdHeight + namesHeight;
+            int newHeight = titleHeight + contentHeight;
+            var bmpFinal = new Bitmap(newWidth, newHeight);
             using var g = Graphics.FromImage(bmpFinal);
 
             g.DrawImage(model.Bitmap, new Rectangle(0, titleHeight, oldWidth, oldHeight), new Rectangle(0, 0, oldWidth, oldHeight), GraphicsUnit.Pixel);
@@ -295,13 +304,27 @@ namespace AutoNumber.Model
             {
                 if (hasImageId)
                 {
-                    drawImageId(g, bmpFinal, idm, titleHeight, oldHeight);
+                    drawImageId(g, idm, titleHeight, oldWidth, oldHeight);
                 }
 
                 if (hasNames)
                 {
                     using Brush bg = new SolidBrush(nm.BackgroundColor);
-                    g.FillRectangle(bg, new Rectangle(0, titleHeight + oldHeight + imageIdHeight, bmpFinal.Width, namesHeight));
+                    if (namesBeside)
+                    {
+                        g.FillRectangle(bg, new Rectangle(oldWidth, titleHeight, namesWidth, contentHeight));
+
+                        // Table taller than the photo: paint the strip under photo + ID line as well
+                        var belowPhoto = contentHeight - oldHeight - imageIdHeight;
+                        if (belowPhoto > 0)
+                        {
+                            g.FillRectangle(bg, new Rectangle(0, titleHeight + oldHeight + imageIdHeight, oldWidth, belowPhoto));
+                        }
+                    }
+                    else
+                    {
+                        g.FillRectangle(bg, new Rectangle(0, titleHeight + oldHeight + imageIdHeight, oldWidth, namesHeight));
+                    }
 
                     var fontSize = (float)Math.Max(1d, TextLabel.Style.FontSize);
                     using var font = new Font(nm.FontFamily, fontSize, FontStyle.Regular, GraphicsUnit.Pixel);

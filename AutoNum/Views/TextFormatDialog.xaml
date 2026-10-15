@@ -9,98 +9,134 @@
 				 xmlns:is="clr-namespace:AutoNumber.Infrastructure"
 				 mc:Ignorable="d"
 				 Title="Formatierung"
-				 Width="600"
-				 Height="200"
+				 Width="620"
+				 SizeToContent="Height"
 				 ShowInTaskbar="False"
 				 WindowStartupLocation="CenterOwner"
 				 ResizeMode="NoResize">
+	<!--
+		One dialog for all formatting managers. The font row is always shown; the manager-specific
+		sections below it are collapsed by default and switched on by the code-behind, which also
+		creates their bindings (so a section's bindings never resolve against the wrong manager).
+		Layout: titled sections, labels in a shared left column, controls left-aligned.
+	-->
 	<mah:MetroWindow.Resources>
 		<is:ColorConverter x:Key="ColorConverter"/>
+
+		<Style x:Key="SectionHeader" TargetType="TextBlock">
+			<Setter Property="FontSize" Value="14"/>
+			<Setter Property="FontWeight" Value="SemiBold"/>
+			<Setter Property="Foreground" Value="{DynamicResource MahApps.Brushes.Accent}"/>
+			<Setter Property="Margin" Value="0,12,0,8"/>
+		</Style>
+
+		<!-- Every form row ends with a 10px gap; the label carries the same gap so it centres on the control -->
+		<Style x:Key="FormLabel" TargetType="TextBlock">
+			<Setter Property="VerticalAlignment" Value="Center"/>
+			<Setter Property="Margin" Value="0,0,16,10"/>
+		</Style>
+
+		<Style x:Key="Hint" TargetType="TextBlock">
+			<Setter Property="TextWrapping" Value="Wrap"/>
+			<Setter Property="FontSize" Value="12"/>
+			<Setter Property="Foreground" Value="#666666"/>
+		</Style>
 	</mah:MetroWindow.Resources>
-	<Grid Margin="16">
-		<Grid.RowDefinitions>
-			<RowDefinition Height="*"/>
-			<RowDefinition Height="Auto"/>
-			<RowDefinition Height="*"/>
-		</Grid.RowDefinitions>
 
-		<view:FontManager x:Name="FontManagerControl"
+	<StackPanel Margin="20,12,20,16" Grid.IsSharedSizeScope="True">
+
+		<TextBlock Text="Schrift und Farben" Style="{StaticResource SectionHeader}" Margin="0,4,0,8"/>
+		<view:FontManager x:Name="FontManagerControl"/>
+
+		<!-- Names list only -->
+		<StackPanel x:Name="NameTableOptionsPanel" Visibility="Collapsed">
+			<TextBlock Text="Tabelle" Style="{StaticResource SectionHeader}"/>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" SharedSizeGroup="Labels"/>
+					<ColumnDefinition Width="*"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
+
+				<TextBlock Grid.Row="0" Grid.Column="0" Text="Spalten" Style="{StaticResource FormLabel}"/>
+				<ComboBox x:Name="NameTableColumnCountComboBox"
+						  Grid.Row="0" Grid.Column="1"
+						  Width="80"
+						  HorizontalAlignment="Left"
+						  Margin="0,0,0,10"
+						  SelectedValuePath="Tag"
+						  ToolTip="In wie viele Spalten die Namensliste aufgeteilt wird">
+					<ComboBoxItem Content="1" Tag="1"/>
+					<ComboBoxItem Content="2" Tag="2"/>
+					<ComboBoxItem Content="3" Tag="3"/>
+					<ComboBoxItem Content="4" Tag="4"/>
+				</ComboBox>
+
+				<TextBlock Grid.Row="1" Grid.Column="0" Text="Reihentrenner" Style="{StaticResource FormLabel}"/>
+				<CheckBox x:Name="ShowRowDividersCheckBox"
+						  Grid.Row="1" Grid.Column="1"
+						  Content="Anzeigen"
 						  VerticalAlignment="Center"
-						  Grid.Row="0"/>
+						  Margin="0,0,0,10"
+						  ToolTip="Trennzeile mit Reihentext vor jeder erkannten Reihe"/>
 
-		<Grid x:Name="NameTableOptionsPanel"
-			  Grid.Row="1"
-			  Margin="0,20,0,0"
-			  Visibility="Collapsed">
-			<Grid.RowDefinitions>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-				<RowDefinition Height="Auto"/>
-			</Grid.RowDefinitions>
-			<Grid.ColumnDefinitions>
-				<ColumnDefinition Width="*"/>
-				<ColumnDefinition Width="Auto"/>
-			</Grid.ColumnDefinitions>
+				<TextBlock Grid.Row="2" Grid.Column="0" Text="Reihentext" Style="{StaticResource FormLabel}"/>
+				<StackPanel Grid.Row="2" Grid.Column="1" Orientation="Horizontal" Margin="0,0,0,10">
+					<TextBox x:Name="RowDividerTextTemplateTextBox"
+							 Width="200"
+							 VerticalContentAlignment="Center"/>
+					<TextBlock Text="n = Nummer der Reihe" Style="{StaticResource Hint}" VerticalAlignment="Center" Margin="12,0,0,0"/>
+				</StackPanel>
+			</Grid>
 
-			<TextBlock Grid.Row="0"
-					   Grid.Column="0"
-					   VerticalAlignment="Center"
-					   HorizontalAlignment="Right"
-					   Text="Spaltenanzahl Namensliste:"/>
+			<TextBlock Text="Position" Style="{StaticResource SectionHeader}"/>
+			<Grid>
+				<Grid.ColumnDefinitions>
+					<ColumnDefinition Width="Auto" SharedSizeGroup="Labels"/>
+					<ColumnDefinition Width="*"/>
+					<ColumnDefinition Width="Auto"/>
+				</Grid.ColumnDefinitions>
+				<Grid.RowDefinitions>
+					<RowDefinition Height="Auto"/>
+					<RowDefinition Height="Auto"/>
+				</Grid.RowDefinitions>
 
-			<ComboBox x:Name="NameTableColumnCountComboBox"
-					  Grid.Row="0"
-					  Margin="10,0,0,0"
-					  Grid.Column="1"
-					  Width="80"
-					  HorizontalAlignment="Right"
-					  SelectedValuePath="Tag">
-				<ComboBoxItem Content="1" Tag="1"/>
-				<ComboBoxItem Content="2" Tag="2"/>
-				<ComboBoxItem Content="3" Tag="3"/>
-				<ComboBoxItem Content="4" Tag="4"/>
-			</ComboBox>
+				<TextBlock Grid.Row="0" Grid.Column="0" Text="Namensliste" Style="{StaticResource FormLabel}"/>
+				<StackPanel Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,10">
+					<RadioButton x:Name="NamesBelowRadioButton" GroupName="NamesPlacement" Content="Unter dem Bild" Background="Transparent" Margin="0,0,24,0"/>
+					<RadioButton x:Name="NamesRightRadioButton" GroupName="NamesPlacement" Content="Rechts neben dem Bild" Background="Transparent"/>
+				</StackPanel>
 
-			<TextBlock Grid.Row="1"
-					   Grid.Column="0"
-					   VerticalAlignment="Center"
-					   HorizontalAlignment="Right"
-					   Margin="0,10,0,0"
-					   Text="Reihentrenner anzeigen:"/>
-			<CheckBox x:Name="ShowRowDividersCheckBox"
-					  Grid.Row="1"
-					  Grid.Column="1"
-					  Margin="10,10,0,0"
-					  VerticalAlignment="Center"
-					  HorizontalAlignment="Right"/>
+				<TextBlock x:Name="NamesSideWidthLabel" Grid.Row="1" Grid.Column="0" Text="Breite" Style="{StaticResource FormLabel}"/>
+				<Slider x:Name="NamesSideWidthSlider"
+						Grid.Row="1" Grid.Column="1"
+						Minimum="0.15" Maximum="1"
+						VerticalAlignment="Center"
+						Margin="0,0,0,10"
+						ToolTip="Breite der seitlichen Liste in Prozent der Bildbreite"/>
+				<TextBlock x:Name="NamesSideWidthText"
+						   Grid.Row="1" Grid.Column="2"
+						   MinWidth="44"
+						   TextAlignment="Right"
+						   VerticalAlignment="Center"
+						   Margin="12,0,0,10"/>
+			</Grid>
+		</StackPanel>
 
-			<TextBlock Grid.Row="2"
-					   Grid.Column="0"
-					   VerticalAlignment="Center"
-					   HorizontalAlignment="Right"
-					   Margin="0,10,0,0"
-					   Text="Reihentext (n = Nummer):"/>
-			<TextBox x:Name="RowDividerTextTemplateTextBox"
-				 Grid.Row="2"
-				 Grid.Column="1"
-				 Width="180"
-				 Margin="10,10,0,0"
-				 HorizontalAlignment="Right"
-				 VerticalContentAlignment="Center"/>
-		</Grid>
-
-		<StackPanel x:Name="LabelAnchorPanel"
-					Grid.Row="1"
-					Margin="0,20,0,0"
-					Visibility="Collapsed">
-			<TextBlock TextWrapping="Wrap" Margin="0,0,0,8">
+		<!-- Number labels only -->
+		<StackPanel x:Name="LabelAnchorPanel" Visibility="Collapsed">
+			<TextBlock Text="Position des Labels im Gesicht" Style="{StaticResource SectionHeader}"/>
+			<TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10">
 				Legt fest, an welcher Stelle des erkannten Gesichts das Nummern-Label platziert wird. Wirkt sich erst nach Klick auf "Neu Erkennen" aus.
 			</TextBlock>
 			<StackPanel Orientation="Horizontal">
-				<view:FaceAnchorPicker SelectedAnchor="{Binding FaceLabelAnchor, Mode=TwoWay}" VerticalAlignment="Top"/>
+				<view:FaceAnchorPicker x:Name="FaceAnchorPickerControl" VerticalAlignment="Top"/>
 				<Button x:Name="RedetectFacesButton"
 						Content="Neu Erkennen"
-						Command="{Binding RedetectFacesCommand}"
 						Style="{StaticResource MahApps.Styles.Button.Square.Accent}"
 						FontSize="13"
 						mah:ControlsHelper.ContentCharacterCasing="Upper"
@@ -110,31 +146,29 @@
 						ToolTip="Führt die Gesichtserkennung mit der gewählten Label-Position erneut aus"/>
 			</StackPanel>
 
-			<TextBlock TextWrapping="Wrap" Margin="0,16,0,8">
+			<TextBlock Text="Nummerierung" Style="{StaticResource SectionHeader}"/>
+			<TextBlock Style="{StaticResource Hint}" Margin="0,0,0,10">
 				Reihenfolge der Nummerierung für dieses Bild. Innerhalb einer Reihe wird immer von links nach rechts gezählt.
 			</TextBlock>
 			<CheckBox x:Name="NumberBottomUpCheckBox"
 					  Content="Mit der untersten Reihe beginnen"
-					  IsChecked="{Binding NumberBottomUp, Mode=TwoWay}"
 					  ToolTip="Nummeriert die Reihen von unten nach oben; die Nummern werden sofort neu vergeben"/>
 		</StackPanel>
 
-		<StackPanel Grid.Row="2"
-					Orientation="Horizontal"
+		<StackPanel Orientation="Horizontal"
 					HorizontalAlignment="Right"
-					VerticalAlignment="Bottom"
-					Margin="0,16,0,0">
-				<Button x:Name="UseAsDefaultButton"
-						Content="Als Standard übernehmen"
-						Width="Auto"
-						Height="40"
-						Margin="0,0,8,0"
-						Click="UseAsDefault_Click"
-						Visibility="Collapsed"/>
-				<Button Content="Schliessen"
-						Width="110"
-						Height="40"
-						Click="Close_Click"/>
+					Margin="0,28,0,0">
+			<Button x:Name="UseAsDefaultButton"
+					Content="Als Standard übernehmen"
+					Height="40"
+					Padding="16,0"
+					Margin="0,0,8,0"
+					Click="UseAsDefault_Click"
+					Visibility="Collapsed"/>
+			<Button Content="Schliessen"
+					Width="110"
+					Height="40"
+					Click="Close_Click"/>
 		</StackPanel>
-	</Grid>
+	</StackPanel>
 </mah:MetroWindow>
