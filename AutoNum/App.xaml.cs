@@ -1,9 +1,5 @@
 ﻿using AutoNumber.Infrastructure;
-using AutoNumber.Model;
 using AutoNumber.ViewModels;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
 using System.Windows;
 using System.Windows.Threading;
 
@@ -16,13 +12,10 @@ namespace AutoNumber
     {
         DialogService dialogService = new();
 
-        /// <summary>
-        /// Append-only log of unhandled exceptions, next to settings.json. Users can attach it to a bug report.
-        /// </summary>
-        public static string ErrorLogPath => Path.Combine(AppSettingsStore.SettingsDirectory, "error.log");
-
         private void startup(object sender, StartupEventArgs e)
         {
+            AppLog.Initialize();
+
             // Last line of defence: nothing in the app should throw past a command handler, but if it
             // does, log it and tell the user instead of silently dying.
             DispatcherUnhandledException += onDispatcherUnhandledException;
@@ -69,18 +62,18 @@ namespace AutoNumber
         /// </summary>
         private void onUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
         {
-            tryLog(e.Exception, "Nicht beobachteter Task");
+            AppLog.Error("Unhandled exception (nicht beobachteter Task)", e.Exception);
             e.SetObserved();
         }
 
         private static void reportUnhandled(Exception ex, string origin)
         {
-            var logged = tryLog(ex, origin);
+            AppLog.Error($"Unhandled exception ({origin})", ex);
 
             var message = $"Ein unerwarteter Fehler ist aufgetreten ({origin}):\n\n{ex.GetType().Name}: {ex.Message}";
-            if (logged)
+            if (AppLog.IsFileLoggingActive)
             {
-                message += $"\n\nDetails wurden gespeichert in:\n{ErrorLogPath}\n\nBitte diese Datei einer Fehlermeldung beifügen.";
+                message += $"\n\nDetails stehen in der Protokolldatei:\n{AppLog.LogPath}\n\nBitte diese Datei einer Fehlermeldung beifügen.";
             }
 
             try
@@ -89,29 +82,7 @@ namespace AutoNumber
             }
             catch (Exception dlgEx)
             {
-                Trace.WriteLine($"Error showing unhandled-exception dialog: {dlgEx}");
-            }
-        }
-
-        private static bool tryLog(Exception ex, string origin)
-        {
-            Trace.WriteLine($"Unhandled exception ({origin}): {ex}");
-            try
-            {
-                Directory.CreateDirectory(AppSettingsStore.SettingsDirectory);
-                var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString(3) ?? "?";
-                var entry = $"""
-                    ==== {DateTime.Now:yyyy-MM-dd HH:mm:ss} | AutoNumber {version} | {origin} ====
-                    {ex}
-
-                    """;
-                File.AppendAllText(ErrorLogPath, entry);
-                return true;
-            }
-            catch (Exception logEx)
-            {
-                Trace.WriteLine($"Error writing {ErrorLogPath}: {logEx}");
-                return false;
+                AppLog.Error("Could not show the unhandled-exception dialog", dlgEx);
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using MahApps.Metro.Controls;
 using AutoNumber.ViewModels;
 using AutoNumber.Views;
+using AutoNumber.Infrastructure;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
@@ -67,7 +68,7 @@ namespace AutoNumber
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Error opening manual link: {ex}");
+                AppLog.Error("Could not open the manual link in the browser", ex);
             }
         }
 

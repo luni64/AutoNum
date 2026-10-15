@@ -3,7 +3,6 @@ using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
 using MahApps.Metro.Controls.Dialogs;
 using MahApps.Metro.IconPacks;
-using System.Diagnostics;
 using System.Drawing;
 using DrawingImageFormat = System.Drawing.Imaging.ImageFormat;
 using System.IO;
@@ -32,14 +31,12 @@ namespace AutoNumber.ViewModels
                     return;
                 }
 
-                Trace.WriteLine($"OpenImage: start '{filename}'");
+                AppLog.Info($"Open '{filename}'");
                 var pvm = _mainVM.PictureVM;
 
                 if (string.Equals(Path.GetExtension(filename), ".pdf", StringComparison.OrdinalIgnoreCase))
                 {
-                    Trace.WriteLine("OpenImage: detected PDF input");
                     OpenFromPdfFile(filename, pvm);
-                    Trace.WriteLine("OpenImage: PDF import completed");
                     return;
                 }
 
@@ -47,7 +44,6 @@ namespace AutoNumber.ViewModels
                 var bitmap = BitmapExtensions.LoadBitmapFromBytes(fileBytes);
                 bitmap.ApplyExifOrientation();
                 var metadata = ReadJpegMetadata(fileBytes, bitmap);
-                Trace.WriteLine($"OpenImage: metadata version = '{metadata?.Version ?? "none"}'");
 
                 if (metadata is null)  // not written by AutoNumber => use as original image
                 {
@@ -59,14 +55,13 @@ namespace AutoNumber.ViewModels
 
                     if (_mainVM.SettingsManager.FaceDetectionEnabled)
                     {
-                        Trace.WriteLine("OpenImage: no AutoNum metadata, running face detection");
                         var faces = FaceDetector.Detect(bitmap);
+                        AppLog.Info($"Open: plain photo {bitmap.Width}x{bitmap.Height} px, {faces.Count} face(s) detected");
                         WeakReferenceMessenger.Default.Send(new NewImageOpenedMessage(faces));
-                        Trace.WriteLine($"OpenImage: fresh image initialized with {faces.Count} detected face(s)");
                     }
                     else
                     {
-                        Trace.WriteLine("OpenImage: no AutoNum metadata, face detection disabled");
+                        AppLog.Info($"Open: plain photo {bitmap.Width}x{bitmap.Height} px, face detection disabled");
                         // No faces to report, but LabelManager still needs this to (re)compute
                         // BaseLabelDiameter for the new image via the fallback formula — otherwise
                         // it would keep whatever diameter was left over from a previous photo.
@@ -83,7 +78,7 @@ namespace AutoNumber.ViewModels
 
                     if (patches is not null && patches.Count > 0)
                     {
-                        Trace.WriteLine($"OpenImage: metadata restore from JPEG APP4 patches ({patches.Count} patch(es))");
+                        AppLog.Info($"Open: restoring base image from {patches.Count} embedded patch(es), {v2.Persons.Count} person(s)");
                         var restored = bitmap.RestoreFromPatches(v2, patches);
                         bitmap.Dispose();
 
@@ -93,8 +88,7 @@ namespace AutoNumber.ViewModels
                         pvm.CurrentImageFilename = filename;
                         pvm.InitFromMetadata(v2);
 
-                        RefreshPreviewAfterMetadataLoad("OpenImage/JPEG");
-                        Trace.WriteLine("OpenImage: metadata restore from JPEG completed");
+                        RefreshPreviewAfterMetadataLoad();
                     }
                     else
                     {
@@ -110,14 +104,14 @@ namespace AutoNumber.ViewModels
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Error opening image: {ex}");
+                AppLog.Error("Open failed", ex);
                 try
                 {
                     await _mainVM.DialogCoordinator!.ShowMessageAsync(_mainVM, "Fehler", $"Fehler beim Öffnen des Bildes: {ex.Message}");
                 }
                 catch (Exception dlgEx)
                 {
-                    Trace.WriteLine($"Error showing dialog: {dlgEx}");
+                    AppLog.Error("Open: could not show the error dialog", dlgEx);
                 }
             }
         }
@@ -130,12 +124,22 @@ namespace AutoNumber.ViewModels
         {
             if (AppSegmentIO.ReadMetadataJson(fileBytes) is string json)
             {
-                bool ok = AutoNumMetaData_V1.FromJson(json, out var metadata);
-                Trace.WriteLine($"OpenImage: AutoNum metadata found in APP4 segment, parsing {(ok ? "OK" : "failed")}");
-                return ok ? metadata : null;
+                if (AutoNumMetaData_V1.FromJson(json, out var metadata))
+                {
+                    AppLog.Info($"Open: AutoNum metadata {metadata!.Version} in APP4 segment");
+                    return metadata;
+                }
+
+                AppLog.Warn("Open: APP4 metadata segment present but not parseable, treating the file as a plain photo");
+                return null;
             }
 
-            return bitmap.GetLegacyMetadata();
+            var legacy = bitmap.GetLegacyMetadata();
+            if (legacy is not null)
+            {
+                AppLog.Info($"Open: AutoNum metadata {legacy.Version} in legacy EXIF UserComment");
+            }
+            return legacy;
         }
 
         private const string SaveAsFilter = "JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PDF Files (*.pdf)|*.pdf";
@@ -211,7 +215,7 @@ namespace AutoNumber.ViewModels
             catch (ExternalException ex)
             {
                 // GDI+ reports e.g. an EXIF block that no longer fits into its 64 KB APP1 segment this way
-                Trace.WriteLine($"WriteJpg: JPEG encoding failed: {ex}");
+                AppLog.Error($"Save: JPEG encoding failed for '{filename}'", ex);
                 _mainVM.DialogService.ShowError($"Das Bild konnte nicht als JPEG gespeichert werden: {ex.Message}");
                 return;
             }
@@ -223,6 +227,7 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
+            AppLog.Info($"Save: JPEG '{filename}' ({result.Bitmap.Width}x{result.Bitmap.Height} px, {result.Patches.Count} label(s), {finalBytes.Length:N0} bytes)");
             _mainVM.PictureVM.CurrentImageFilename = filename;
 
             var exportData = BuildExportData();
@@ -246,6 +251,7 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
+            AppLog.Info($"Save: PDF '{filename}' ({result.Patches.Count} label(s))");
             _mainVM.PictureVM.CurrentImageFilename = filename;
             WriteMetadataSidecars(filename, exportData, result);
         }
@@ -364,8 +370,10 @@ namespace AutoNumber.ViewModels
                 }
                 catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
                 {
+                    AppLog.Warn($"Save: writing {operationName} '{filename}' failed: {ex.Message}");
                     if (!_mainVM.DialogService.ShowSaveRetryDialog(operationName, filename, ex.Message))
                     {
+                        AppLog.Info($"Save: {operationName} '{filename}' given up by the user");
                         return false;
                     }
                 }
@@ -435,19 +443,17 @@ namespace AutoNumber.ViewModels
 
         private void OpenFromPdfFile(string pdfFilename, ImageVM pvm)
         {
-            Trace.WriteLine($"OpenFromPdfFile: reading '{pdfFilename}'");
             if (!PdfPayloadStore.TryExtractPayloadFromPdfAttachment(pdfFilename, out var payloadZipBytes) || payloadZipBytes is null)
             {
                 throw new InvalidDataException("Die PDF enthält keine editierbaren AutoNum-Daten.");
             }
 
-            Trace.WriteLine($"OpenFromPdfFile: extracted payload zip ({payloadZipBytes.Length} bytes)");
             if (!PdfPayloadStore.TryReadPayloadZip(payloadZipBytes, out var payload) || payload is null)
             {
                 throw new InvalidDataException("Die eingebetteten AutoNum-Daten in der PDF sind ungültig.");
             }
 
-            Trace.WriteLine($"OpenFromPdfFile: payload metadata version '{payload.Metadata.Version}', base image size={payload.BaseImageBytes.Length} bytes");
+            AppLog.Info($"Open: AutoNum metadata {payload.Metadata.Version} in PDF payload, {payload.Metadata.Persons.Count} person(s), base image {payload.BaseImageBytes.Length:N0} bytes");
 
             using var baseStream = new MemoryStream(payload.BaseImageBytes);
             using var baseSource = new Bitmap(baseStream);
@@ -460,18 +466,22 @@ namespace AutoNumber.ViewModels
                 : payload.Metadata.OriginalImage;
             pvm.CurrentImageFilename = pdfFilename;
             pvm.InitFromMetadata(payload.Metadata);
-            RefreshPreviewAfterMetadataLoad("OpenFromPdfFile");
-            Trace.WriteLine("OpenFromPdfFile: metadata initialization completed");
+            RefreshPreviewAfterMetadataLoad();
         }
 
         private async Task OpenFromOriginalFile(Bitmap numberedBitmap, AutoNumMetaData_V1 metadata, ImageVM pvm, string currentFilename)
         {
-            Trace.WriteLine($"openFromOriginalFile: requested original '{metadata.OriginalImage}'");
+            AppLog.Info($"Open: no embedded patches, {metadata.Persons.Count} person(s), needs original file '{metadata.OriginalImage}' (exists: {File.Exists(metadata.OriginalImage)})");
 
             if (!File.Exists(metadata.OriginalImage))
             {
                 string imagePath = await AskForOriginalFilename(metadata.OriginalImage);
-                if (string.IsNullOrEmpty(imagePath)) throw new FileNotFoundException();
+                if (string.IsNullOrEmpty(imagePath))
+                {
+                    AppLog.Info("Open: user did not provide the original file");
+                    throw new FileNotFoundException();
+                }
+                AppLog.Info($"Open: user pointed to original file '{imagePath}'");
                 metadata.OriginalImage = imagePath;
             }
 
@@ -483,8 +493,7 @@ namespace AutoNumber.ViewModels
             pvm.OriginalImageFilename = metadata.OriginalImage;
             pvm.CurrentImageFilename = currentFilename;
             pvm.InitFromMetadata(metadata);
-            RefreshPreviewAfterMetadataLoad("openFromOriginalFile");
-            Trace.WriteLine("openFromOriginalFile: metadata initialization completed");
+            RefreshPreviewAfterMetadataLoad();
         }
 
         private async Task<string> AskForOriginalFilename(string orignalFilename)
@@ -546,9 +555,8 @@ namespace AutoNumber.ViewModels
             return !string.IsNullOrEmpty(folder) && Directory.Exists(folder) ? folder : null;
         }
 
-        private void RefreshPreviewAfterMetadataLoad(string source)
+        private void RefreshPreviewAfterMetadataLoad()
         {
-            Trace.WriteLine($"RefreshPreviewAfterMetadataLoad: source={source}");
             _mainVM.NameManager.RefreshAndShowNames();
             System.Windows.Input.CommandManager.InvalidateRequerySuggested();
         }
@@ -627,7 +635,7 @@ namespace AutoNumber.ViewModels
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"ResolveOutputFolder: could not create '{relativeFolder}' under '{sourcePath}': {ex}");
+                AppLog.Warn($"Output folder '{relativeFolder}' under '{sourcePath}' could not be created, falling back to the image folder", ex);
                 _mainVM.DialogService.ShowWarning(
                     $"Der Unterordner \"{configuredFolder}\" konnte nicht angelegt werden ({ex.Message}). " +
                     "Es wird stattdessen der Ordner des Bildes vorgeschlagen.");

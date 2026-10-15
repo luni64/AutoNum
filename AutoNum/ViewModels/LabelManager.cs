@@ -2,7 +2,6 @@
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
 using MahApps.Metro.Controls.Dialogs;
-using System.Diagnostics;
 using System.Drawing;
 using System.Threading.Tasks;
 
@@ -43,7 +42,7 @@ namespace AutoNumber.ViewModels
             {
                 WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
             }
-            catch (Exception ex) { Trace.WriteLine($"Numerate refresh failed: {ex}"); }
+            catch (Exception ex) { AppLog.Error("Numerate: LabelsChanged refresh failed", ex); }
         }
 
         RelayCommand? _deleteAllLabelsCommand;
@@ -65,7 +64,7 @@ namespace AutoNumber.ViewModels
             {
                 WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
             }
-            catch (Exception ex) { Trace.WriteLine($"DeleteAllLabels refresh failed: {ex}"); }
+            catch (Exception ex) { AppLog.Error("DeleteAllLabels: LabelsChanged refresh failed", ex); }
         }
 
         RelayCommand? _redetectFacesCommand;
@@ -102,7 +101,7 @@ namespace AutoNumber.ViewModels
 
             // Re-run face detection
             var faces = FaceDetector.Detect(_imageVM.Bitmap);
-            Trace.WriteLine($"RedetectFaces: detected {faces.Count} face(s)");
+            AppLog.Info($"Redetect: {faces.Count} face(s) detected");
 
             // Set labels with newly detected faces (scale is preserved as it's not modified by SetLabels)
             SetLabels(faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
@@ -111,7 +110,7 @@ namespace AutoNumber.ViewModels
             {
                 WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
             }
-            catch (Exception ex) { Trace.WriteLine($"RedetectFaces refresh failed: {ex}"); }
+            catch (Exception ex) { AppLog.Error("RedetectFaces: LabelsChanged refresh failed", ex); }
         }
 
         RelayCommand? _rotateImageCommand;
@@ -136,7 +135,7 @@ namespace AutoNumber.ViewModels
             _imageVM.Init();
 
             var faces = FaceDetector.Detect(_imageVM.Bitmap);
-            Trace.WriteLine($"RotateImage: detected {faces.Count} face(s) after rotation");
+            AppLog.Info($"Rotate: image rotated 90°, {faces.Count} face(s) detected");
             SetLabels(faces, _mainVM?.SettingsManager.RowDetectionEnabled ?? true);
 
             try
@@ -145,7 +144,7 @@ namespace AutoNumber.ViewModels
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"RotateImage refresh failed: {ex}");
+                AppLog.Error("RotateImage: LabelsChanged refresh failed", ex);
             }
         }
 
@@ -433,7 +432,6 @@ namespace AutoNumber.ViewModels
                 try
                 {
                     var md = msg.Metadata;
-                    Trace.WriteLine($"MetadataLoaded[LabelManager]: start version={md.Version}, labels={md.Persons.Count}");
 
                     // Same reasoning as the fresh-image path: start this session from the current
                     // app-wide default rather than carrying over a previous image's anchor choice.
@@ -457,7 +455,6 @@ namespace AutoNumber.ViewModels
                             ? v3.BaseLabelFontSize
                             : md.LabelsFont.Size;
                         LabelScale = v3.LabelScale;
-                        Trace.WriteLine($"MetadataLoaded[LabelManager]: V3+ branch baseDiameter={BaseLabelDiameter:F4}, baseFont={BaseLabelFontSize:F4}, labelScale={LabelScale:F4}, visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     }
                     else
                     {
@@ -468,29 +465,24 @@ namespace AutoNumber.ViewModels
                             ? SizingModel.LegacyStoredFontSizeToVisibleSize(md.LabelsFont.Size)
                             : SizingModel.ComputeFittedLabelFontSize(BaseLabelDiameter, _imageVM.Persons);
                         LabelScale = 1.0;
-                        Trace.WriteLine($"MetadataLoaded[LabelManager]: legacy branch labelsSize={md.LabelsSize:F4}, labelsFontStored={md.LabelsFont.Size:F4}, baseDiameter={BaseLabelDiameter:F4}, baseFont={BaseLabelFontSize:F4}, labelScale={LabelScale:F4}, visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
                     }
 
                     if (v3 is not null && double.IsFinite(v3.BaseTextFontSize) && v3.BaseTextFontSize > 0)
                     {
                         BaseTextFontSize = v3.BaseTextFontSize;
-                        Trace.WriteLine($"MetadataLoaded[LabelManager]: restored baseTextFont={BaseTextFontSize:F4}");
                     }
                     else
                     {
                         // Pre-dates BaseTextFontSize persistence (or legacy metadata) — recompute
                         // fresh from the restored image's dimensions.
                         RecalculateBaseTextFontSize();
-                        Trace.WriteLine($"MetadataLoaded[LabelManager]: recomputed baseTextFont={BaseTextFontSize:F4} (no stored value)");
                     }
 
                     WeakReferenceMessenger.Default.Send(new LabelsChangedMessage());
-                    Trace.WriteLine($"MetadataLoaded[LabelManager]: post-refresh visibleDiameter={MarkerLabel.Style.Diameter:F4}, visibleFont={MarkerLabel.Style.FontSize:F4}");
-                    Trace.WriteLine("MetadataLoaded[LabelManager]: completed");
                 }
                 catch (Exception ex)
                 {
-                    Trace.WriteLine($"MetadataLoaded[LabelManager]: failed - {ex}");
+                    AppLog.Error("Restore: LabelManager could not apply the metadata", ex);
                     throw;
                 }
             });

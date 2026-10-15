@@ -1,7 +1,6 @@
 using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Input;
@@ -185,9 +184,7 @@ namespace AutoNumber.ViewModels
             // The metadata is preserved in CurrentMetadata for later use
             ClearRowDefinition();
 
-            Trace.WriteLine($"InitFromMetadata: sending MetadataLoadedMessage version={md.Version}, persons={md.Persons.Count}");
             WeakReferenceMessenger.Default.Send(new MetadataLoadedMessage(md));
-            Trace.WriteLine("InitFromMetadata: MetadataLoadedMessage completed");
         }
 
         public void BeginRowDefinition(int rowCount, IEnumerable<RowBoundary>? boundaries = null)
@@ -357,8 +354,6 @@ namespace AutoNumber.ViewModels
             bool hasTopText = (tm.IsEnabled && !string.IsNullOrEmpty(tm.Title))
                 || (iim.IsEnabled && !string.IsNullOrEmpty(iim.ImageInfo));
             v2.TitleHeight = hasTopText ? Math.Max(0, (int)Math.Round(TitleRegionHeight)) : 0;
-
-            Trace.WriteLine($"UpdateMetadataBeforeSave: synced reconstruction fields width={v2.OriginalImageWidth}, height={v2.OriginalImageHeight}, titleHeight={v2.TitleHeight}, hasTopText={hasTopText}");
         }
 
         private static void SyncSizingMetadata(AutoNumMetaData_V3 v3, LabelManager lm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)

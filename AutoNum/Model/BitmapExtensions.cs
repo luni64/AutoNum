@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿using AutoNumber.Infrastructure;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -27,21 +27,15 @@ namespace AutoNumber.Model
         /// </summary>
         public static AutoNumMetaData_V1? GetLegacyMetadata(this Bitmap bitmap)
         {
-            Trace.WriteLine("Check if bitmap has legacy AutoNum metadata in user_comment tag");
-
-            var EXIF_UserCommentID = 0x9286;
-            var UserCommentItem = bitmap.PropertyItems.FirstOrDefault(pi => pi.Id == EXIF_UserCommentID);
-            if (UserCommentItem != null && UserCommentItem.Value?.Length > 0)
+            const int ExifUserCommentId = 0x9286;
+            var userComment = bitmap.PropertyItems.FirstOrDefault(pi => pi.Id == ExifUserCommentId);
+            if (userComment?.Value is not { Length: > 0 })
             {
-                Trace.WriteLine("- has user_comment tag");
-
-                var json = Encoding.Unicode.GetString(UserCommentItem.Value).TrimEnd('\0');
-                bool OK = AutoNumMetaData_V1.FromJson(json, out AutoNumMetaData_V1? metaData);
-                Trace.WriteLine($"- Parsing: {(OK ? "OK" : "Error")}");
-                return OK ? metaData : null;
+                return null;
             }
-            Trace.WriteLine("- no user_comment tag found");
-            return null;
+
+            var json = Encoding.Unicode.GetString(userComment.Value).TrimEnd('\0');
+            return AutoNumMetaData_V1.FromJson(json, out var metaData) ? metaData : null;
         }
 
 
@@ -88,7 +82,7 @@ namespace AutoNumber.Model
                 }
                 catch (Exception ex)
                 {
-                    Trace.WriteLine($"Skipped metadata tag 0x{prop.Id:X4}: {ex.Message}");
+                    AppLog.Warn($"Save: EXIF tag 0x{prop.Id:X4} could not be copied and is dropped: {ex.Message}");
                 }
             }
         }
@@ -101,9 +95,6 @@ namespace AutoNumber.Model
         public static Bitmap RestoreFromPatches(this Bitmap composite, AutoNumMetaData_V2 md, List<PatchData> patches)
         {
             ArgumentNullException.ThrowIfNull(composite);
-            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches START: composite={composite.Width}x{composite.Height}");
-            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches: OriginalImageWidth={md.OriginalImageWidth}, OriginalImageHeight={md.OriginalImageHeight}, TitleHeight={md.TitleHeight}");
-            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches: patches.Count={patches.Count}");
 
             // Composite layout: [title bar (TitleHeight) | original image | footer]
             // Step 1: Paste patches onto composite at their saved coordinates (composite space)
@@ -111,7 +102,6 @@ namespace AutoNumber.Model
             {
                 foreach (var patch in patches)
                 {
-                    System.Diagnostics.Trace.WriteLine($"  Pasting patch at ({patch.X}, {patch.Y}) size={patch.Width}x{patch.Height}");
                     using var pngStream = new MemoryStream(patch.PngBytes);
                     using var patchBmp = new Bitmap(pngStream);
                     g.DrawImage(patchBmp, patch.X, patch.Y, patch.Width, patch.Height);
@@ -120,7 +110,6 @@ namespace AutoNumber.Model
 
             // Step 2: Crop to original image region (skip title at top, footer at bottom)
             var cropRect = new Rectangle(0, md.TitleHeight, md.OriginalImageWidth, md.OriginalImageHeight);
-            System.Diagnostics.Trace.WriteLine($"RestoreFromPatches: cropRect={cropRect}");
             return composite.Clone(cropRect, composite.PixelFormat);
         }
         /// <summary>

@@ -2,7 +2,6 @@
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
 using System.Collections.Specialized;
-using System.Diagnostics;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Data;
@@ -252,7 +251,6 @@ namespace AutoNumber.ViewModels
                 try
                 {
                     var md = msg.Metadata;
-                    Trace.WriteLine($"MetadataLoaded[NameManager]: start version={md.Version}, namesEnabled={md.NamesEnabled}");
 
                     BackgroundColor = Color.FromArgb(md.NamesFont.Background);
                     FontColor = Color.FromArgb(md.NamesFont.Foreground);
@@ -270,13 +268,10 @@ namespace AutoNumber.ViewModels
                         : md.NamesRowDividerTemplate;
                     IsEnabled = _imageVM.Persons.Count > 0 && (md.NamesEnabled ?? true);
                     ShowNames();
-
-                    Trace.WriteLine($"MetadataLoaded[NameManager]: scale={scale:F4}, storedSize={md.NamesFont.Size:F4}, baseLabelStored={md.LabelsFont.Size:F4}, baseLabelRuntime={_labelManager.BaseLabelFontSize:F4}, resolvedFontSize={TextLabel.Style.FontSize:F4}, columns={NameTableColumnCount}, enabled={IsEnabled}");
-                    Trace.WriteLine("MetadataLoaded[NameManager]: completed");
                 }
                 catch (Exception ex)
                 {
-                    Trace.WriteLine($"MetadataLoaded[NameManager]: failed - {ex}");
+                    AppLog.Error("Restore: NameManager could not apply the metadata", ex);
                     throw;
                 }
             });

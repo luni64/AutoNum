@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using AutoNumber.Infrastructure;
 using System.Drawing;
 
 namespace AutoNumber.Model;
@@ -18,7 +18,7 @@ internal static class FontFamilyResolver
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"Failed to restore font family '{familyName}', using fallback '{fallback.Name}': {ex.Message}");
+            AppLog.Warn($"Font family '{familyName}' is not available on this system, using '{fallback.Name}' instead: {ex.Message}");
             return fallback;
         }
     }

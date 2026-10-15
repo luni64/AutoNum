@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using AutoNumber.Infrastructure;
 using System.Drawing;
 using System.IO;
 using System.Text.Json;
@@ -65,6 +65,7 @@ public static class AppSettingsStore
         {
             if (!File.Exists(SettingsPath))
             {
+                AppLog.Info($"Settings: no '{SettingsPath}' yet, using defaults");
                 return CreateDefault();
             }
 
@@ -74,13 +75,15 @@ public static class AppSettingsStore
             Migrate(settings);
             if (settings.SchemaVersion != originalSchemaVersion)
             {
+                AppLog.Info($"Settings: migrated schema {originalSchemaVersion} -> {settings.SchemaVersion}");
                 Save(settings);
             }
+            AppLog.Info($"Settings: loaded '{SettingsPath}'");
             return settings;
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"Failed to load settings: {ex}");
+            AppLog.Warn($"Settings: '{SettingsPath}' could not be loaded, using defaults", ex);
             return CreateDefault();
         }
     }
@@ -93,10 +96,11 @@ public static class AppSettingsStore
             Directory.CreateDirectory(SettingsDirectory);
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(SettingsPath, json);
+            AppLog.Info("Settings: saved");
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"Failed to save settings: {ex}");
+            AppLog.Error($"Settings: '{SettingsPath}' could not be saved", ex);
         }
     }
 

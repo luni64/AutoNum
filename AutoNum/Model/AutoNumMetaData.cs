@@ -1,5 +1,5 @@
 ﻿using AutoNumber.ViewModels;
-using System.Diagnostics;
+using AutoNumber.Infrastructure;
 using System.Drawing;
 using System.Text.Json;
 using System.Text.Json.Serialization;
@@ -159,7 +159,7 @@ namespace AutoNumber.Model
             }
             catch (Exception ex)
             {
-                Trace.WriteLine($"Failed to parse AutoNum metadata: {ex}");
+                AppLog.Warn("AutoNum metadata JSON could not be parsed", ex);
                 return false;
             }
         }
@@ -180,9 +180,9 @@ namespace AutoNumber.Model
                 var r = JsonSerializer.Deserialize<VersionTest>(json);
                 version = (r != null && r.Creator == "AutoNumber" && !string.IsNullOrEmpty(r.Version)) ? r.Version : "";
             }
-            catch (Exception ex)
+            catch (JsonException)
             {
-                Trace.WriteLine($"Failed to parse version from metadata: {ex}");
+                // Not JSON at all — e.g. a camera's plain-text UserComment. Not worth a log entry.
                 version = string.Empty;
             }
 

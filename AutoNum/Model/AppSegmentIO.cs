@@ -1,4 +1,4 @@
-using System.Diagnostics;
+using AutoNumber.Infrastructure;
 using System.IO;
 using System.Text;
 
@@ -121,7 +121,7 @@ internal static class AppSegmentIO
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"Failed to deserialise AutoNum patches: {ex.Message}");
+            AppLog.Warn("Open: embedded patch segments present but not decodable", ex);
             return null;
         }
     }

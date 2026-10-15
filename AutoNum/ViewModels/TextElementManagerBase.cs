@@ -1,7 +1,6 @@
 using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using CommunityToolkit.Mvvm.Messaging;
-using System.Diagnostics;
 using System.Drawing;
 
 namespace AutoNumber.ViewModels;
@@ -117,8 +116,6 @@ public abstract class TextElementManagerBase : BaseViewModel
     {
         try
         {
-            Trace.WriteLine($"MetadataLoaded[{GetType().Name}]: start version={md.Version}");
-
             var font = MetadataFont(md);
             BackgroundColor = Color.FromArgb(font.Background);
             FontColor = Color.FromArgb(font.Foreground);
@@ -129,12 +126,10 @@ public abstract class TextElementManagerBase : BaseViewModel
                 : SizingModel.SafeScale(LegacyStoredFontSize(md), md.LabelsFont.Size);
 
             RestoreElementState(md);
-
-            Trace.WriteLine($"MetadataLoaded[{GetType().Name}]: scale={FontScale:F4}, resolvedFontSize={FontSize:F4}, enabled={IsEnabled}");
         }
         catch (Exception ex)
         {
-            Trace.WriteLine($"MetadataLoaded[{GetType().Name}]: failed - {ex}");
+            AppLog.Error($"Restore: {GetType().Name} could not apply the metadata", ex);
             throw;
         }
     }

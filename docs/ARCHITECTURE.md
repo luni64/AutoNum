@@ -11,6 +11,7 @@ AutoNum/
 ├── Infrastructure/             # Cross-cutting services/converters/messages
 │   ├── Messages.cs             # WeakReferenceMessenger message types
 │   ├── DialogService.cs        # Open/Save/error dialogs
+│   ├── AppLog.cs               # Application log file (%AppData%/AutoNum/autonum.log) over System.Diagnostics.Trace
 │   ├── IDialogService.cs
 │   └── Converters.cs           # WPF  converters (bitmap/color/visibility/etc.)
 ├── Model/                      # Persistence and image-processing helpers
@@ -94,9 +95,15 @@ AutoNum/
 - Reading (`FileManager.ReadJpegMetadata`): APP4 JSON first, then `BitmapExtensions.GetLegacyMetadata` (EXIF `UserComment`) as the fallback for files written by older versions. The file is read into memory once and the same bytes feed the bitmap decoder, the metadata reader and the patch reader.
 - `WriteJpg` catches `ExternalException` from the GDI+ encoder and shows an error dialog instead of crashing, as a safety net for any remaining EXIF-size edge case (e.g. an original whose APP1 is already at the 64 KB limit).
 
-### Unhandled Exceptions
-- `App.xaml.cs` wires the three global hooks at startup: `DispatcherUnhandledException` (UI thread, including `async void` command handlers — marked `Handled` so the app stays alive and the user can still save), `AppDomain.UnhandledException` (non-UI threads — the process still terminates afterwards, but the user learns why) and `TaskScheduler.UnobservedTaskException` (logged only, then observed).
-- Every hook appends the full exception (`ToString()`, with inner exceptions and stack) plus timestamp, app version and origin to `%AppData%/AutoNum/error.log` (`App.ErrorLogPath`, next to `settings.json`) and shows a `MessageBox` naming that file so users can attach it to a bug report. This is the last line of defence, not a substitute for proper error handling in commands — a failure the app silently died from before 2.5 (GDI+ encoder error on save) is the kind of thing it is meant to surface.
+### Logging (`Infrastructure/AppLog.cs`)
+- **One log file**, `%AppData%/AutoNum/autonum.log` (`AppLog.LogPath`, next to `settings.json`), append-only, rotated to `autonum.log.1` when it exceeds ~1 MB at startup. Users attach it to bug reports; the unhandled-exception dialog names the path. `AppLog.Initialize()` is the first call in `App.startup` and never throws — if the file can't be opened, `IsFileLoggingActive` is false and messages only reach the debugger.
+- **Thin wrapper over `System.Diagnostics.Trace`**: `AppLog.Info/Warn/Error(message, ex?)` map to `Trace.TraceInformation/Warning/Error`, so output also reaches the debugger's output window through the default listener. The private `FileTraceListener` writes one line per message: `yyyy-MM-dd HH:mm:ss.fff [LEVEL] message`, with `Exception.ToString()` appended on the following lines. Call sites use `AppLog`, never `Trace` directly.
+- **What to log** (the policy, so the file stays readable for a user's problem):
+  - `Info` — session header (version, OS, .NET, culture), settings loaded/migrated/saved, and every file open/save milestone with the data that decided the code path: path, metadata version and *source* (APP4 segment, legacy EXIF UserComment, PDF payload), restore mode (embedded patches vs. original file, incl. whether that file exists), counts (persons, faces detected, labels), pixel size, bytes written; redetect/rotate results.
+  - `Warn` — degraded behaviour the user may not notice: font fallback, settings reset to defaults, APP4/patch segment present but undecodable, EXIF tag dropped on save, output folder fallback, save write failure before the retry dialog.
+  - `Error` — failures that abort an action or surface as a dialog, always with the exception: open/save failures, metadata-restore failures in the managers, unhandled exceptions.
+  - **Not** step-by-step chatter (computed sizes, "completed" markers, per-patch loops) — the 2.5 cleanup removed ~40 such `Trace.WriteLine`s; use the debugger for that.
+- **Unhandled exceptions**: `App.xaml.cs` wires `DispatcherUnhandledException` (UI thread, including `async void` command handlers — marked `Handled` so the app stays alive and the user can still save), `AppDomain.UnhandledException` (non-UI threads — the process still terminates afterwards, but the user learns why) and `TaskScheduler.UnobservedTaskException` (logged only, then observed). Each logs via `AppLog.Error` and shows a `MessageBox` naming the log file. This is the last line of defence, not a substitute for proper error handling in commands.
 
 ### Scale-Factor Sizing Model
 - Label diameter baseline is computed once from detected face size (or an image-width fallback).
