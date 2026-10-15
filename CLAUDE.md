@@ -30,7 +30,7 @@ This is a stable, high-level index only — it intentionally omits specifics (ve
 - **MVVM + Messenger**: Views bind only to ViewModels. Cross-VM communication uses `CommunityToolkit.Mvvm.WeakReferenceMessenger`.
 - **`MainVM` is the composition root**, owning the per-feature managers (`ImageVM`, `FileManager`, `LabelManager`, `NameManager`, `TitleManager`, `ImageInfoManager`, `ImageIdManager`, `SettingsManager`).
 - **Scale-factor sizing model**: text/label managers hold a scale factor plus a computed base size; displayed size is derived from the two. UI sliders map to scale non-linearly.
-- **Versioned metadata**: `AutoNumMetaData` schemas are embedded in JPEG EXIF `UserComment` or in a PDF-embedded payload zip (`PdfPayloadStore`); older versions are migrated on load.
+- **Versioned metadata**: `AutoNumMetaData` schemas are embedded in a custom JPEG APP4 segment (`AppSegmentIO`; the EXIF `UserComment` is only read as a fallback for files from AutoNum ≤ 2.4) or in a PDF-embedded payload zip (`PdfPayloadStore`); older versions are migrated on load.
 - **Patch-based restore**: saved JPEGs/PDFs embed pixel patches (regions hidden under labels), so reopening doesn't require the original source file (see `docs/PATCH_RESTORE_PLAN.md`).
 - **Three renderers must stay visually consistent**: WPF/XAML live preview, GDI+ JPG export, and QuestPDF PDF export. Shared layout engines (e.g. names-table geometry) avoid drift between them.
 - **Settings**: app-wide defaults persist to `%AppData%/AutoNum/settings.json` via `SettingsManager`; they seed new/fresh-image sessions and detector defaults but never override per-image values restored from metadata.

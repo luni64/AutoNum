@@ -154,8 +154,30 @@ Segment payload:
 
 ## Risks & Mitigations
 - **EXIF UserComment size**: V2 JSON is similar size to V1 (no patch data in JSON). No risk.
+  *(Turned out wrong — see the addendum below.)*
 - **APP4 size**: 18 labels × ~60×60px PNG ≈ 30-80 KB. Fits in 1-2 APP4 segments easily.
 - **JPEG artifacts at patch boundaries**: Expected to be imperceptible at quality 85+.
   Fallback: Approach A (in-memory JPEG round-trip before capture).
 - **Chained segments**: Needed only for edge cases (huge label diameters, many labels).
   Implement from the start to avoid retrofitting.
+
+## Addendum (2.5): metadata JSON moved from EXIF UserComment to APP4
+
+The "no risk" assessment above missed that GDI+ writes the *whole* EXIF block into one
+APP1 segment capped at 64 KB. Photos with a large embedded thumbnail (57 KB in the
+reported case) plus the UTF-16 JSON of a numbered image overflowed it, and `Bitmap.Save`
+threw "A generic error occurred in GDI+" — a crash on *Speichern als JPG*. digiKam also
+overwrites `UserComment` with its own caption, wiping the AutoNum data.
+
+Since 2.5 the JSON is stored as a second APP4 payload kind using the same segment layout
+as the patches, distinguished by the magic:
+
+```
+  41 4E 75 6D 4A 53 4F 4E   — Magic: "ANumJSON" (8 bytes)   → AutoNumMetaData JSON, UTF-8
+  41 75 74 6F 4E 75 6D 00   — Magic: "AutoNum\0" (8 bytes)  → patch payload (layout above)
+```
+
+Segments are injected in that order right after SOI. The original EXIF is copied through
+unchanged (only Orientation and UserComment are skipped). Reading prefers the APP4 JSON
+and falls back to the EXIF UserComment for files written by AutoNum ≤ 2.4; no UserComment
+mirror is written any more. See `docs/ARCHITECTURE.md` → "JPEG Metadata Storage".

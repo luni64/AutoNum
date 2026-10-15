@@ -22,9 +22,9 @@ AutoNum/
 │   ├── AutoNumMetaData_V5.cs   # V5 marker: label CenterX/CenterY are the true center (not top-left)
 │   ├── FaceLabelAnchor.cs      # 3x3 anchor enum + fractional mapping for face-relative label placement
 │   ├── AppSettings.cs          # App-wide settings model + %AppData% JSON store
-│   ├── BitmapExtensions.cs     # EXIF read/write/orientation + patch restore
+│   ├── BitmapExtensions.cs     # EXIF copy/orientation, legacy UserComment read + patch restore
 │   ├── ExtensionMethods.cs     # Render/export pipeline
-│   ├── AppSegmentIO.cs         # JPEG APP4 segment read/write for patches
+│   ├── AppSegmentIO.cs         # JPEG APP4 segment read/write (metadata JSON + patches)
 │   ├── SizingModel.cs          # Shared label/name/title baseline + scale math
 │   ├── PatchData.cs            # Patch payload model
 │   ├── PdfPayloadContract.cs   # PDF-embedded payload schema (manifest + entries)
@@ -87,6 +87,13 @@ AutoNum/
 ### Shared Style Objects
 `MarkerLabel.Style` (`LabelStyle`) and `TextLabel.Style` (`TextStyle`) hold shared visual settings and notify through weak subscriptions.
 
+### JPEG Metadata Storage (APP4, not EXIF)
+- Since 2.5 the `AutoNumMetaData` JSON of a saved JPEG lives in its own custom **APP4** segment (magic `ANumJSON`, UTF-8), written by `AppSegmentIO.InjectSegments` next to the pixel-patch segments (magic `AutoNum\0`). Both kinds share the same header/chaining format and are told apart by the 8-byte magic, so payloads of any size are fine.
+- **Why not EXIF `UserComment` (the pre-2.5 carrier):** GDI+ writes the whole EXIF block — including the camera's embedded thumbnail (often 50+ KB) and MakerNote — into a single APP1 segment capped at 64 KB. Copying the original EXIF plus a UTF-16 JSON of a few KB overflowed that cap on such photos and the encoder threw `ExternalException` ("A generic error occurred in GDI+"). Besides, digiKam treats `UserComment` as its own caption field and overwrites it on metadata write-back; Exiv2-based tools copy unknown APPn segments unchanged, so the APP4 data survives.
+- The exported JPEG therefore keeps the **complete original EXIF** (`CopyMetadataFrom` only skips Orientation, which is already applied to the pixels, and `UserComment`, so stale pre-2.5 JSON is never propagated) plus a `Software` tag (`ApplySoftwareTag`). No `UserComment` mirror is written — AutoNum ≤ 2.4 treats a 2.5 file as a plain photo, which was an accepted trade-off for simplicity.
+- Reading (`FileManager.ReadJpegMetadata`): APP4 JSON first, then `BitmapExtensions.GetLegacyMetadata` (EXIF `UserComment`) as the fallback for files written by older versions. The file is read into memory once and the same bytes feed the bitmap decoder, the metadata reader and the patch reader.
+- `WriteJpg` catches `ExternalException` from the GDI+ encoder and shows an error dialog instead of crashing, as a safety net for any remaining EXIF-size edge case (e.g. an original whose APP1 is already at the 64 KB limit).
+
 ### Scale-Factor Sizing Model
 - Label diameter baseline is computed once from detected face size (or an image-width fallback).
 - Label font 100% baseline is fitted to that baseline diameter.
@@ -147,7 +154,7 @@ AutoNum/
 
 ### Open saved AutoNum image
 1. Metadata is loaded from either:
-   - JPEG EXIF UserComment (`_num.jpg`), or
+   - JPEG (`_num.jpg`): the AutoNum APP4 segment (`AppSegmentIO.ReadMetadataJson`, AutoNum ≥ 2.5), falling back to the EXIF UserComment (`BitmapExtensions.GetLegacyMetadata`) for files written by older versions — see JPEG Metadata Storage above, or
    - embedded PDF payload zip (`_num.pdf`) via `PdfPayloadStore`.
 2. For JPEG V2/V3, the clean base image is reconstructed from embedded patches (`AppSegmentIO`/`RestoreFromPatches`). For editable PDF payloads, the clean base image is read directly from the embedded payload image.
 3. `ImageVM.InitFromMetadata(...)` rebuilds persons and publishes `MetadataLoadedMessage`.
@@ -171,7 +178,7 @@ All three are `FileManager` commands/methods bound directly from `MainWindow.xam
 2. **Speichern unter...** (`SaveAsCommand`) shows a single Save dialog with a combined JPEG+PDF filter (`SettingsManager.DefaultSaveFormat` only controls which filter is preselected); the actual format written is decided from the extension of the path the user picks/types.
 3. Both dispatch to `FileManager.WriteJpgOrPdf(filename)`, which routes to `WriteJpg`/`WritePdfWithSidecars` by extension, updates `CurrentImageFilename`, and writes CSV/JSON sidecars per `ExportCsvMetadata`/`ExportJsonMetadata` (auto-export-alongside-save toggles).
 4. **Metadaten exportieren...** (`FileManager.ExportMetadataNow()`) is a separate on-demand action: its own Save dialog (CSV/JSON filter, format by extension), fully decoupled from the `ExportCsvMetadata`/`ExportJsonMetadata` toggles above — those only govern what rides along with Save/Save As, never whether this menu item works.
-5. Rendering: `ToNumberedBitmap(...)` composites optional stacked title, image-information, image-ID, and names blocks (order: Title, Information, Image, ID, Names). JPEG path injects APP4 patches and embeds `Version = "V3"` metadata; PDF path embeds a versioned AutoNum payload zip (`metadata + base image`) as a standard PDF attachment for round-trip editing from `_num.pdf`.
+5. Rendering: `ToNumberedBitmap(...)` composites optional stacked title, image-information, image-ID, and names blocks (order: Title, Information, Image, ID, Names). JPEG path copies the original EXIF unchanged, encodes via GDI+ (encoder failures are caught and shown as an error dialog), then injects the metadata JSON and the pixel patches as APP4 segments (`AppSegmentIO.InjectSegments`); PDF path embeds a versioned AutoNum payload zip (`metadata + base image`) as a standard PDF attachment for round-trip editing from `_num.pdf`.
 6. Prevent overwrite only for the protected original file path (`IsProtectedOriginalPath`), checked after the Save As dialog returns.
 
 ## Slider & Scale Control Architecture

@@ -1,5 +1,4 @@
-﻿using AutoNumber.ViewModels;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
@@ -14,16 +13,21 @@ namespace AutoNumber.Model
         /// Loads a bitmap from file without holding a GDI+ file lock.
         /// The file is read entirely into a MemoryStream so the file handle is released immediately.
         /// </summary>
-        public static Bitmap LoadBitmapFromFile(string filename)
-        {
-            var bytes = File.ReadAllBytes(filename);
-            var ms = new MemoryStream(bytes);
-            return new Bitmap(ms); // GDI+ keeps ms alive internally; no file lock held
-        }
+        public static Bitmap LoadBitmapFromFile(string filename) => LoadBitmapFromBytes(File.ReadAllBytes(filename));
 
-        public static AutoNumMetaData_V1? GetMetadata(this Bitmap bitmap)
+        /// <summary>
+        /// Decodes a bitmap from an in-memory file image. GDI+ keeps the stream alive internally.
+        /// </summary>
+        public static Bitmap LoadBitmapFromBytes(byte[] bytes) => new(new MemoryStream(bytes));
+
+        /// <summary>
+        /// Reads AutoNum metadata from the EXIF UserComment tag — the storage used by AutoNum
+        /// versions up to 2.4. Newer files carry the JSON in an APP4 segment (see
+        /// <see cref="AppSegmentIO.ReadMetadataJson"/>); this is only the fallback for old files.
+        /// </summary>
+        public static AutoNumMetaData_V1? GetLegacyMetadata(this Bitmap bitmap)
         {
-            Trace.WriteLine("Check if bitmap has AutoNum metadata in user_comment tag");
+            Trace.WriteLine("Check if bitmap has legacy AutoNum metadata in user_comment tag");
 
             var EXIF_UserCommentID = 0x9286;
             var UserCommentItem = bitmap.PropertyItems.FirstOrDefault(pi => pi.Id == EXIF_UserCommentID);
@@ -41,26 +45,11 @@ namespace AutoNumber.Model
         }
 
 
-        public static Bitmap AddMetadata(this Bitmap bitmap, ImageVM model, LabelManager lm, NameManager nm, TitleManager tm, ImageInfoManager iim, ImageIdManager idm)
+        /// <summary>
+        /// Sets the EXIF Software tag that identifies the application that produced the image.
+        /// </summary>
+        public static Bitmap ApplySoftwareTag(this Bitmap bitmap)
         {
-            // Update existing metadata with latest values
-            model.UpdateMetadataBeforeSave(lm, nm, tm, iim, idm);
-            var md = model.CurrentMetadata!;
-
-            var jsonString = md.ToJson();
-
-
-            byte[] jsonBytes = Encoding.Unicode.GetBytes(jsonString + "\0"); // Null-terminate the string
-
-            PropertyItem propItem = CreatePropertyItem();
-            propItem.Id = 0x9286; // UserComment
-            propItem.Type = 7;
-            propItem.Value = jsonBytes;
-            propItem.Len = jsonBytes.Length;
-
-            bitmap.SetPropertyItem(propItem);
-
-            // EXIF Software tag — identifies the application that produced the image
             var version = Assembly.GetExecutingAssembly().GetName().Version;
             var versionString = version is not null ? $"{version.Major}.{version.Minor}.{version.Build}" : "1.0";
             byte[] swBytes = Encoding.ASCII.GetBytes($"AutoNum {versionString}\0");
@@ -76,8 +65,10 @@ namespace AutoNumber.Model
         }
 
         /// <summary>
-        /// Copies property items from a cached array to the destination bitmap.
-        /// Skips Orientation (already applied) and UserComment (overwritten by AddMetadata).
+        /// Copies property items from a cached array to the destination bitmap, so the exported
+        /// JPEG keeps the original camera EXIF (thumbnail and MakerNote included).
+        /// Skips Orientation (already applied to the pixels) and UserComment (legacy AutoNum
+        /// metadata carrier — stale JSON from a pre-2.5 file must not be propagated).
         /// </summary>
         public static void CopyMetadataFrom(this Bitmap destination, PropertyItem[]? source)
         {

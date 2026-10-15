@@ -8,10 +8,10 @@ using System.IO;
 namespace AutoNumber.Model
 {
     /// <summary>
-    /// Result of <see cref="ExtensionMethods.ToNumberedBitmap"/> containing both the
-    /// rendered composite bitmap and the pixel patches captured before labels were drawn.
+    /// Result of <see cref="ExtensionMethods.ToNumberedBitmap"/>: the rendered composite bitmap,
+    /// the serialised AutoNum metadata JSON, and the pixel patches captured before labels were drawn.
     /// </summary>
-    internal record NumberedBitmapResult(Bitmap Bitmap, List<PatchData> Patches) : IDisposable
+    internal record NumberedBitmapResult(Bitmap Bitmap, string MetadataJson, List<PatchData> Patches) : IDisposable
     {
         public void Dispose() => Bitmap.Dispose();
     }
@@ -330,9 +330,13 @@ namespace AutoNumber.Model
             DrawLabels(labels, bmpFinal, titleHeight);
 
             bmpFinal.CopyMetadataFrom(model.OriginalPropertyItems);
-            bmpFinal.AddMetadata(model, lm, nm, tm, iim, idm);
+            bmpFinal.ApplySoftwareTag();
 
-            return new NumberedBitmapResult(bmpFinal, patches);
+            // The metadata JSON travels in its own APP4 segment (see AppSegmentIO), not in EXIF
+            model.UpdateMetadataBeforeSave(lm, nm, tm, iim, idm);
+            var metadataJson = model.CurrentMetadata!.ToJson();
+
+            return new NumberedBitmapResult(bmpFinal, metadataJson, patches);
         }
     }
 }

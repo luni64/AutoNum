@@ -8,6 +8,7 @@ using System.Drawing;
 using DrawingImageFormat = System.Drawing.Imaging.ImageFormat;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
@@ -42,9 +43,10 @@ namespace AutoNumber.ViewModels
                     return;
                 }
 
-                var bitmap = BitmapExtensions.LoadBitmapFromFile(filename);
+                var fileBytes = File.ReadAllBytes(filename);
+                var bitmap = BitmapExtensions.LoadBitmapFromBytes(fileBytes);
                 bitmap.ApplyExifOrientation();
-                var metadata = bitmap.GetMetadata();
+                var metadata = ReadJpegMetadata(fileBytes, bitmap);
                 Trace.WriteLine($"OpenImage: metadata version = '{metadata?.Version ?? "none"}'");
 
                 if (metadata is null)  // not written by AutoNumber => use as original image
@@ -77,8 +79,7 @@ namespace AutoNumber.ViewModels
                 else if (metadata is AutoNumMetaData_V2 v2)
                 {
                     // V2: self-contained — restore clean base image from embedded patches
-                    var fileBytes = File.ReadAllBytes(filename);
-                    var patches = AppSegmentIO.ReadSegments(fileBytes);
+                    var patches = AppSegmentIO.ReadPatches(fileBytes);
 
                     if (patches is not null && patches.Count > 0)
                     {
@@ -119,6 +120,22 @@ namespace AutoNumber.ViewModels
                     Trace.WriteLine($"Error showing dialog: {dlgEx}");
                 }
             }
+        }
+
+        /// <summary>
+        /// Reads the AutoNum metadata of a JPEG: from the APP4 segment (AutoNum 2.5+), falling
+        /// back to the EXIF UserComment for files written by older versions.
+        /// </summary>
+        private static AutoNumMetaData_V1? ReadJpegMetadata(byte[] fileBytes, Bitmap bitmap)
+        {
+            if (AppSegmentIO.ReadMetadataJson(fileBytes) is string json)
+            {
+                bool ok = AutoNumMetaData_V1.FromJson(json, out var metadata);
+                Trace.WriteLine($"OpenImage: AutoNum metadata found in APP4 segment, parsing {(ok ? "OK" : "failed")}");
+                return ok ? metadata : null;
+            }
+
+            return bitmap.GetLegacyMetadata();
         }
 
         private const string SaveAsFilter = "JPEG Files (*.jpg;*.jpeg)|*.jpg;*.jpeg|PDF Files (*.pdf)|*.pdf";
@@ -183,12 +200,23 @@ namespace AutoNumber.ViewModels
                 return;
             }
 
-            // Encode bitmap to JPEG in memory, then inject APP4 patch segments
-            using var jpegStream = new MemoryStream();
-            result.Bitmap.Save(jpegStream, DrawingImageFormat.Jpeg);
-            var jpegBytes = jpegStream.ToArray();
+            // Encode bitmap to JPEG in memory, then inject the APP4 metadata + patch segments
+            byte[] jpegBytes;
+            try
+            {
+                using var jpegStream = new MemoryStream();
+                result.Bitmap.Save(jpegStream, DrawingImageFormat.Jpeg);
+                jpegBytes = jpegStream.ToArray();
+            }
+            catch (ExternalException ex)
+            {
+                // GDI+ reports e.g. an EXIF block that no longer fits into its 64 KB APP1 segment this way
+                Trace.WriteLine($"WriteJpg: JPEG encoding failed: {ex}");
+                _mainVM.DialogService.ShowError($"Das Bild konnte nicht als JPEG gespeichert werden: {ex.Message}");
+                return;
+            }
 
-            var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.Patches);
+            var finalBytes = AppSegmentIO.InjectSegments(jpegBytes, result.MetadataJson, result.Patches);
 
             if (!TryWriteWithRetry(filename, () => File.WriteAllBytes(filename, finalBytes), "JPEG"))
             {
