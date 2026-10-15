@@ -122,9 +122,29 @@ Output: `installer\bin\AutoNum-X.Y.Z-Setup.exe`. Verify the signature:
 (Get-AuthenticodeSignature installer\bin\AutoNum-X.Y.Z-Setup.exe).Status   # must be "Valid"
 ```
 
-Note: if the Certum key needs a PIN, a prompt may appear during signing.
+Note: the Certum key asks for a one-time token during signing — a prompt appears and
+ISCC waits until the code from the phone app has been entered (v2.5.0: it did; have the
+phone ready before starting the build, the step cannot run unattended).
 
 ## 6. Commit, push, draft release
+
+0. **Check the GitHub credentials first** — the gh token expires silently, and git
+   pushes use the same stored credential through gh's credential helper, so both
+   fail together (v2.5.0: everything up to the signed installer was done before
+   the 401 showed up):
+
+   ```powershell
+   gh auth status                      # must show "Logged in to github.com account luni64"
+   git push --dry-run origin main      # must not say "Authentication failed"
+   ```
+
+   If either fails, re-authenticate interactively (browser flow, so from a real
+   terminal, not from an agent session) and point git at gh again:
+
+   ```powershell
+   gh auth login -h github.com
+   gh auth setup-git
+   ```
 
 1. Commit the doc/version changes and push to `main` (this also redeploys the
    manual site, whose changelog then already shows the new version — accepted).
