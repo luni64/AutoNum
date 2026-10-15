@@ -408,4 +408,4 @@ Beide Varianten enthalten dieselbe Programmversion – welche Sie wählen, ist r
 
 ### 15.2 Versionshinweis
 
-Dieses Handbuch beschreibt AutoNumber V2.4. Es wird bei Bedarf um weitere Screenshots und Beispiele ergänzt.
+Dieses Handbuch beschreibt AutoNumber V2.5. Es wird bei Bedarf um weitere Screenshots und Beispiele ergänzt.

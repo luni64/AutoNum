@@ -2,6 +2,25 @@
 
 Alle wesentlichen Änderungen an AutoNumber werden in dieser Datei dokumentiert. Das Format orientiert sich an [Keep a Changelog](https://keepachangelog.com/de/1.1.0/); die Versionen entsprechen den getaggten [GitHub-Releases](https://github.com/luni64/AutoNum/releases).
 
+## V2.5.0 - 2026-10-15
+
+**Neu**
+
+- Die Namensliste kann rechts neben dem Bild stehen statt darunter. Position und Breite der seitlichen Liste (15–100 % der Bildbreite) werden pro Bild im Formatieren-Dialog der Namensliste eingestellt und lassen sich als Standard übernehmen; der Standard für neue Bilder steht auch unter Datei → Einstellungen → Formatierung. Überschrift und Beschreibung erstrecken sich dann über Bild und Liste, die Bild-ID bleibt unter dem Bild. Die Position wird im Bild mitgespeichert.
+- Protokolldatei: AutoNumber hält die wichtigsten Schritte (geöffnete und gespeicherte Dateien, gefundene AutoNum-Daten und deren Version, erkannte Gesichter, Warnungen und Fehler) in `%AppData%\AutoNum\autonum.log` fest. Hilfe → Protokolldatei öffnen zeigt sie an; im neuen Reiter „Protokoll" der Einstellungen lässt sie sich abschalten oder der Speicherort ändern. Bei Problemen bitte diese Datei der Fehlermeldung beifügen.
+
+**Geändert**
+
+- Die AutoNum-Daten eines gespeicherten JPG liegen jetzt in einem eigenen Abschnitt der JPEG-Datei statt im EXIF-Feld „UserComment". Die EXIF-Daten des Originals bleiben dadurch vollständig erhalten, und Programme wie digiKam, die das UserComment-Feld überschreiben, löschen die AutoNum-Daten nicht mehr. Ältere Bilder werden weiterhin geöffnet; ältere AutoNumber-Versionen können mit V2.5 gespeicherte Bilder dagegen nur noch als normales Foto öffnen.
+- Die Formatieren-Dialoge für Nummern und Namensliste sind übersichtlicher gestaltet: Abschnitte mit Überschriften und sauber ausgerichtete Felder.
+- Der Einstellungsdialog ist etwas höher, sodass der Reiter „Erkennung" ohne Scrollen vollständig sichtbar ist; die Reiterleiste hat keinen weißen Hintergrund mehr.
+
+**Behoben**
+
+- Absturz beim Speichern als JPG bei Fotos mit umfangreichen EXIF-Daten (z. B. einem großen eingebetteten Vorschaubild der Kamera).
+- Ein Fehler des JPEG-Encoders beim Speichern führt nicht mehr zum Absturz, sondern zu einer Fehlermeldung.
+- Unerwartete Fehler beenden das Programm nicht mehr stillschweigend: Es erscheint eine Fehlermeldung, und die Details werden in der Protokolldatei festgehalten.
+
 ## V2.4.0 - 2026-07-27
 
 **Neu**

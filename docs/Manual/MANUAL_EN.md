@@ -395,4 +395,4 @@ Both options contain the same program version – which one you choose is purely
 
 ### 15.2 Version Note
 
-This manual describes AutoNumber V2.4. It will be extended with more screenshots and examples as needed.
+This manual describes AutoNumber V2.5. It will be extended with more screenshots and examples as needed.

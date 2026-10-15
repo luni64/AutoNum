@@ -3,12 +3,20 @@ AutoNum ${VERSION} — Was ist neu
 
 Neue Funktionen
 ---------------
-- Die Nummerierung kann jetzt wahlweise bei der untersten (vordersten) Reihe beginnen statt bei der obersten. Innerhalb einer Reihe wird weiterhin von links nach rechts gezählt.
-- Als Standard für neue Bilder einstellbar unter Datei -> Einstellungen -> Erkennung ("Mit der untersten Reihe beginnen").
-- Pro Bild umschaltbar im Formatieren-Dialog der Nummern; die Nummern werden sofort neu vergeben und die Namensliste zieht direkt nach.
-- Die gewählte Richtung wird im Bild mitgespeichert und bleibt beim erneuten Öffnen erhalten.
-- Die Reihentrenner der Namensliste zählen beim Nummerieren von unten die vorderste Reihe als "Reihe 1", sodass die Liste in Vorschau, JPG und PDF durchgehend von 1 bis n lesbar bleibt.
+- Die Namensliste kann jetzt rechts neben dem Bild stehen statt darunter. Position und Breite der seitlichen Liste (15-100 % der Bildbreite) werden pro Bild im Formatieren-Dialog der Namensliste eingestellt; der Standard für neue Bilder steht unter Datei -> Einstellungen -> Formatierung. Überschrift und Beschreibung erstrecken sich dann über Bild und Liste, die Bild-ID bleibt unter dem Bild.
+- Protokolldatei: AutoNumber hält die wichtigsten Schritte (geöffnete und gespeicherte Dateien, gefundene AutoNum-Daten, erkannte Gesichter, Warnungen und Fehler) in %AppData%\AutoNum\autonum.log fest. Hilfe -> Protokolldatei öffnen zeigt sie an; im Reiter "Protokoll" der Einstellungen lässt sie sich abschalten oder umleiten. Bei Problemen bitte diese Datei der Fehlermeldung beifügen.
+
+Verbesserungen
+--------------
+- Die Formatieren-Dialoge für Nummern und Namensliste sind übersichtlicher gestaltet.
+- Der Einstellungsdialog ist etwas höher, sodass der Reiter "Erkennung" ohne Scrollen vollständig sichtbar ist.
+
+Fehlerbehebungen
+----------------
+- Absturz beim Speichern als JPG bei Fotos mit umfangreichen EXIF-Daten (z. B. großem eingebetteten Vorschaubild) behoben: Die AutoNum-Daten werden jetzt in einem eigenen Abschnitt der JPEG-Datei abgelegt statt im EXIF-Feld "UserComment". Die EXIF-Daten des Originals bleiben vollständig erhalten, und Programme wie digiKam, die das UserComment-Feld überschreiben, löschen die AutoNum-Daten nicht mehr.
+- Ein Fehler des JPEG-Encoders beim Speichern führt nicht mehr zum Absturz, sondern zu einer Fehlermeldung.
+- Unerwartete Fehler beenden das Programm nicht mehr stillschweigend, sondern zeigen eine Fehlermeldung und werden in der Protokolldatei festgehalten.
 
 Hinweise für bestehende Dateien
 -------------------------------
-- Bereits gespeicherte Bilder bleiben unverändert bei der bisherigen Zählung von oben nach unten. Die neue Richtung gilt nur dort, wo sie ausdrücklich eingeschaltet wird.
+- Mit älteren Versionen gespeicherte Bilder werden weiterhin geöffnet. Ältere AutoNumber-Versionen können ein mit V2.5 gespeichertes Bild dagegen nur noch als normales Foto öffnen.
