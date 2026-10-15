@@ -212,6 +212,47 @@
                     </StackPanel>
                 </ScrollViewer>
             </TabItem>
+
+            <TabItem Header="Protokoll">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="0,0,12,0">
+                    <StackPanel Margin="12,0">
+                        <TextBlock TextWrapping="Wrap" Margin="0,4,0,14" FontSize="12">
+							<Run FontWeight="SemiBold" FontSize="16" Foreground="{DynamicResource MahApps.Brushes.Accent}">
+								Protokolldatei
+							</Run>
+							<LineBreak/>
+							<Run>
+								AutoNumber hält die wichtigsten Schritte (geöffnete und gespeicherte Dateien, gefundene AutoNum-Daten, erkannte Gesichter, Warnungen und Fehler) in einer Protokolldatei fest. Bei Problemen hilft diese Datei bei der Fehlersuche – bitte fügen Sie sie einer Fehlermeldung bei. Die aktuelle Datei lässt sich über das Menü "Hilfe" öffnen.
+							</Run>
+                        </TextBlock>
+
+                        <mah:ToggleSwitch IsOn="{Binding LoggingEnabled, Mode=TwoWay}" Content="Protokoll schreiben" Margin="0,0,0,8"/>
+
+                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,4" FontSize="12" FontWeight="SemiBold">
+                            Speicherort der Protokolldatei
+                        </TextBlock>
+                        <Grid IsEnabled="{Binding LoggingEnabled}" Margin="0,0,0,4">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0"
+                                     Text="{Binding LogFilePath, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                     mah:TextBoxHelper.Watermark="{Binding DefaultLogPath}"
+                                     Padding="6,4" Margin="0,0,8,0"
+                                     VerticalContentAlignment="Center"
+                                     ToolTip="Leer lassen, um den Standard-Speicherort zu verwenden"/>
+                            <Button Grid.Column="1" Content="Durchsuchen..."
+                                    Click="BrowseLogFile_Click"
+                                    Padding="10,4"/>
+                        </Grid>
+                        <TextBlock TextWrapping="Wrap" Margin="0,0,0,14" Foreground="#666666" FontSize="12">
+                            <Run>Leer lassen für den Standard-Speicherort:</Run>
+                            <Run Text="{Binding DefaultLogPath, Mode=OneWay}"/>
+                        </TextBlock>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
         </TabControl>
         <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
             <Button

@@ -33,7 +33,7 @@ Oben im Fenster befindet sich die Menüleiste mit den Menüs **Datei** und **Hil
 
 Jeder Block rechts hat ein Augen-Symbol zum Ein-/Ausblenden und ein Zahnrad-Symbol zum Formatieren.
 
-Das Menü **Datei** enthält alle Aktionen zum Öffnen, Speichern und Exportieren (siehe [Kapitel 4](#4-bild-öffnen) und [Kapitel 9](#9-speichern--export)) sowie den Zugang zu den **Einstellungen** (siehe [Kapitel 10](#10-einstellungen)). Das Menü **Hilfe** verlinkt auf dieses Handbuch.
+Das Menü **Datei** enthält alle Aktionen zum Öffnen, Speichern und Exportieren (siehe [Kapitel 4](#4-bild-öffnen) und [Kapitel 9](#9-speichern--export)) sowie den Zugang zu den **Einstellungen** (siehe [Kapitel 10](#10-einstellungen)). Das Menü **Hilfe** verlinkt auf dieses Handbuch und öffnet die Protokolldatei (siehe [10.5](#105-protokoll)).
 
 ![Hauptfenster – Gesamtansicht](Pictures/02_oberflaeche_gesamt.png)
 
@@ -288,6 +288,13 @@ Für Nutzer mit technischem Interesse: eine ausführliche Erklärung des Verfahr
 - **CSV (Excel) Daten** / **JSON Daten:** aktiviert den zusätzlichen Metadaten-Export beim Speichern (siehe [Kapitel 11](#11-csvjson-metadaten-export)).
 
 ![Einstellungen – Tab Export](Pictures/10d_einstellungen_export.png)
+
+### 10.5 Protokoll
+
+AutoNumber hält die wichtigsten Schritte – geöffnete und gespeicherte Dateien, gefundene AutoNum-Daten, erkannte Gesichter, Warnungen und Fehler – in einer Protokolldatei fest. Sie enthält keine Bildinhalte oder Namen, nur Dateinamen und technische Angaben. Wenn etwas nicht wie erwartet funktioniert, hilft diese Datei bei der Fehlersuche: Bitte fügen Sie sie einer Fehlermeldung bei. Über **Hilfe → Protokolldatei öffnen** wird die aktuelle Datei im Standard-Texteditor geöffnet.
+
+- **Protokoll schreiben:** schaltet die Protokolldatei ein oder aus (Standard: ein).
+- **Speicherort der Protokolldatei:** leer lassen für den Standard-Speicherort `%AppData%\AutoNum\autonum.log`, oder über **Durchsuchen...** eine andere Datei wählen. Wird die Datei größer als etwa 1 MB, wird sie beim nächsten Programmstart als `autonum.log.1` beiseitegelegt und eine neue begonnen.
 
 ---
 

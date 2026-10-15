@@ -1,3 +1,4 @@
+using AutoNumber.Infrastructure;
 using AutoNumber.Model;
 using System.Drawing;
 
@@ -63,6 +64,11 @@ public class SettingsManager : BaseViewModel
         _exportCsvMetadata = _settings.ExportCsvMetadata;
         _exportJsonMetadata = _settings.ExportJsonMetadata;
         _defaultSaveFormat = _settings.DefaultSaveFormat;
+        _loggingEnabled = _settings.LoggingEnabled;
+        _logFilePath = _settings.LogFilePath ?? string.Empty;
+
+        // The log file can only be opened once the settings are known — this is that moment.
+        LoggingError = AppLog.Configure(_loggingEnabled, _logFilePath);
     }
 
     #region Scalar settings ------------------------------------------------
@@ -166,6 +172,28 @@ public class SettingsManager : BaseViewModel
         set => SetProperty(ref _defaultSaveFormat, value);
     }
 
+    /// <summary>Whether the application log file is written (see <see cref="AppLog"/>).</summary>
+    public bool LoggingEnabled
+    {
+        get => _loggingEnabled;
+        set => SetProperty(ref _loggingEnabled, value);
+    }
+
+    /// <summary>Custom log file path; empty means <see cref="DefaultLogPath"/>.</summary>
+    public string LogFilePath
+    {
+        get => _logFilePath;
+        set => SetProperty(ref _logFilePath, value ?? string.Empty);
+    }
+
+    public string DefaultLogPath => AppLog.DefaultLogPath;
+
+    /// <summary>
+    /// Set by <see cref="Save"/> (and the constructor): null if the logging settings could be
+    /// applied, otherwise a user-facing message saying why the log file could not be opened.
+    /// </summary>
+    public string? LoggingError { get; private set; }
+
     #endregion
 
     #region Edit transaction (settings dialog) -----------------------------
@@ -207,13 +235,16 @@ public class SettingsManager : BaseViewModel
         ExportCsvMetadata = snapshot.ExportCsvMetadata;
         ExportJsonMetadata = snapshot.ExportJsonMetadata;
         DefaultSaveFormat = snapshot.DefaultSaveFormat;
+        LoggingEnabled = snapshot.LoggingEnabled;
+        LogFilePath = snapshot.LogFilePath;
     }
 
     private SettingsSnapshot CaptureSnapshot() => new(
         Labels.Capture(), Title.Capture(), ImageInfo.Capture(), ImageId.Capture(), Names.Capture(),
         FaceDetectionEnabled, RowDetectionEnabled, FaceLabelAnchor, NumberBottomUp,
         SaveFileSuffix, UseCustomOutputFolder, OutputFolder,
-        ExportCsvMetadata, ExportJsonMetadata, DefaultSaveFormat);
+        ExportCsvMetadata, ExportJsonMetadata, DefaultSaveFormat,
+        LoggingEnabled, LogFilePath);
 
     private sealed record SettingsSnapshot(
         ElementDefaults.Snapshot Labels,
@@ -230,7 +261,9 @@ public class SettingsManager : BaseViewModel
         string OutputFolder,
         bool ExportCsvMetadata,
         bool ExportJsonMetadata,
-        SaveFormat DefaultSaveFormat);
+        SaveFormat DefaultSaveFormat,
+        bool LoggingEnabled,
+        string LogFilePath);
 
     #endregion
 
@@ -275,8 +308,11 @@ public class SettingsManager : BaseViewModel
         _settings.ExportCsvMetadata = ExportCsvMetadata;
         _settings.ExportJsonMetadata = ExportJsonMetadata;
         _settings.DefaultSaveFormat = DefaultSaveFormat;
+        _settings.LoggingEnabled = LoggingEnabled;
+        _settings.LogFilePath = LogFilePath;
 
         AppSettingsStore.Save(_settings);
+        LoggingError = AppLog.Configure(LoggingEnabled, LogFilePath);
     }
 
     /// <summary>
@@ -362,4 +398,6 @@ public class SettingsManager : BaseViewModel
     private bool _exportCsvMetadata;
     private bool _exportJsonMetadata;
     private SaveFormat _defaultSaveFormat;
+    private bool _loggingEnabled = true;
+    private string _logFilePath = string.Empty;
 }

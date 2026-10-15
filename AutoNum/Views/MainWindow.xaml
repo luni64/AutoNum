@@ -50,6 +50,7 @@
             </MenuItem>
             <MenuItem Header="_Hilfe">
                 <MenuItem Header="_Handbuch..." Click="OpenManual_Click"/>
+                <MenuItem Header="_Protokolldatei öffnen" Click="OpenLog_Click"/>
             </MenuItem>
         </Menu>
 

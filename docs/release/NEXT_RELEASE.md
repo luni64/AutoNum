@@ -2,7 +2,7 @@
 
 ## Features
 
-- Protokolldatei: AutoNumber schreibt jetzt die wichtigsten Schritte (geöffnete und gespeicherte Dateien, gefundene AutoNum-Daten und deren Version, erkannte Gesichter, Warnungen und Fehler) nach `%AppData%\AutoNum\autonum.log`. Bei Problemen bitte diese Datei der Fehlermeldung beifügen.
+- Protokolldatei: AutoNumber schreibt jetzt die wichtigsten Schritte (geöffnete und gespeicherte Dateien, gefundene AutoNum-Daten und deren Version, erkannte Gesichter, Warnungen und Fehler) in eine Protokolldatei, standardmäßig `%AppData%\AutoNum\autonum.log`. Bei Problemen bitte diese Datei der Fehlermeldung beifügen. Neu dazu: „Hilfe → Protokolldatei öffnen“ und der Reiter „Protokoll“ in den Einstellungen, in dem sich das Protokoll abschalten und der Speicherort ändern lässt.
 
 ## Bug Fixes
 

@@ -2,6 +2,7 @@
 using AutoNumber.ViewModels;
 using AutoNumber.Views;
 using AutoNumber.Infrastructure;
+using System.IO;
 using System.Diagnostics;
 using System.Windows;
 using System.Windows.Input;
@@ -69,6 +70,26 @@ namespace AutoNumber
             catch (Exception ex)
             {
                 AppLog.Error("Could not open the manual link in the browser", ex);
+            }
+        }
+
+        private void OpenLog_Click(object sender, RoutedEventArgs e)
+        {
+            var path = AppLog.LogPath;
+            if (!File.Exists(path))
+            {
+                MessageBox.Show(this, $"Es gibt noch keine Protokolldatei unter:\n{path}", "Protokolldatei", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            try
+            {
+                Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+            }
+            catch (Exception ex)
+            {
+                AppLog.Error($"Could not open the log file '{path}'", ex);
+                MessageBox.Show(this, $"Die Protokolldatei konnte nicht geöffnet werden:\n{path}\n\n{ex.Message}", "Protokolldatei", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
         }
 

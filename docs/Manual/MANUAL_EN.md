@@ -35,7 +35,7 @@ At the top of the window is the menu bar with the **File** and **Help** menus. B
 
 Every block on the right has an eye icon to show/hide it and a gear icon to format it.
 
-The **File** menu holds all actions for opening, saving, and exporting (see [Chapter 4](#4-opening-an-image) and [Chapter 9](#9-saving--export)) as well as access to **Settings** (see [Chapter 10](#10-settings)). The **Help** menu links to this manual.
+The **File** menu holds all actions for opening, saving, and exporting (see [Chapter 4](#4-opening-an-image) and [Chapter 9](#9-saving--export)) as well as access to **Settings** (see [Chapter 10](#10-settings)). The **Help** menu links to this manual and opens the log file (see [10.5](#105-log)).
 
 ![Main window – overview](Pictures/02_oberflaeche_gesamt.png)
 
@@ -281,6 +281,13 @@ For technically interested users: a detailed explanation of the method is availa
 - **CSV (Excel) data** / **JSON data:** enables the additional metadata export when saving (see [Chapter 11](#11-csvjson-metadata-export)).
 
 ![Settings – Export tab](Pictures/10d_einstellungen_export.png)
+
+### 10.5 Log
+
+AutoNumber records its main steps — files opened and saved, AutoNum data found, faces detected, warnings and errors — in a log file. It contains no image content or names, only file names and technical details. If something doesn't work as expected, this file helps with troubleshooting: please attach it to your bug report. **Help → Open log file** opens the current file in your default text editor.
+
+- **Write log:** turns the log file on or off (default: on).
+- **Log file location:** leave empty for the default location `%AppData%\AutoNum\autonum.log`, or pick another file via **Browse...**. Once the file grows beyond about 1 MB, it is set aside as `autonum.log.1` at the next start and a new one is begun.
 
 ---
 

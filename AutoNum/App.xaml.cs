@@ -68,6 +68,7 @@ namespace AutoNumber
 
         private static void reportUnhandled(Exception ex, string origin)
         {
+            AppLog.EnsureConfigured(); // a crash before the settings were loaded still goes to the default log
             AppLog.Error($"Unhandled exception ({origin})", ex);
 
             var message = $"Ein unerwarteter Fehler ist aufgetreten ({origin}):\n\n{ex.GetType().Name}: {ex.Message}";

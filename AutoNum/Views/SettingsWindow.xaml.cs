@@ -1,3 +1,4 @@
+using AutoNumber.Infrastructure;
 using AutoNumber.ViewModels;
 using MahApps.Metro.Controls;
 using Microsoft.Win32;
@@ -36,6 +37,11 @@ public partial class SettingsWindow : MetroWindow
         {
             settingsManager.CommitEdit();
             _committed = true;
+
+            if (settingsManager.LoggingError is string loggingError)
+            {
+                MessageBox.Show(this, loggingError, "Protokolldatei", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
         }
 
         Close();
@@ -89,6 +95,33 @@ public partial class SettingsWindow : MetroWindow
         if (dialog.ShowDialog(this) == true)
         {
             settingsManager.OutputFolder = dialog.FolderName;
+        }
+    }
+
+    private void BrowseLogFile_Click(object sender, RoutedEventArgs e)
+    {
+        if (DataContext is not SettingsManager settingsManager)
+        {
+            return;
+        }
+
+        var current = AppLog.ResolvePath(settingsManager.LogFilePath);
+        var dialog = new SaveFileDialog
+        {
+            Title = "Speicherort der Protokolldatei",
+            Filter = "Protokolldateien (*.log)|*.log|Alle Dateien (*.*)|*.*",
+            FileName = Path.GetFileName(current),
+            InitialDirectory = Directory.Exists(Path.GetDirectoryName(current)) ? Path.GetDirectoryName(current) : null,
+            OverwritePrompt = false,
+            CheckFileExists = false,
+        };
+
+        if (dialog.ShowDialog(this) == true)
+        {
+            // Picking the default location again means "use the default", so the setting stays portable.
+            settingsManager.LogFilePath = string.Equals(dialog.FileName, AppLog.DefaultLogPath, StringComparison.OrdinalIgnoreCase)
+                ? string.Empty
+                : dialog.FileName;
         }
     }
 }

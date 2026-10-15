@@ -44,6 +44,12 @@ public class AppSettings
     public string OutputFolder { get; set; } = string.Empty;
 
     public SaveFormat DefaultSaveFormat { get; set; } = SaveFormat.Jpg;
+
+    /// <summary>Whether <see cref="AppLog"/> writes a log file at all.</summary>
+    public bool LoggingEnabled { get; set; } = true;
+
+    /// <summary>Custom log file path; empty means <see cref="AppLog.DefaultLogPath"/>.</summary>
+    public string LogFilePath { get; set; } = string.Empty;
 }
 
 public static class AppSettingsStore
@@ -92,7 +98,7 @@ public static class AppSettingsStore
     {
         try
         {
-            settings.SchemaVersion = 9;
+            settings.SchemaVersion = 10;
             Directory.CreateDirectory(SettingsDirectory);
             var json = JsonSerializer.Serialize(settings, _jsonOptions);
             File.WriteAllText(SettingsPath, json);
@@ -106,7 +112,7 @@ public static class AppSettingsStore
 
     private static AppSettings CreateDefault() => new()
     {
-        SchemaVersion = 9,
+        SchemaVersion = 10,
         FaceDetectionEnabled = true,
         RowDetectionEnabled = true,
         DefaultFaceLabelAnchor = FaceLabelAnchor.BottomCenter,
@@ -140,6 +146,13 @@ public static class AppSettingsStore
             // Existing installations keep numbering top-down, as they always did.
             settings.DefaultNumberBottomUp = false;
             settings.SchemaVersion = 9;
+        }
+
+        if (settings.SchemaVersion < 10)
+        {
+            settings.LoggingEnabled = true;
+            settings.LogFilePath = string.Empty;
+            settings.SchemaVersion = 10;
         }
     }
 }
