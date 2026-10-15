@@ -152,6 +152,8 @@ Opens the display settings for the numbers (size, font, border and background co
 
 This dialog also includes a 3×3 **label position on the face** grid, letting you choose where the number label is centered within the detected face. Unlike the same grid in Settings (see [Chapter 10.3](#103-detection)), your choice here only affects the **currently open image** and doesn't change the default used for future images. The **"Redetect"** button right next to it reruns face detection with the chosen position; if names have already been entered, the same confirmation prompt from [6.1](#61-automatic-detection) appears first. Use **"Use as default"** to save the current selection — along with size and colors — as the new default for future images.
 
+![Number label formatting dialog](Pictures/06d_nummern_formatieren.png)
+
 Below it you'll find the **"Start with the bottom row"** checkbox (see [6.3](#63-row-mode)). It applies to the **currently open image** only and, unlike the label position, takes effect immediately: the numbers are reassigned right away and the name list follows along – no "Redetect" needed, and the names you've entered are preserved. The chosen direction is **stored in the image** when you save: reopen it later and it keeps its numbering, even if the default has changed in the meantime.
 
 ---
@@ -166,7 +168,11 @@ In the **Name list** area on the right:
 
 Use the eye icon to show/hide the name list, and the gear icon to open formatting (font/colors/size). There you also set the **number of columns** (1–4) that the name list is split into in the image preview and export (JPG/PDF). The input table in the text/list area itself is unaffected and still shows only the two columns *No.* and *Name*.
 
-![Name list in the text/list area](Pictures/07_namensliste.png)
+![Name list formatting dialog](Pictures/07c_namensliste_formatieren.png)
+
+**Name list position:** By default the name list sits below the image. Alternatively it can go **to the right of the image** — handy for portrait photos or when the result should be wide rather than tall. Set the position and the width of the side list (15–100 % of the image width) for the current image in the name list's formatting dialog; "Use as default" or the *Formatting* tab in Settings (see [10.1](#101-formatting)) makes the choice the default for newly opened images. The title and description then span image and list, the image ID stays below the image. If the list is taller than the image, the result grows accordingly.
+
+![Name list to the right of the image](Pictures/07b_namensliste_seitlich.png)
 
 ---
 
@@ -240,6 +246,8 @@ For each of the following blocks you can set font size, font color, and backgrou
 - Image ID
 - Name list
 
+Below the name list you also set the **name list position** (below the image or to its right) and the width of the side list as the default for new images (see [Chapter 7](#7-name-list)).
+
 The **"Apply to current image"** button immediately applies all default values set here to the currently open image.
 
 ![Settings – Formatting tab](Pictures/10a_einstellungen_formatierung.png)
@@ -286,8 +294,12 @@ For technically interested users: a detailed explanation of the method is availa
 
 AutoNumber records its main steps — files opened and saved, AutoNum data found, faces detected, warnings and errors — in a log file. It contains no image content or names, only file names and technical details. If something doesn't work as expected, this file helps with troubleshooting: please attach it to your bug report. **Help → Open log file** opens the current file in your default text editor.
 
+![Help menu with Open log file](Pictures/12_hilfe_menu.png)
+
 - **Write log:** turns the log file on or off (default: on).
 - **Log file location:** leave empty for the default location `%AppData%\AutoNum\autonum.log`, or pick another file via **Browse...**. Once the file grows beyond about 1 MB, it is set aside as `autonum.log.1` at the next start and a new one is begun.
+
+![Settings – Log tab](Pictures/10e_einstellungen_protokoll.png)
 
 ---
 

@@ -153,6 +153,9 @@ Wenn Sie das Bild gar nicht in Reihen aufteilen möchten, löschen Sie im Reihen
 
 Zusätzlich enthält dieser Dialog ein 3x3-Raster **Position des Labels im Gesicht**, mit dem Sie festlegen, an welcher Stelle des erkannten Gesichts das Nummern-Label zentriert wird. Anders als in den Einstellungen (siehe [Kapitel 10.3](#103-erkennung)) wirkt sich die Auswahl hier nur auf das **aktuell geöffnete Bild** aus und ändert nicht den Standardwert für künftig geöffnete Bilder. Über den Button **„Neu Erkennen"** direkt daneben wiederholen Sie die Gesichtserkennung mit der gewählten Position; sind bereits Namen eingetragen, erscheint vorher dieselbe Sicherheitsabfrage wie unter [6.1](#61-automatische-erkennung). Über **„Als Standard übernehmen"** lässt sich die aktuelle Auswahl – wie auch Größe und Farben – als neuer Standardwert für künftig geöffnete Bilder speichern.
 
+![Formatierungsdialog der Nummern-Label](Pictures/06d_nummern_formatieren.png)
+<!-- Zeigt: Formatierungsdialog der Nummern mit Schrift/Farben, 3x3-Raster, "Neu Erkennen" und dem Schalter "Mit der untersten Reihe beginnen". Screenshot für V2.5 aufgenommen. -->
+
 Darunter finden Sie das Kontrollkästchen **„Mit der untersten Reihe beginnen"** (siehe [6.3](#63-reihenmodus)). Es gilt nur für das **aktuell geöffnete Bild**; im Gegensatz zur Label-Position wirkt es sofort: Die Nummern werden unmittelbar neu vergeben, und die Namensliste zieht direkt nach – ein „Neu Erkennen" ist dafür nicht nötig und die eingetragenen Namen bleiben erhalten. Die gewählte Richtung wird beim Speichern **im Bild mitgespeichert**: Öffnen Sie das Bild später wieder, behält es seine Nummerierung, auch wenn der Standardwert inzwischen ein anderer ist.
 
 ---
@@ -167,8 +170,13 @@ Rechts im Bereich **Namensliste**:
 
 Über das Augen-Symbol blenden Sie die Namensliste ein/aus, über das Zahnrad-Symbol öffnen Sie die Formatierung (Schrift/Farben/Größe). Dort legen Sie auch die **Zahl der Spalten** (1–4) fest, in die die Namensliste in der Bildvorschau und im Export (JPG/PDF) aufgeteilt wird. Die Eingabetabelle im Text-/Listenbereich bleibt davon unverändert und zeigt weiterhin nur die zwei Spalten *Nr.* und *Name*.
 
-![Namensliste im Text-/Listenbereich](Pictures/07_namensliste.png)
-<!-- Zeigt: rechte Spalte mit ausgefüllter Namensliste, Augen- und Zahnrad-Icon sichtbar -->
+![Formatierungsdialog der Namensliste](Pictures/07c_namensliste_formatieren.png)
+<!-- Zeigt: Formatierungsdialog der Namensliste mit Schrift/Farben, Spalten, Reihentrenner, Reihentext, Position und Breite. Screenshot für V2.5 aufgenommen. -->
+
+**Position der Namensliste:** Standardmäßig steht die Namensliste unter dem Bild. Alternativ lässt sie sich **rechts neben das Bild** setzen – praktisch bei Hochformat-Fotos oder wenn das Ergebnis eher breit als hoch werden soll. Position und Breite der seitlichen Liste (15–100 % der Bildbreite) stellen Sie im Formatierungsdialog der Namensliste für das aktuelle Bild ein; über „Als Standard übernehmen" oder im Reiter *Formatierung* der Einstellungen (siehe [10.1](#101-formatierung)) wird die Wahl zum Standard für neu geöffnete Bilder. Überschrift und Beschreibung erstrecken sich dann über Bild und Liste, die Bild-ID bleibt unter dem Bild. Ist die Liste länger als das Bild hoch ist, wird das Ergebnis entsprechend höher.
+
+![Namensliste rechts neben dem Bild](Pictures/07b_namensliste_seitlich.png)
+<!-- Zeigt: Bildvorschau mit nummeriertem Gruppenfoto und der Namensliste (mit Reihentrennern) rechts daneben. Screenshot für V2.5 aufgenommen. -->
 
 ---
 
@@ -244,10 +252,12 @@ Für jeden der folgenden Blöcke lassen sich Schriftgröße, Schriftfarbe und Hi
 - Bild-ID
 - Namensliste
 
+Unter der Namensliste legen Sie außerdem die **Position der Namensliste** (unter dem Bild oder rechts daneben) und die Breite der seitlichen Liste als Standard für neue Bilder fest (siehe [Kapitel 7](#7-namensliste)).
+
 Der Button **„Auf das aktuelle Bild anwenden"** überträgt alle hier eingestellten Standardwerte sofort auf das gerade geöffnete Bild.
 
 ![Einstellungen – Tab Formatierung](Pictures/10a_einstellungen_formatierung.png)
-<!-- Zeigt: Formatierung-Tab mit den Schriftgrößen-/Farbreglern für Nummern, Titel, Beschreibung, Bild-ID, Namensliste -->
+<!-- Zeigt: Formatierung-Tab mit den Schriftgrößen-/Farbreglern für Nummern, Titel, Beschreibung, Bild-ID, Namensliste sowie Position und Breite der Namensliste. Screenshot für V2.5 neu aufgenommen (fünf Reiter). -->
 
 ### 10.2 Sichtbarkeit
 
@@ -261,7 +271,7 @@ Legt fest, welche Elemente bei neu geöffneten Bildern standardmäßig sichtbar 
 Diese Einstellungen wirken sich nur auf neue Bilder aus; die Sichtbarkeit lässt sich pro Bild jederzeit über die Augen-Symbole im Text-/Listenbereich individuell anpassen. Der Button **„Anwenden"** überträgt die gewählten Standardwerte sofort auf das gerade geöffnete Bild.
 
 ![Einstellungen – Tab Sichtbarkeit](Pictures/10b_einstellungen_sichtbarkeit.png)
-<!-- Zeigt: Sichtbarkeit-Tab mit den vier Toggle-Switches -->
+<!-- Zeigt: Sichtbarkeit-Tab mit den vier Toggle-Switches. Screenshot für V2.5 neu aufgenommen (fünf Reiter). -->
 
 ### 10.3 Erkennung
 
@@ -278,7 +288,7 @@ Die Gesichtserkennung läuft vollständig lokal auf Ihrem Rechner: Es werden kei
 Für Nutzer mit technischem Interesse: eine ausführliche Erklärung des Verfahrens findet sich im offiziellen [OpenCV-Beitrag zu YuNet](https://docs.opencv.org/4.x/df/d20/classcv_1_1FaceDetectorYN.html).
 
 ![Einstellungen – Tab Erkennung](Pictures/10c_einstellungen_erkennung.png)
-<!-- Zeigt: Erkennung-Tab mit Gesichts-/Reihenerkennung-Toggles, 3x3-Anker-Raster und dem Schalter "Mit der untersten Reihe beginnen" (ohne "Neu Erkennen"-Button). Screenshot für V2.4.0 neu aufgenommen. -->
+<!-- Zeigt: Erkennung-Tab mit Gesichts-/Reihenerkennung-Toggles, 3x3-Anker-Raster und dem Schalter "Mit der untersten Reihe beginnen" (ohne "Neu Erkennen"-Button). Screenshot für V2.5 neu aufgenommen (fünf Reiter). -->
 
 ### 10.4 Export
 
@@ -288,13 +298,19 @@ Für Nutzer mit technischem Interesse: eine ausführliche Erklärung des Verfahr
 - **CSV (Excel) Daten** / **JSON Daten:** aktiviert den zusätzlichen Metadaten-Export beim Speichern (siehe [Kapitel 11](#11-csvjson-metadaten-export)).
 
 ![Einstellungen – Tab Export](Pictures/10d_einstellungen_export.png)
+<!-- Zeigt: Export-Tab mit Standardformat, Suffix, Ausgabeordner und den CSV/JSON-Schaltern. Screenshot für V2.5 neu aufgenommen (fünf Reiter). -->
 
 ### 10.5 Protokoll
 
 AutoNumber hält die wichtigsten Schritte – geöffnete und gespeicherte Dateien, gefundene AutoNum-Daten, erkannte Gesichter, Warnungen und Fehler – in einer Protokolldatei fest. Sie enthält keine Bildinhalte oder Namen, nur Dateinamen und technische Angaben. Wenn etwas nicht wie erwartet funktioniert, hilft diese Datei bei der Fehlersuche: Bitte fügen Sie sie einer Fehlermeldung bei. Über **Hilfe → Protokolldatei öffnen** wird die aktuelle Datei im Standard-Texteditor geöffnet.
 
+![Hilfe-Menü mit Protokolldatei öffnen](Pictures/12_hilfe_menu.png)
+
 - **Protokoll schreiben:** schaltet die Protokolldatei ein oder aus (Standard: ein).
 - **Speicherort der Protokolldatei:** leer lassen für den Standard-Speicherort `%AppData%\AutoNum\autonum.log`, oder über **Durchsuchen...** eine andere Datei wählen. Wird die Datei größer als etwa 1 MB, wird sie beim nächsten Programmstart als `autonum.log.1` beiseitegelegt und eine neue begonnen.
+
+![Einstellungen – Tab Protokoll](Pictures/10e_einstellungen_protokoll.png)
+<!-- Zeigt: Protokoll-Tab mit dem Schalter "Protokoll schreiben" und dem Speicherort der Protokolldatei. Screenshot für V2.5 aufgenommen. -->
 
 ---
 
