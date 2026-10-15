@@ -94,6 +94,10 @@ AutoNum/
 - Reading (`FileManager.ReadJpegMetadata`): APP4 JSON first, then `BitmapExtensions.GetLegacyMetadata` (EXIF `UserComment`) as the fallback for files written by older versions. The file is read into memory once and the same bytes feed the bitmap decoder, the metadata reader and the patch reader.
 - `WriteJpg` catches `ExternalException` from the GDI+ encoder and shows an error dialog instead of crashing, as a safety net for any remaining EXIF-size edge case (e.g. an original whose APP1 is already at the 64 KB limit).
 
+### Unhandled Exceptions
+- `App.xaml.cs` wires the three global hooks at startup: `DispatcherUnhandledException` (UI thread, including `async void` command handlers — marked `Handled` so the app stays alive and the user can still save), `AppDomain.UnhandledException` (non-UI threads — the process still terminates afterwards, but the user learns why) and `TaskScheduler.UnobservedTaskException` (logged only, then observed).
+- Every hook appends the full exception (`ToString()`, with inner exceptions and stack) plus timestamp, app version and origin to `%AppData%/AutoNum/error.log` (`App.ErrorLogPath`, next to `settings.json`) and shows a `MessageBox` naming that file so users can attach it to a bug report. This is the last line of defence, not a substitute for proper error handling in commands — a failure the app silently died from before 2.5 (GDI+ encoder error on save) is the kind of thing it is meant to surface.
+
 ### Scale-Factor Sizing Model
 - Label diameter baseline is computed once from detected face size (or an image-width fallback).
 - Label font 100% baseline is fitted to that baseline diameter.
