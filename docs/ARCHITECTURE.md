@@ -270,7 +270,7 @@ Reviewed and deliberately kept (see `docs/CODE_REVIEW_2026-07-11.md`):
 - **`ZoomBorder`** keeps the generic naming of the well-known pan/zoom snippet it is based on ("child" etc.); it is self-contained view plumbing.
 
 ## External Dependencies
-- **Emgu.CV** — face detection via `FaceDetectorYN` (YuNet ONNX model, `Classifiers/face_detection_yunet_2023mar.onnx`); fixed score/NMS thresholds, not user-configurable
+- **Emgu.CV** — face detection via `FaceDetectorYN` (YuNet ONNX model, `Classifiers/face_detection_yunet_2023mar.onnx`); fixed score/NMS thresholds, not user-configurable. Images above `FaceDetector.MaxDetectionPixels` (40 MP) are downscaled for detection only and the rectangles scaled back: the network runs at input size (~50 bytes working memory per pixel) and OpenCV DNN dies with an uncatchable native access violation somewhere above ~200 MP
 - **MahApps.Metro** — WPF shell + dialogs
 - **CommunityToolkit.Mvvm** — messenger only
 - **QuestPDF** — PDF rendering and standards-compliant PDF attachment embedding
